@@ -1,5 +1,5 @@
 <b>Product Backlog:</b>
-* Alterar controlo de temperatura
+* Alterar controlo de temperatura<\n>
 	o Verificação se é manual ou automático (mudar de um para o outro)
 * Alterar controlo de luminosidade 
 	o Verificação se é manual ou automático (mudar de um para o outro)
