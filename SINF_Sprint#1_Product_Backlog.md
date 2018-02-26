@@ -1,10 +1,10 @@
 <b>Product Backlog:</b>
-* Alterar controlo de temperatura<\n>
-	o Verificação se é manual ou automático (mudar de um para o outro)
+* Alterar controlo de temperatura
+	* Verificação se é manual ou automático (mudar de um para o outro)
 * Alterar controlo de luminosidade 
-	o Verificação se é manual ou automático (mudar de um para o outro)
+	* Verificação se é manual ou automático (mudar de um para o outro)
 * Alterar controlo de humidade 
-	o Verificação se é manual ou automático (mudar de um para o outro)
+	* Verificação se é manual ou automático (mudar de um para o outro)
 * Retirar/Desabilitar sensor (dúvida!!)
 * Adicionar sensor
 * Retirar/Desabilitar atuador (dúvida!!)
