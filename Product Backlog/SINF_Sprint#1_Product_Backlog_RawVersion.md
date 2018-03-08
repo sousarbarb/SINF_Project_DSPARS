@@ -16,3 +16,4 @@
 * Adicionar/retirar divisões (verificar se pertence a este sprint!!)
 * Passar estado dos atuadores para o quadro de LEDs’
 * Gerar relatório (possibilidade de pertencer aos sprints 1 e 2)
+* Controlar manualmete os atuadores dos diversos parâmetros
