@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 		printf("Insert the country which user2 is from (please press Enter after that): ");
 		fgets(user2.country, STRING_MAX, stdin);
 		user2.country[strlen(user2.country)-1]='\0';	// To eliminate the character '\n' from the string user2.country
-		
+	
 		/****************************************************************************************************
 		 * NOTE:
 		 * We cannot use the scanf function because it only read until a space is found. To read a complete
