@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 {
 	int i;
 	if(3 != argc){
-		printf("Please run the program on the correctly form:\n\t./teste_v1_08032018 Username Country\n");
+		printf("Please run the program on the correctly form:\n\t./teste_v1_08032018 \"Username\" \"Country\"\n");
 		printf("Number of arguments: %d\n", argc);
 		exit(0);
 		/****************************************************************************************
