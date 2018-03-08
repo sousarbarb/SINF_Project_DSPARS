@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 		 ****************************************************************************************/ 
 	}
 	printf("Hello world, by %s from %s.\n", argv[1], argv[2]);
-
+	
 	// Content of the arguments
 	for(i=0; i<argc; i++)
 		printf("Argument %d: \"%s\"\n", i+1, argv[i]);
