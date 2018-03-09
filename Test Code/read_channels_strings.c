@@ -1,7 +1,9 @@
 /*
- * read_channels.c
+ * read_channels_strings.c
  * 
- * Copyright 2018 Ricardo Barbosa Sousa <sousa@debian-rbsousa>
+ * Copyright 2018	Daniel Queirós da Silva		<up201503071@fe.up.pt>
+ * 					Pedro de Castro Albergaria	<up201504635@fe.up.pt>
+ * 					Ricardo Barbosa Sousa		<up201503004@fe.up.pt>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +28,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define BUFFER	100
+
+FILE *f = NULL;
+
 int main(int argc, char **argv)
 {
-	
+	int  nmessages = 0;
+	char buff[BUFFER]={0};
+	f = fopen("/dev/pts/1", "r");
+	while(1){
+		if(NULL != fgets(buff, BUFFER, f)){
+			printf("[%d] %s\n", nmessages, buff);
+			nmessages++;
+		}
+	}
 	return 0;
 }
 
