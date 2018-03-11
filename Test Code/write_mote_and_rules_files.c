@@ -1,7 +1,10 @@
 /*
  * write_mote_and_rules_files.c
  * 
- * Copyright 2018 Pedro Albergaria <pedro@PedroAlbergaria>
+ * Copyright 2018	
+ *     Daniel Queirós da Silva		<up201503071@fe.up.pt>
+ *     Pedro de Castro Albergaria	<up201504635@fe.up.pt>
+ *     Ricardo Barbosa Sousa		<up201503004@fe.up.pt>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
