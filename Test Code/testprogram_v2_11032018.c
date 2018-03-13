@@ -55,7 +55,6 @@ void *read_sensors_data(void *arg){
 			printf("TH_RSD[%d]: %s\n", counter, str_test);
 		}
 	}
-	printf("Thread of reading sensor data is ended.\n");
 	pthread_exit(NULL);
 }
 
@@ -75,7 +74,6 @@ void *print_data(void *arg){
 		else
 			printf("Select a valid option\n");
 	}
-	printf("Thread that prints data is ended.\n");
 	pthread_exit(NULL);
 }
 
@@ -106,7 +104,9 @@ int main(int argc, char **argv)
 	
 	// Program is finished
 	printf("\nPROGRAM ENDED\n");
+	pthread_cancel(pth1);
+	pthread_cancel(pth2);
 	fclose(channel);
 	return 0;
+	exit(0);
 }
-
