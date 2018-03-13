@@ -53,7 +53,6 @@ int main(int argc, char **argv)
 	/****************
 	 * INIT ROUTINE
 	 ****************/
-	 
 	// Verifying if the arguments put on the program execution were correct
 	char directory_channel[strlen(argv[ARG_NUMBER_CHANNEL])-1];
 	int counter1;
