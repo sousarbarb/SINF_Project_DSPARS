@@ -102,7 +102,6 @@ int main(int argc, char **argv)
 	flag_thread_reading_data = 1;
 	pthread_create(&pth1, NULL, read_sensors_data, NULL);
 	pthread_create(&pth2, NULL, print_data, NULL);
-	pthread_join(pth1, NULL);
 	pthread_join(pth2, NULL);
 	
 	// Program is finished
