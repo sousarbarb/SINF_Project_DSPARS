@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LINE	69
+#define LINE	70
 #define WORD	6
 
 #define BASE	16
@@ -58,11 +58,11 @@
 #define	LIGHT_BOTTOM	48
 #define	LIGHT_TOP		52
 #define	END_BOTTOM		66
-#define	END_TOP			68 //contando com o parágrafo ("\n")
+#define	END_TOP			67
 
 #define SPACE			2
 
-FILE *f = NULL;
+//FILE *f = NULL;
 
 int multiplication_by_10(int times){
 	
@@ -106,195 +106,201 @@ float calculate_visible_light (int number_Visible_Light){
 }
 int main(int argc, char **argv)
 {
+	FILE *f_read;
+	
 	int nmessages = 1, step_line = 0, step_word = 0, fill_up = 0, times_10 = 0, times_16 = 0;
 	int	decimal_id = 0, convert = 0, flag_invalid = 0, decimal_temp = 0, decimal_humid = 0, decimal_visible_light = 0;
 	float temperature = 0, relative_humidity = 0, humidity_compensated_by_temperature = 0, visible_light = 0;
 	char line[LINE]={0}, word[WORD]={0};
 	
-	f = fopen("/dev/pts/3", "r");
-	
-	while(1){
-		if(NULL != fgets(line, LINE, f)){
-			printf("\n[%d] %s\n", nmessages, line);
+	f_read = fopen("/dev/pts/5", "r"); //vai receber strings do programa"file_strings_to_channels"no canal 5
+												//compilar apenas com - ./manipulate_data
+	while(NULL != fgets(line, LINE, f_read)){
+		if(strncmp(line,"\n",3) == 0)
+			nmessages+= 0;
+		else{
+			printf("\n[%d] %s\n", nmessages,line);
 			nmessages++;
-		}
-		
-	/*Ciclo que percorre uma linha de informação completa*/	
-		for(step_line = 0; step_line < strlen(line); step_line++){
+			
+		/*Ciclo que percorre uma linha de informação completa*/	
+			for(step_line = 0; step_line < strlen(line); step_line++){
+
+					
+			/*Início de cada linha da mensagem*/
+				if(INIT_BOTTOM == step_line){
+					fill_up = 0;
+					for(step_word = INIT_BOTTOM; step_word <= INIT_TOP; step_word++){
+						if(step_word != (INIT_BOTTOM + SPACE)){
+							word[fill_up] = line[step_word];
+							fill_up++;
+						}
+					}
+					word[fill_up] = '\0';
+					
+					if(0 == strcmp(word,"7E45")){
+						printf("Valid init!\n");
+					}
+					else {
+						printf("ERROR[%d] - The message start bytes are incorrect!\n",ERROR1);
+						//break;
+					}
+				}
 				
-		/*Início de cada linha da mensagem*/
-			if(INIT_BOTTOM == step_line){
-				fill_up = 0;
-				for(step_word = INIT_BOTTOM; step_word <= INIT_TOP; step_word++){
-					if(step_word != (INIT_BOTTOM + SPACE)){
+			/*MOTE ID de cada linha da mensagem*/	
+				else if(MOTE_ID_BOTTOM == step_line){
+					flag_invalid = 0;
+					times_10 = 0;
+					decimal_id = 0;
+					for(step_word = MOTE_ID_BOTTOM; step_word <= MOTE_ID_TOP; step_word++){
+						convert = line[step_word] - '0';
+						if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (MOTE_ID_BOTTOM + SPACE))){
+							decimal_id = decimal_id + convert*multiplication_by_10(times_10);
+							times_10++;
+						}
+						else if(!((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (MOTE_ID_BOTTOM + SPACE))){
+							flag_invalid = 1;
+							break;
+						}
+						else{
+							decimal_id += 0;
+						}
+					}
+					if((decimal_id > 9999) || (flag_invalid)){
+						printf("ERROR[%d] - Mote ID invalid!\n",ERROR2);
+						//break;
+					}
+					else{
+						printf("Mote ID: %d\n",decimal_id);
+					}
+				}
+				
+			/*Parâmetro de Temperatura*/
+				else if(TEMP_BOTTOM == step_line){
+					flag_invalid = 0;
+					times_16 = 0;
+					decimal_temp = 0;
+					for(step_word = TEMP_TOP; step_word >= TEMP_BOTTOM; step_word--){
+						convert = line[step_word] - '0';
+						if((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F) && (step_word != (TEMP_BOTTOM + SPACE))){
+							convert = line[step_word] - 'A' + 10;
+							decimal_temp = decimal_temp + convert*power(BASE,times_16);
+							times_16++;
+						}
+						else if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (TEMP_BOTTOM + SPACE))){
+							decimal_temp = decimal_temp + convert*power(BASE,times_16);
+							times_16++;
+						}
+						else if(!((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F)) && !((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (TEMP_BOTTOM + SPACE))){ 
+							flag_invalid = 1;
+							break;
+						}
+						else{
+							decimal_temp += 0;
+						}
+					}
+					if(flag_invalid){
+						printf("ERROR[%d] - Temperature parameter invalid!\n",ERROR3);
+						//break;
+					}
+					else{
+						//printf("Temperatura decimal = %d\n", decimal_temp);
+						temperature = calculate_temperature(decimal_temp);
+						printf("Temperature = %.2f ºC\n",temperature);
+					}
+				}
+				
+			/*Parâmetro de Humidade*/	
+				else if(HUMID_BOTTOM == step_line){
+					flag_invalid = 0;
+					times_16 = 0;
+					decimal_humid = 0;
+					for(step_word = HUMID_TOP; step_word >= HUMID_BOTTOM; step_word--){
+						convert = line[step_word] - '0';
+						if((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F) && (step_word != (HUMID_BOTTOM + SPACE))){
+							convert = line[step_word] - 'A' + 10;
+							decimal_humid = decimal_humid + convert*power(BASE,times_16);
+							times_16++;
+						}
+						else if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (HUMID_BOTTOM + SPACE))){
+							decimal_humid = decimal_humid + convert*power(BASE,times_16);
+							times_16++;
+						}
+						else if(!((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F)) && !((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (HUMID_BOTTOM + SPACE))){
+							flag_invalid = 1;
+							break;
+						}
+						else{
+							decimal_humid += 0;
+						}
+					}
+					if(flag_invalid){
+						printf("ERROR[%d] - Humidity parameter invalid!\n",ERROR4);
+						//break;
+					}
+					else{
+					//printf("Humidade decimal = %d\n",decimal_humid);
+					relative_humidity = calculate_relative_humidity(decimal_humid);
+					printf("Relative humidity = %.2f %\n",relative_humidity);
+					humidity_compensated_by_temperature = calculate_humidity_compensated_by_temperature(decimal_humid,relative_humidity,temperature);
+					printf("Humidity compensated by temperature = %.2f %\n",humidity_compensated_by_temperature);
+					}
+				}
+				
+			/*Parâmetro de luz visível*/	
+				else if(LIGHT_BOTTOM == step_line){
+					flag_invalid = 0;
+					times_16 = 0;
+					decimal_visible_light = 0;
+					for(step_word = LIGHT_TOP; step_word >= LIGHT_BOTTOM; step_word--){
+						convert = line[step_word] - '0';
+						if((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F) && (step_word != (LIGHT_BOTTOM + SPACE))){
+							convert = line[step_word] - 'A' + 10;
+							decimal_visible_light = decimal_visible_light + convert*power(BASE,times_16);
+							times_16++;
+						}
+						else if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (LIGHT_BOTTOM + SPACE))){
+							decimal_visible_light = decimal_visible_light + convert*power(BASE,times_16);
+							times_16++;
+						}
+						else if(!((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F)) && !((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (LIGHT_BOTTOM + SPACE))){
+							flag_invalid = 1;
+							break;
+						}
+						else{
+							decimal_visible_light += 0;
+						}
+					}
+					if(flag_invalid){
+						printf("ERROR[%d] - Visible light parameter invalid!\n",ERROR5);
+						//break;
+					}
+					else{
+					//printf("Luz visível decimal = %d\n",decimal_visible_light);
+					visible_light = calculate_visible_light(decimal_visible_light);
+					printf("Visible light = %.2f lux\n", visible_light);
+					}
+				}
+				
+			/*Fim da linha*/	
+				else if (END_BOTTOM == step_line){
+					fill_up = 0;
+					for(step_word = END_BOTTOM; step_word <= END_TOP; step_word++){
 						word[fill_up] = line[step_word];
 						fill_up++;
 					}
-				}
-				word[fill_up] = '\0';
-				
-				if(0 == strcmp(word,"7E45")){
-					printf("Valid init!\n");
-				}
-				else {
-					printf("ERROR[%d] - The message start bytes are incorrect!\n",ERROR1);
-					//break;
-				}
-			}
-			
-		/*MOTE ID de cada linha da mensagem*/	
-			else if(MOTE_ID_BOTTOM == step_line){
-				flag_invalid = 0;
-				times_10 = 0;
-				decimal_id = 0;
-				for(step_word = MOTE_ID_BOTTOM; step_word <= MOTE_ID_TOP; step_word++){
-					convert = line[step_word] - '0';
-					if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (MOTE_ID_BOTTOM + SPACE))){
-						decimal_id = decimal_id + convert*multiplication_by_10(times_10);
-						times_10++;
-					}
-					else if(!((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (MOTE_ID_BOTTOM + SPACE))){
-						flag_invalid = 1;
+					word[fill_up] = '\0';
+					if(0 == strcmp(word,"7E")){
+						printf("Valid end!\n");
 						break;
 					}
-					else{
-						decimal_id += 0;
-					}
-				}
-				if((decimal_id > 9999) || (flag_invalid)){
-					printf("ERROR[%d] - Mote ID invalid!\n",ERROR2);
-					//break;
-				}
-				else{
-					printf("Mote ID: %d\n",decimal_id);
-				}
-			}
-			
-		/*Parâmetro de Temperatura*/
-			else if(TEMP_BOTTOM == step_line){
-				flag_invalid = 0;
-				times_16 = 0;
-				decimal_temp = 0;
-				for(step_word = TEMP_TOP; step_word >= TEMP_BOTTOM; step_word--){
-					convert = line[step_word] - '0';
-					if((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F) && (step_word != (TEMP_BOTTOM + SPACE))){
-						convert = line[step_word] - 'A' + 10;
-						decimal_temp = decimal_temp + convert*power(BASE,times_16);
-						times_16++;
-					}
-					else if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (TEMP_BOTTOM + SPACE))){
-						decimal_temp = decimal_temp + convert*power(BASE,times_16);
-						times_16++;
-					}
-					else if(!((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F)) && !((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (TEMP_BOTTOM + SPACE))){ 
-						flag_invalid = 1;
+					else {
+						printf("ERROR[%d] - Invalid end!\n",ERROR6);
 						break;
 					}
-					else{
-						decimal_temp += 0;
-					}
-				}
-				if(flag_invalid){
-					printf("ERROR[%d] - Temperature parameter invalid!\n",ERROR3);
-					//break;
-				}
-				else{
-					//printf("Temperatura decimal = %d\n", decimal_temp);
-					temperature = calculate_temperature(decimal_temp);
-					printf("Temperature = %.2f ºC\n",temperature);
-				}
-			}
-			
-		/*Parâmetro de Humidade*/	
-			else if(HUMID_BOTTOM == step_line){
-				flag_invalid = 0;
-				times_16 = 0;
-				decimal_humid = 0;
-				for(step_word = HUMID_TOP; step_word >= HUMID_BOTTOM; step_word--){
-					convert = line[step_word] - '0';
-					if((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F) && (step_word != (HUMID_BOTTOM + SPACE))){
-						convert = line[step_word] - 'A' + 10;
-						decimal_humid = decimal_humid + convert*power(BASE,times_16);
-						times_16++;
-					}
-					else if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (HUMID_BOTTOM + SPACE))){
-						decimal_humid = decimal_humid + convert*power(BASE,times_16);
-						times_16++;
-					}
-					else if(!((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F)) && !((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (HUMID_BOTTOM + SPACE))){
-						flag_invalid = 1;
-						break;
-					}
-					else{
-						decimal_humid += 0;
-					}
-				}
-				if(flag_invalid){
-					printf("ERROR[%d] - Humidity parameter invalid!\n",ERROR4);
-					//break;
-				}
-				else{
-				//printf("Humidade decimal = %d\n",decimal_humid);
-				relative_humidity = calculate_relative_humidity(decimal_humid);
-				printf("Relative humidity = %.2f %\n",relative_humidity);
-				humidity_compensated_by_temperature = calculate_humidity_compensated_by_temperature(decimal_humid,relative_humidity,temperature);
-				printf("Humidity compensated by temperature = %.2f %\n",humidity_compensated_by_temperature);
-				}
-			}
-			
-		/*Parâmetro de luz visível*/	
-			else if(LIGHT_BOTTOM == step_line){
-				flag_invalid = 0;
-				times_16 = 0;
-				decimal_visible_light = 0;
-				for(step_word = LIGHT_TOP; step_word >= LIGHT_BOTTOM; step_word--){
-					convert = line[step_word] - '0';
-					if((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F) && (step_word != (LIGHT_BOTTOM + SPACE))){
-						convert = line[step_word] - 'A' + 10;
-						decimal_visible_light = decimal_visible_light + convert*power(BASE,times_16);
-						times_16++;
-					}
-					else if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (LIGHT_BOTTOM + SPACE))){
-						decimal_visible_light = decimal_visible_light + convert*power(BASE,times_16);
-						times_16++;
-					}
-					else if(!((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F)) && !((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (LIGHT_BOTTOM + SPACE))){
-						flag_invalid = 1;
-						break;
-					}
-					else{
-						decimal_visible_light += 0;
-					}
-				}
-				if(flag_invalid){
-					printf("ERROR[%d] - Visible light parameter invalid!\n",ERROR5);
-					//break;
-				}
-				else{
-				//printf("Luz visível decimal = %d\n",decimal_visible_light);
-				visible_light = calculate_visible_light(decimal_visible_light);
-				printf("Visible light = %.2f lux\n", visible_light);
-				}
-			}
-			
-		/*Fim da linha*/	
-			else if (END_BOTTOM == step_line){
-				fill_up = 0;
-				for(step_word = END_BOTTOM; step_word <= END_TOP; step_word++){
-					word[fill_up] = line[step_word];
-					fill_up++;
-				}
-				word[fill_up] = '\0';
-				if(0 == strcmp(word,"7E\n")){
-					printf("Valid end!\n");
-					break;
-				}
-				else {
-					printf("ERROR[%d] - Invalid end!\n",ERROR6);
-					break;
 				}
 			}
 		}
 	}		
+	fclose(f_read);
 	return 0;
 }
