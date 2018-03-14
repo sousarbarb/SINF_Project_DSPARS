@@ -28,43 +28,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-#include <unistd.h>
 
-#define STRING_LENGHT 100
-#define SLEEP_TIME 0.5
+#define STRING_LENGHT 70
 
-void print_time(time_t tt) {
-	char buffer[80] = {0};
-	struct tm* st = localtime(&tt);
-	strftime(buffer, 80, "%c", st);
-	printf("%s\n", buffer);
-}
 
 int main(int argc, char **argv)
 {
 	FILE *data_strings = NULL, *channel = NULL;
 	char str_test[STRING_LENGHT]={0};
-	int counter1 = 0;
-	time_t t = time(NULL);
 
 	/* opening file for reading */
 	data_strings = fopen("msg.txt" , "r");
-	channel = fopen("/dev/pts/1", "w");
+	channel = fopen("/dev/pts/4", "w"); //compilar com - ./file_strings_to_channels "/dev/pts/4"
 	
 	if(data_strings == NULL) {
 		perror("Error opening file");
 		return(-1);
 
    }
-   
-   print_time(t);
-   
+
    while(1) {
-		while(fgets(str_test, STRING_LENGHT, data_strings) != NULL && counter1<60) {
+		while(fgets(str_test, STRING_LENGHT, data_strings) != NULL) {
 			if((str_test[0] != '\n')) {
 				printf("%s\n", str_test);
-				counter1++;
 			}
 			fprintf(channel, "%s\n", str_test);
 		}
