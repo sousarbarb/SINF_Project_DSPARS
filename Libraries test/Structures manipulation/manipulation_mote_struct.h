@@ -50,4 +50,8 @@ void free_mote_memory(mote** system_motes, int number_motes, int * error_func);
 
 int search_mote(mote** system_motes, int number_motes, int mote_id, int * error_func);
 
+void print_motes_vector(mote** system_motes, int number_motes, int * error_func);
+
+void print_single_mote(mote** system_motes, int number_motes, int mote_id, int * error_func);
+
 #endif

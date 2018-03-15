@@ -35,7 +35,7 @@ mote ** mote_vector_creation(int number_motes, int * error_func){
 	
 	
 	// Function's code
-	int counter;
+	int counter, aux = 0;
 	mote **system_motes = NULL;
 	system_motes = (mote **) malloc(sizeof(mote *) * number_motes);
 	if(NULL == system_motes){
@@ -53,7 +53,15 @@ mote ** mote_vector_creation(int number_motes, int * error_func){
 				(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_2;
 			return NULL;
 		}
-		system_motes[counter]->id = 0;
+		do{
+			printf("[%d] Insert the mote id (must be higher than 0): ", counter);
+			scanf(" %d", &aux);
+			getchar();
+			if(0 < counter) 
+				if(0 <= search_mote(system_motes, counter, aux, NULL))
+					aux = 0;
+		}while(1 > aux);
+		system_motes[counter]->id = aux;
 		system_motes[counter]->luminosity = 0;
 		system_motes[counter]->temperature = 0;
 		system_motes[counter]->humidity = 0;
@@ -115,7 +123,10 @@ int search_mote(mote** system_motes, int number_motes, int mote_id, int * error_
 	
 	// Function's code
 	int counter;
-	for(counter = 0; (mote_id != system_motes[counter]->id) && (number_motes > counter); counter++);
+	for(counter = 0; (counter < number_motes); counter++)
+		if(mote_id == system_motes[counter]->id)
+			break;
+			
 	if(number_motes == counter){
 		if(NULL != error_func)
 			(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_NONE;
@@ -126,4 +137,63 @@ int search_mote(mote** system_motes, int number_motes, int mote_id, int * error_
 			(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_NONE;
 		return counter;
 	}
+}
+
+void print_motes_vector(mote** system_motes, int number_motes, int * error_func){
+	// Argument error checking
+	if(NULL == system_motes){
+		printf("[ERROR_LIB_MAN_MOTE_STRUCT %d] print_motes_vector: Pointer to the mote's structure invalid.\n", ERROR_LIB_MAN_MOTE_STRUCT_3);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_3;
+		return;
+	}
+	else if(0 > number_motes){
+		printf("[ERROR_LIB_MAN_MOTE_STRUCT %d] print_motes_vector: Number of motes invalid.\n", ERROR_LIB_MAN_MOTE_STRUCT_1);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_1;
+		return;
+	}
+	
+	
+	// Function's code
+	int counter;
+	printf("\n+++++ MOTE'S VECTOR +++++\n");
+	for(counter = 0; number_motes > counter; counter++)
+		printf("[%d][MOTE ID: %d]\n    Luminosity  = %.2f lux\n    Temperature = %.2f ºC\n    Humidity    = %.2f %%\n", counter, system_motes[counter]->id, system_motes[counter]->luminosity, system_motes[counter]->temperature, system_motes[counter]->humidity);
+	printf("\n");
+	if(NULL != error_func)
+		(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_NONE;
+}
+
+void print_single_mote(mote** system_motes, int number_motes, int mote_id, int * error_func){
+	// Argument error checking
+	if(NULL == system_motes){
+		printf("[ERROR_LIB_MAN_MOTE_STRUCT %d] print_single_mote: Pointer to the mote's structure invalid.\n", ERROR_LIB_MAN_MOTE_STRUCT_3);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_3;
+		return;
+	}
+	else if(1 > number_motes){
+		printf("[ERROR_LIB_MAN_MOTE_STRUCT %d] print_single_mote: Number of motes invalid.\n", ERROR_LIB_MAN_MOTE_STRUCT_1);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_1;
+		return;
+	}
+	else if(1 > mote_id){
+		printf("[ERROR_LIB_MAN_MOTE_STRUCT %d] print_single_mote: Mote_id invalid invalid.\n", ERROR_LIB_MAN_MOTE_STRUCT_4);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_4;
+		return;
+	}
+	
+	
+	// Function's code
+	int m_position;
+	m_position = search_mote(system_motes, number_motes, mote_id, NULL);
+	if(0 <= m_position)
+		printf("[%d][MOTE ID: %d]\n    Luminosity  = %.2f lux\n    Temperature = %.2f ºC\n    Humidity    = %.2f %%\n", m_position, system_motes[m_position]->id, system_motes[m_position]->luminosity, system_motes[m_position]->temperature, system_motes[m_position]->humidity);
+	else
+		printf("[MOTE ID %d] Operation not possible -> it doesn't belong to the system motes.\n", mote_id);
+	if(NULL != error_func)
+		(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_NONE;
 }
