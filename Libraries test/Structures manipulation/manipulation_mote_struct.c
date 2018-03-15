@@ -117,7 +117,7 @@ int search_mote(mote** system_motes, int number_motes, int mote_id, int * error_
 		return -2;
 	}
 	else if(1 > mote_id){
-		printf("[ERROR_LIB_MAN_MOTE_STRUCT %d] search_mote: Mote_id invalid invalid.\n", ERROR_LIB_MAN_MOTE_STRUCT_4);
+		printf("[ERROR_LIB_MAN_MOTE_STRUCT %d] search_mote: Mote_id invalid.\n", ERROR_LIB_MAN_MOTE_STRUCT_4);
 		if(NULL != error_func)
 			(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_4;
 		return -2;
@@ -183,7 +183,7 @@ void print_single_mote(mote** system_motes, int number_motes, int mote_id, int *
 		return;
 	}
 	else if(1 > mote_id){
-		printf("[ERROR_LIB_MAN_MOTE_STRUCT %d] print_single_mote: Mote_id invalid invalid.\n", ERROR_LIB_MAN_MOTE_STRUCT_4);
+		printf("[ERROR_LIB_MAN_MOTE_STRUCT %d] print_single_mote: Mote_id invalid.\n", ERROR_LIB_MAN_MOTE_STRUCT_4);
 		if(NULL != error_func)
 			(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_4;
 		return;
@@ -195,8 +195,12 @@ void print_single_mote(mote** system_motes, int number_motes, int mote_id, int *
 	m_position = search_mote(system_motes, number_motes, mote_id, NULL);
 	if(0 <= m_position)
 		printf("[%d][MOTE ID: %d]\n    Luminosity  = %.2f lux\n    Temperature = %.2f ºC\n    Humidity    = %.2f %%\n", m_position, system_motes[m_position]->id, system_motes[m_position]->luminosity, system_motes[m_position]->temperature, system_motes[m_position]->humidity);
-	else
-		printf("[MOTE ID %d] Operation not possible -> it doesn't belong to the system motes.\n", mote_id);
+	else{
+		printf("[ERROR_LIB_MAN_MOTE_STRUCT %d] print_single_mote: Mote_id doesn't belong to the system motes.\n", ERROR_LIB_MAN_MOTE_STRUCT_5);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_5;
+		return;
+	}
 	if(NULL != error_func)
 		(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_NONE;
 }

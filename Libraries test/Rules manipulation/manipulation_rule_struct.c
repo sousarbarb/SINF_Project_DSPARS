@@ -1,5 +1,5 @@
 /*
- * manipulation_mote_struct.h
+ * manipulation_rule_struct.c
  * 
  * Copyright 2018	
  *     Daniel Queirós da Silva		<up201503071@fe.up.pt>
@@ -25,35 +25,5 @@
  */
 
 
-#ifndef _MANIPULATION_MOTE_STRUCT_H_
-#define _MANIPULATION_MOTE_STRUCT_H_
+#include "manipulation_rule_struct.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#define ERROR_LIB_MAN_MOTE_STRUCT_NONE 0
-#define ERROR_LIB_MAN_MOTE_STRUCT_1	   1
-#define ERROR_LIB_MAN_MOTE_STRUCT_2	   2
-#define ERROR_LIB_MAN_MOTE_STRUCT_3	   3
-#define ERROR_LIB_MAN_MOTE_STRUCT_4	   4
-#define ERROR_LIB_MAN_MOTE_STRUCT_5	   5
-
-typedef struct MOTE_TEMP{
-	int id;
-	float luminosity;
-	float temperature;
-	float humidity;
-} mote;
-
-mote ** mote_vector_creation(int number_motes, int * error_func);
-
-void free_mote_memory(mote** system_motes, int number_motes, int * error_func);
-
-int search_mote(mote** system_motes, int number_motes, int mote_id, int * error_func);
-
-void print_motes_vector(mote** system_motes, int number_motes, int * error_func);
-
-void print_single_mote(mote** system_motes, int number_motes, int mote_id, int * error_func);
-
-#endif
