@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "manipulation_mote_struct.h"
 
 #define LINE	70
 #define WORD	6
@@ -62,7 +63,7 @@
 
 #define SPACE			2
 
-//FILE *f = NULL;
+#define NUM_MOTES		5
 
 int multiplication_by_10(int times){
 	
@@ -110,11 +111,20 @@ int main(int argc, char **argv)
 	
 	int nmessages = 1, step_line = 0, step_word = 0, fill_up = 0, times_10 = 0, times_16 = 0;
 	int	decimal_id = 0, convert = 0, flag_invalid = 0, decimal_temp = 0, decimal_humid = 0, decimal_visible_light = 0;
-	float temperature = 0, relative_humidity = 0, humidity_compensated_by_temperature = 0, visible_light = 0;
-	char line[LINE]={0}, word[WORD]={0};
+	float temp = 0, relative_humidity = 0, humidity_compensated_by_temperature = 0, visible_light = 0;
 	
-	f_read = fopen("/dev/pts/5", "r"); //vai receber strings do programa"file_strings_to_channels"no canal 5
-												//compilar apenas com - ./manipulate_data
+	char *line = NULL, *word = NULL;
+	
+	mote **syst_motes = NULL;
+	
+	syst_motes = mote_vector_creation(NUM_MOTES,NULL);
+	
+	line = (char *) malloc(LINE*sizeof(char));
+	word = (char *) malloc(WORD*sizeof(char));
+	
+	f_read = fopen("/dev/pts/3", "r"); //vai receber strings do programa"file_strings_to_channels"no canal 5
+												//compilar apenas com - ./manipulate_data											
+												
 	while(NULL != fgets(line, LINE, f_read)){
 		if(strncmp(line,"\n",3) == 0)
 			nmessages+= 0;
@@ -167,7 +177,6 @@ int main(int argc, char **argv)
 					}
 					if((decimal_id > 9999) || (flag_invalid)){
 						printf("ERROR[%d] - Mote ID invalid!\n",ERROR2);
-						//break;
 					}
 					else{
 						printf("Mote ID: %d\n",decimal_id);
@@ -200,12 +209,13 @@ int main(int argc, char **argv)
 					}
 					if(flag_invalid){
 						printf("ERROR[%d] - Temperature parameter invalid!\n",ERROR3);
-						//break;
 					}
 					else{
 						//printf("Temperatura decimal = %d\n", decimal_temp);
-						temperature = calculate_temperature(decimal_temp);
-						printf("Temperature = %.2f ºC\n",temperature);
+						temp = calculate_temperature(decimal_temp);
+						syst_motes[search_mote(syst_motes,NUM_MOTES,decimal_id,NULL)]->temperature = temp;
+						
+						printf("Temperature = %.2f ºC\n",temp);
 					}
 				}
 				
@@ -235,14 +245,16 @@ int main(int argc, char **argv)
 					}
 					if(flag_invalid){
 						printf("ERROR[%d] - Humidity parameter invalid!\n",ERROR4);
-						//break;
 					}
 					else{
 					//printf("Humidade decimal = %d\n",decimal_humid);
 					relative_humidity = calculate_relative_humidity(decimal_humid);
-					printf("Relative humidity = %.2f %\n",relative_humidity);
-					humidity_compensated_by_temperature = calculate_humidity_compensated_by_temperature(decimal_humid,relative_humidity,temperature);
-					printf("Humidity compensated by temperature = %.2f %\n",humidity_compensated_by_temperature);
+					printf("Relative humidity = %.2f % \n",relative_humidity);
+					
+					humidity_compensated_by_temperature = calculate_humidity_compensated_by_temperature(decimal_humid,relative_humidity,temp);
+					syst_motes[search_mote(syst_motes,NUM_MOTES,decimal_id,NULL)]->humidity = humidity_compensated_by_temperature;
+					
+					printf("Humidity compensated by temperature = %.2f % \n",humidity_compensated_by_temperature);
 					}
 				}
 				
@@ -272,11 +284,12 @@ int main(int argc, char **argv)
 					}
 					if(flag_invalid){
 						printf("ERROR[%d] - Visible light parameter invalid!\n",ERROR5);
-						//break;
 					}
 					else{
 					//printf("Luz visível decimal = %d\n",decimal_visible_light);
 					visible_light = calculate_visible_light(decimal_visible_light);
+					syst_motes[search_mote(syst_motes,NUM_MOTES,decimal_id,NULL)]->luminosity = visible_light;
+					
 					printf("Visible light = %.2f lux\n", visible_light);
 					}
 				}
@@ -299,8 +312,14 @@ int main(int argc, char **argv)
 					}
 				}
 			}
+		print_motes_vector(syst_motes,NUM_MOTES,NULL);
 		}
-	}		
+	}
+	free_mote_memory(syst_motes,NUM_MOTES,NULL);
+	free(line);
+	free(word);
+	line = NULL;
+	word = NULL;		
 	fclose(f_read);
 	return 0;
 }
