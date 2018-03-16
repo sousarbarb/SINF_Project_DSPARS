@@ -24,8 +24,14 @@
  * 
  */
 
+/***********************************************************************************************************************************
+ * RULES TEMPLATE:
+ * 
+ * <room_name>: <sensor_name><condition><value> [AND / OR <sensor_name><condition><value>] <actuator>:<state>[,<actuator>:<state>]
+ ***********************************************************************************************************************************/
 
 #include "manipulation_rule_struct.h"
+
 
 char **actuator_future_state_vector_creation(int number_actfutstat, int max_charact_string, int * error_func){
 	// Argument error checking
@@ -105,13 +111,13 @@ void free_actuator_future_state_memory(char **vector_act, int number_actfutstat,
 void print_actuator_future_state_memory_vector(char **vector_act, int number_actfutstat, int * error_func){
 	// Argument error checking
 	if(NULL == vector_act){
-		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] free_actuator_future_state_memory: Pointer to the string's vector invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_4);
+		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] print_actuator_future_state_memory_vector: Pointer to the string's vector invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_4);
 		if(NULL != error_func)
 			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_4;
 		return;
 	}
 	else if(1 > number_actfutstat){
-		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] free_actuator_future_state_memory: Number of future actuator state condition invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_1);
+		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] print_actuator_future_state_memory_vector: Number of future actuator state condition invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_1);
 		if(NULL != error_func)
 			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_1;
 		return;
@@ -127,4 +133,31 @@ void print_actuator_future_state_memory_vector(char **vector_act, int number_act
 	if(NULL != error_func)
 		(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_NONE;
 }
+
+char *string_creation(int max_charact_string, int * error_func){
+	// Argument error checking
+	if(2 > max_charact_string){
+		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] string_creation: Maximum string lenght invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_2);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_2;
+		return NULL;
+	}
+	
+	
+	// Function's code
+	char *string = NULL;
+	string = (char *) malloc(max_charact_string);
+	if(NULL == string){
+		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] string_creation: Memory allocated failed.\n", ERROR_LIB_MAN_RULE_STRUCT_3);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_3;
+		return NULL;
+	}
+	string[0] = '\0';
+	if(NULL != error_func)
+		(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_NONE;
+	return string;
+}
+
+
 

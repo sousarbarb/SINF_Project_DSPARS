@@ -56,4 +56,8 @@ void free_actuator_future_state_memory(char **vector_act, int number_actfutstat,
 
 void print_actuator_future_state_memory_vector(char **vector_act, int number_actfutstat, int * error_func);
 
+char *string_creation(int max_charact_string, int * error_func);
+
+
+
 #endif
