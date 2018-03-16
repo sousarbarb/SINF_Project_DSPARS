@@ -51,7 +51,12 @@ mote ** mote_vector_creation(int number_motes, int * error_func){
 		system_motes[counter] = (mote *) malloc(sizeof(mote));
 		if(NULL == system_motes[counter]){
 			printf("[ERROR_LIB_MAN_MOTE_STRUCT %d] mote_vector_creation: Memory allocated failed.\n", ERROR_LIB_MAN_MOTE_STRUCT_2);
-			free_mote_memory(system_motes, counter, NULL);
+			if(0 < counter)
+				free_mote_memory(system_motes, counter, NULL);
+			else{
+				free(system_motes);
+				system_motes = NULL;
+			}
 			if(NULL != error_func)
 				(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_2;
 			return NULL;
