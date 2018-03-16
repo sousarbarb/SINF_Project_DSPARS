@@ -159,5 +159,167 @@ char *string_creation(int max_charact_string, int * error_func){
 	return string;
 }
 
+rule **rules_system_vector_creation(int number_rules, int * error_func){
+	// Argument error checking
+	if(1 > number_rules){
+		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_system_vector_creation: Number of rules invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_5);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_5;
+		return NULL;
+	}
+	
+	
+	// Function's code
+	int counter, error_return = 0;
+	rule **system_rules = NULL;
+	system_rules = (rule **) malloc(sizeof(rule *) * number_rules);
+	if(NULL == system_rules){
+		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_system_vector_creation: Memory allocated failed.\n", ERROR_LIB_MAN_RULE_STRUCT_3);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_3;
+		return NULL;
+	}
+	for(counter = 0; counter < number_rules; counter++){
+		system_rules[counter] = (rule *) malloc(sizeof(rule));
+		if(NULL == system_rules[counter]){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_system_vector_creation: Memory allocated failed.\n", ERROR_LIB_MAN_RULE_STRUCT_3);
+			if(0 < counter)
+				free_rules_system_memory(system_rules, counter, &error_return);
+			else{
+				free(system_rules);
+				system_rules = NULL;
+			}
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_3;
+			return NULL;
+		}
+		
+		system_rules[counter]->division_name = string_creation(SIZE_LIB_MAN_RULE_LABEL_DIVISION_NAME, &error_return);
+		if((NULL == system_rules[counter]->division_name) || (0 < error_return)){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_system_vector_creation: Memory allocated failed.\n", ERROR_LIB_MAN_RULE_STRUCT_3);
+			if(0 < counter)
+				free_rules_system_memory(system_rules, counter, &error_return);
+			else{
+				free(system_rules[counter]);
+				system_rules[counter] = NULL;
+				free(system_rules);
+				system_rules = NULL;
+			}
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_3;
+			return NULL;
+		}
+		system_rules[counter]->division_name[0] = '\0';
+		
+		error_return = 0;
+		
+		system_rules[counter]->sensor_condition_1 = string_creation(SIZE_LIB_MAN_RULE_LABEL_SENSOR_CONDITION, &error_return);
+		if((NULL == system_rules[counter]->sensor_condition_1) || (0 < error_return)){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_system_vector_creation: Memory allocated failed.\n", ERROR_LIB_MAN_RULE_STRUCT_3);
+			if(0 < counter)
+				free_rules_system_memory(system_rules, counter, &error_return);
+			else{
+				free(system_rules[counter]);
+				system_rules[counter] = NULL;
+				free(system_rules[counter]->division_name);
+				system_rules[counter]->division_name = NULL;
+				free(system_rules);
+				system_rules = NULL;
+			}
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_3;
+			return NULL;
+		}
+		system_rules[counter]->sensor_condition_1[0] = '\0';
+		
+		error_return = 0;
+		
+		system_rules[counter]->sensor_condition_2 = string_creation(SIZE_LIB_MAN_RULE_LABEL_SENSOR_CONDITION, &error_return);
+		if((NULL == system_rules[counter]->sensor_condition_2) || (0 < error_return)){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_system_vector_creation: Memory allocated failed.\n", ERROR_LIB_MAN_RULE_STRUCT_3);
+			if(0 < counter)
+				free_rules_system_memory(system_rules, counter, &error_return);
+			else{
+				free(system_rules[counter]);
+				system_rules[counter] = NULL;
+				free(system_rules[counter]->division_name);
+				system_rules[counter]->division_name = NULL;
+				free(system_rules[counter]->sensor_condition_1);
+				system_rules[counter]->sensor_condition_1 = NULL;
+				free(system_rules);
+				system_rules = NULL;
+			}
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_3;
+			return NULL;
+		}
+		system_rules[counter]->sensor_condition_2[0] = '\0';
+		
+		error_return = 0;
+		
+		strcpy(system_rules[counter]->logic_operator_condition_1_2, "___");
+		system_rules[counter]->actuator_future_state = NULL;
+		system_rules[counter]->operator_condition_1  = '_';
+		system_rules[counter]->operator_condition_2  = '_';
+		system_rules[counter]->num_actuator_conditions = 0;
+		system_rules[counter]->value_condition_1 = 0;
+		system_rules[counter]->value_condition_2 = 0;
+	}
+	if(NULL != error_func)
+		(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_NONE;
+	return system_rules;
+}
 
+void free_single_rule_memory(rule *system_rule, int * error_func){
+	// Argument error checking
+	if(NULL == system_rule){
+		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] free_rules_system_memory: Pointer to rule structure invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_7);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_7;
+		return;
+	}
+	
+	
+	// Function's code
+	if(NULL != system_rule->division_name){
+		free(system_rule->division_name);
+		system_rule->division_name = NULL;
+	}
+	if(NULL != system_rule->sensor_condition_1){
+		free(system_rule->sensor_condition_1);
+		system_rule->sensor_condition_1 = NULL;
+	}
+	if(NULL != system_rule->sensor_condition_2){
+		free(system_rule->sensor_condition_2);
+		system_rule->sensor_condition_1 = NULL;
+	}
+	if(NULL != system_rule->actuator_future_state){
+		free_actuator_future_state_memory(system_rule->actuator_future_state, system_rule->num_actuator_conditions, NULL);
+		system_rule->actuator_future_state = NULL;
+	}
+	if(NULL != error_func)
+		(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_NONE;
+}
+
+void free_rules_system_memory(rule **system_rules, int number_rules, int * error_func){
+	// Argument error checking
+	if(NULL == system_rules){
+		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] free_rules_system_memory: Pointer to rule's system vector invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_6);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_6;
+		return;
+	}
+	else if(1 > number_rules){
+		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] vector_actuator_future_state_creation: Number of future actuator state condition invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_1);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_1;
+		return;
+	}
+	
+	
+	// Function's code
+	int counter;
+	for(counter = 0; counter < number_rules; counter++)
+		free_single_rule_memory(system_rules[counter], NULL);
+}
 
