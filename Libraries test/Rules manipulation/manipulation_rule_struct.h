@@ -31,13 +31,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "manipulation_mote_struct"
 
 #define ERROR_LIB_MAN_RULE_STRUCT_NONE 0
 #define ERROR_LIB_MAN_RULE_STRUCT_1	   1
+#define ERROR_LIB_MAN_RULE_STRUCT_2	   2
+#define ERROR_LIB_MAN_RULE_STRUCT_3	   3
+#define ERROR_LIB_MAN_RULE_STRUCT_4	   4
 
 typedef struct RULE_TEMP{
-	
+	char *division_name;
+	char *sensor_condition_1;
+	char operator_condition_1;
+	float value_condition_1;
+	char *sensor_condition_2;
+	char operator_condition_2;
+	float value_condition_2;
+	int num_actuator_conditions;
+	char **actuator_future_state;
 } rule;
+
+char **actuator_future_state_vector_creation(int number_actfutstat, int max_charact_string, int * error_func);
+
+void free_actuator_future_state_memory(char **vector_act, int number_actfutstat, int * error_func);
+
+void print_actuator_future_state_memory_vector(char **vector_act, int number_actfutstat, int * error_func);
 
 #endif
