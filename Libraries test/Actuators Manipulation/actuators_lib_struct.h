@@ -1,5 +1,5 @@
 /*
- * actuatores_lib_struct.h
+ * actuators_lib_struct.h
  * 
  * Copyright 2018	
  *     Daniel Queirós da Silva		<up201503071@fe.up.pt>
@@ -25,8 +25,8 @@
  */
 
 
-#ifndef _ACTUATORES_LIB_STRUCT_H_
-#define _ACTUATORES_LIB_STRUCT_H_
+#ifndef _ACTUATORS_LIB_STRUCT_H_
+#define _ACTUATORS_LIB_STRUCT_H_
 
 #include <stdio.h>
 #include <stdlib.h>

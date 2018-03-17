@@ -1,5 +1,5 @@
 /*
- * actuatores_lib_struct.c
+ * actuators_lib_struct.c
  * 
  * Copyright 2018	
  *     Daniel Queirós da Silva		<up201503071@fe.up.pt>
@@ -25,7 +25,7 @@
  */
 
 
-#include "actuatores_lib_struct.h"
+#include "actuators_lib_struct.h"
 
 actuator ** actuatores_vector_creation(int number_actuatores, int * error_func){
 	// Argument error checking
