@@ -46,6 +46,7 @@
 #define SIZE_LIB_MAN_RULE_LABEL_ACTUAT_FUT_STATE 20
 #define SIZE_LIB_MAN_RULE_LABEL_LOG_OPERATORS    4
 #define SIZE_LIB_MAN_RULE_LABEL_ACTUAT_STATES    4
+#define SIZE_STRING_BUFFER_1                     100
 
 #define NUMBER_LIB_MAN_RULE_COMP_OPERATOR 3
 #define NUMBER_LIB_MAN_RULE_LOG_OPERATORS 3
@@ -64,6 +65,8 @@ typedef struct RULE_TEMP{
 	char  **actuator_future_state;
 } rule;
 
+FILE *sensor_rules_file;
+
 static const char comparison_operators[] = {'_', '<','>'};
 static const char lib_man_rule_logic_operators[NUMBER_LIB_MAN_RULE_LOG_OPERATORS][SIZE_LIB_MAN_RULE_LABEL_LOG_OPERATORS]  = {"___", "AND", "OR"};
 static const char lib_man_rule_actuators_state[NUMBER_LIB_MAN_RULE_ACTUAT_STATES][SIZE_LIB_MAN_RULE_LABEL_ACTUAT_STATES]  = {"ON", "OFF"};
@@ -79,5 +82,7 @@ rule **rules_system_vector_creation(int number_rules, int * error_func);
 void free_rules_system_memory(rule **system_rules, int number_rules, int * error_func);
 
 void print_rules_system_vector(rule **system_rules, int number_rules, int * error_func);
+
+int rules_association_to_structures(rule **system_rules, int * error_func);
 
 #endif
