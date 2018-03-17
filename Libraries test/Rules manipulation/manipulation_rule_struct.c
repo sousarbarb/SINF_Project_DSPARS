@@ -282,10 +282,8 @@ void free_rules_system_memory(rule **system_rules, int number_rules, int * error
 		free(system_rules[counter]);
 		system_rules[counter] = NULL;
 	}
-	printf("XXX\n");
 	free(system_rules);
 	system_rules = NULL;
-	printf("XXX\n");
 	if(NULL != error_func)
 		(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_NONE;
 }
@@ -312,9 +310,11 @@ void print_rules_system_vector(rule **system_rules, int number_rules, int * erro
 	for(counter = 0; counter < number_rules; counter++){
 		printf("[----- DIVISION %s -----]\n", system_rules[counter]->division_name);
 		if(comparison_operators[0] != system_rules[counter]->operator_condition_1)
-			printf("    Condition 1: %s %c %.2f\n", system_rules[counter]->sensor_condition_1, system_rules[counter]->operator_condition_1, system_rules[counter]->value_condition_1);
+			printf("    Condition 1: %s %c %d\n", system_rules[counter]->sensor_condition_1, system_rules[counter]->operator_condition_1, system_rules[counter]->value_condition_1);
+		if('_' != system_rules[counter]->logic_operator_condition_1_2[0])
+			printf("    Logic operator between condition 1 and 2: %s\n", system_rules[counter]->logic_operator_condition_1_2);
 		if(comparison_operators[0] != system_rules[counter]->operator_condition_2)
-			printf("    Condition 2: %s %c %.2f\n", system_rules[counter]->sensor_condition_2, system_rules[counter]->operator_condition_2, system_rules[counter]->value_condition_2);
+			printf("    Condition 2: %s %c %d\n", system_rules[counter]->sensor_condition_2, system_rules[counter]->operator_condition_2, system_rules[counter]->value_condition_2);
 		if(NULL != system_rules[counter]->actuator_future_state && 0 < system_rules[counter]->num_actuator_conditions)
 			print_actuator_future_state_memory_vector(system_rules[counter]->actuator_future_state, system_rules[counter]->num_actuator_conditions,NULL);
 	}
@@ -323,10 +323,10 @@ void print_rules_system_vector(rule **system_rules, int number_rules, int * erro
 		(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_NONE;
 }
 
-int rules_association_to_structures(rule **system_rules, int * error_func){
+int rules_association_to_structures(rule ***system_rules, int *number_rules, int number_motes, int * error_func){
 	// Function's code
-	int number_rules, error_1;
-	char charac1, string_aux1[SIZE_STRING_BUFFER_1];
+	int counter1, counter2, counter3, error_1, integer_aux1;
+	char charac1, string_aux1[SIZE_STRING_BUFFER_1], string_aux2[SIZE_STRING_BUFFER_2];
 	
 	// - TEMPLATE
 	printf("\n++++++++++ TEMPLATE FOR THE FILE SensorRules.txt ++++++++++\n\n");
@@ -358,6 +358,8 @@ int rules_association_to_structures(rule **system_rules, int * error_func){
 	// - SensorRules.txt existence verification by the program
 	sensor_rules_file = fopen("SensorRules.txt", "r");
 	if(NULL == sensor_rules_file){
+		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: File SensorRule.txt doesn't exist.\n", ERROR_LIB_MAN_RULE_STRUCT_7);
+		printf("Please, create the file according to the following template:\n");
 		printf("\n++++++++++ TEMPLATE FOR THE FILE SensorRules.txt ++++++++++\n\n");
 		printf("Type of comparasion operators that are available to choose: '<' or '>'\n");
 		printf("Type of logic operators that are available to choose: \"AND\" or \"OR\"\n");
@@ -382,15 +384,15 @@ int rules_association_to_structures(rule **system_rules, int * error_func){
 	do{
 		printf("OBS - the number of rules specified must correspond to the number of rules in the file SensorRule.txt\n");
 		printf("Please insert the number of rules that the system needs to atend (number of rules must be grater than 0): ");
-		scanf(" %d", &number_rules);
+		scanf(" %d", number_rules);
 		getchar();
 		
-		if(1 > number_rules)
+		if(1 > (*number_rules))
 			printf("Number of rules INVALID.\n");
-	} while(1 > number_rules);
+	} while(1 > (*number_rules));
 	
 	// - Creation of the rule's vector of structures that will contain the information relative to the rules aplied to the system
-	system_rules = rules_system_vector_creation(number_rules, &error_1);
+	(*system_rules) = rules_system_vector_creation((*number_rules), &error_1);
 	if(NULL == system_rules || 0 < error_1){
 		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Memory allocated failed. It wans't possible to create the vector with the use of the function rules_system_vector_creation.\n", ERROR_LIB_MAN_RULE_STRUCT_3);
 		if(NULL != error_func)
@@ -398,8 +400,190 @@ int rules_association_to_structures(rule **system_rules, int * error_func){
 		return -1;
 	}
 	
+	for(counter1 = 0; counter1 < (*number_rules); counter1++){
+		// - Reading the rule from the file
+		if(NULL == fgets(string_aux1, SIZE_STRING_BUFFER_1, sensor_rules_file)){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: It wasn't possible to associate the number of rules specified by the user with the number of lines in the text file.\n", ERROR_LIB_MAN_RULE_STRUCT_8);
+			printf("    Number of rules specified by the user on the program: %d\n    Number of rules read by the program: %d\n", (*number_rules), counter1);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_8;
+			return -1;
+		}
+		integer_aux1 = strlen(string_aux1);
+		if('\n' == string_aux1[integer_aux1 - 1])
+			string_aux1[integer_aux1 - 1] = '\0';
+		if(0 == (integer_aux1 - 1)){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Rule's description invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_9);
+			printf("    The problem was found in the RULE %d\n", counter1 + 1);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_9;
+			return -1;
+		}
+		integer_aux1--;
+			
+		// - Rule's printing for debbuging
+		printf("[RULE %d] %s\n", counter1 + 1, string_aux1);
+		
+		// - Processing division's name
+		for(counter2 = 0; ':' != string_aux1[counter2] && counter2 < integer_aux1 && counter2 < SIZE_STRING_BUFFER_2; counter2++)
+			string_aux2[counter2] = string_aux1[counter2];
+		string_aux2[counter2] = '\0';
+		if(integer_aux1 == counter2){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Rule's description invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_9);
+			printf("    The problem was found in the RULE %d\n", counter1 + 1);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_9;
+			return -1;
+		}
+		counter2++;
+		
+		/*********************************************************
+		 * INCOMPLETE - (PT) Falta confirmar se a divisão existe
+		 *********************************************************
+		 * 
+		if(...){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: The division especified doesn't exist.\n", ERROR_LIB_MAN_RULE_STRUCT_10);
+			printf("    The problem was found in the RULE %d\n", counter1 + 1);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_10;
+			return -1;
+		} 
+		 *********************************************************/
+		
+		strcpy((*system_rules)[counter1]->division_name, string_aux2);
+		
+		// - Processing condition 1
+		while(' ' == string_aux1[counter2] && counter2 < integer_aux1)
+			counter2++;
+		if(integer_aux1 == counter2){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Rule's description invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_9);
+			printf("    The problem was found in the RULE %d\n", counter1 + 1);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_9;
+			return -1;
+		}
+		else if(counter2 < integer_aux1 && (':' == string_aux1[counter2] || comparison_operators[1] == string_aux1[counter2] || comparison_operators[2] == string_aux1[counter2])){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Rule's description invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_9);
+			printf("    The problem was found in the RULE %d\n", counter1 + 1);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_9;
+			return -1;
+		}
+		
+		for(counter3 = 0; (comparison_operators[1] != string_aux1[counter2] && comparison_operators[2] != string_aux1[counter2]) && counter2 < integer_aux1 && counter3 < SIZE_STRING_BUFFER_2; counter3++){
+			string_aux2[counter3] = string_aux1[counter2];
+			counter2++;
+		}
+		string_aux2[counter3] = '\0';
+		if(integer_aux1 == counter2){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Rule's description invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_9);
+			printf("    The problem was found in the RULE %d\n", counter1 + 1);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_9;
+			return -1;
+		}
+		
+		/**********************************************************
+		 * INCOMPLETE - (PT) Falta confirmar se o sensor é valido
+		 **********************************************************
+		 * 
+		if(...){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: The sensor especified in the condition doesn't exist.\n", ERROR_LIB_MAN_RULE_STRUCT_11);
+			printf("    The problem was found in the RULE %d\n", counter1 + 1);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_11;
+			return -1;
+		} 
+		 **********************************************************/
+		
+		strcpy((*system_rules)[counter1]->sensor_condition_1, string_aux2);
+		(*system_rules)[counter1]->operator_condition_1 = string_aux1[counter2];
+		counter2++;
+		(*system_rules)[counter1]->value_condition_1 = conversion_of_a_piece_of_a_string_into_integer(string_aux1, counter2, &counter2, integer_aux1);
+		
+		// - Processing condition 2
+		while(' ' == string_aux1[counter2] && counter2 < integer_aux1)
+			counter2++;
+		if(integer_aux1 == counter2){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Rule's description invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_9);
+			printf("    The problem was found in the RULE %d\n", counter1 + 1);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_9;
+			return -1;
+		}
+		
+		if((lib_man_rule_logic_operators[1][0] == string_aux1[counter2] && lib_man_rule_logic_operators[1][1] == string_aux1[counter2+1] && lib_man_rule_logic_operators[1][2] == string_aux1[counter2+2] && ' ' == string_aux1[counter2+3])  ||  (lib_man_rule_logic_operators[2][0] == string_aux1[counter2] && lib_man_rule_logic_operators[2][1] == string_aux1[counter2+1] && ' ' == string_aux1[counter2+2])){
+			if(lib_man_rule_logic_operators[1][0] == string_aux1[counter2] && lib_man_rule_logic_operators[1][1] == string_aux1[counter2+1] && lib_man_rule_logic_operators[1][2] == string_aux1[counter2+2] && ' ' == string_aux1[counter2+3]){
+				// LOGIC OPERATOR: AND
+				strcpy((*system_rules)[counter1]->logic_operator_condition_1_2, lib_man_rule_logic_operators[1]);
+				counter2 = counter2 + 3;
+			}
+			else if(lib_man_rule_logic_operators[2][0] == string_aux1[counter2] && lib_man_rule_logic_operators[2][1] == string_aux1[counter2+1] && ' ' == string_aux1[counter2+2]){
+				// LOGIC OPERATOR: OR
+				strcpy((*system_rules)[counter1]->logic_operator_condition_1_2, lib_man_rule_logic_operators[2]);
+				counter2 = counter2 + 2;
+			}
+			while(' ' == string_aux1[counter2] && counter2 < integer_aux1)
+				counter2++;
+			if(integer_aux1 == counter2){
+				printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Rule's description invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_9);
+				printf("    The problem was found in the RULE %d\n", counter1 + 1);
+				if(NULL != error_func)
+					(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_9;
+				return -1;
+			}
+			for(counter3 = 0; (comparison_operators[1] != string_aux1[counter2] && comparison_operators[2] != string_aux1[counter2]) && counter2 < integer_aux1 && counter3 < SIZE_STRING_BUFFER_2; counter3++){
+				string_aux2[counter3] = string_aux1[counter2];
+				counter2++;
+			}
+			string_aux2[counter3] = '\0';
+			if(integer_aux1 == counter2){
+				printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Rule's description invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_9);
+				printf("    The problem was found in the RULE %d\n", counter1 + 1);
+				if(NULL != error_func)
+					(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_9;
+				return -1;
+			}
+			
+			/**********************************************************
+			 * INCOMPLETE - (PT) Falta confirmar se o sensor é valido
+			 **********************************************************
+			 * 
+			if(...){
+				printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: The sensor especified in the condition doesn't exist.\n", ERROR_LIB_MAN_RULE_STRUCT_11);
+				printf("    The problem was found in the RULE %d\n", counter1 + 1);
+				if(NULL != error_func)
+					(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_11;
+				return -1;
+			} 
+			 **********************************************************/
+			
+			strcpy((*system_rules)[counter1]->sensor_condition_2, string_aux2);
+			(*system_rules)[counter1]->operator_condition_2 = string_aux1[counter2];
+			counter2++;
+			(*system_rules)[counter1]->value_condition_2 = conversion_of_a_piece_of_a_string_into_integer(string_aux1, counter2, &counter2, integer_aux1);
+		}
+		else{
+			strcpy((*system_rules)[counter1]->logic_operator_condition_1_2, lib_man_rule_logic_operators[0]);
+			(*system_rules)[counter1]->sensor_condition_2[0] = '\0';
+			(*system_rules)[counter1]->operator_condition_2 = comparison_operators[0];
+		}
+	}
+	
 	if(NULL != error_func)
 		(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_NONE;
 	return 0;
 }
+
+int conversion_of_a_piece_of_a_string_into_integer(char * string, int start_index, int * end_index, int string_size){
+	int integer_value = 0;
+	while(0 <= ((int)(string[start_index]-'0')) && 10 > ((int)(string[start_index]-'0')) && start_index < string_size){
+		integer_value = integer_value*10 + ((int)(string[start_index]-'0'));
+		start_index++;
+	}
+	(*end_index) = start_index;
+	return integer_value;
+}
+
+
 

@@ -40,6 +40,10 @@
 #define ERROR_LIB_MAN_RULE_STRUCT_5	   5
 #define ERROR_LIB_MAN_RULE_STRUCT_6	   6
 #define ERROR_LIB_MAN_RULE_STRUCT_7	   7
+#define ERROR_LIB_MAN_RULE_STRUCT_8	   8
+#define ERROR_LIB_MAN_RULE_STRUCT_9	   9
+#define ERROR_LIB_MAN_RULE_STRUCT_10   10
+#define ERROR_LIB_MAN_RULE_STRUCT_11   11
 
 #define SIZE_LIB_MAN_RULE_LABEL_DIVISION_NAME    20
 #define SIZE_LIB_MAN_RULE_LABEL_SENSOR_CONDITION 20
@@ -47,6 +51,7 @@
 #define SIZE_LIB_MAN_RULE_LABEL_LOG_OPERATORS    4
 #define SIZE_LIB_MAN_RULE_LABEL_ACTUAT_STATES    4
 #define SIZE_STRING_BUFFER_1                     100
+#define SIZE_STRING_BUFFER_2                     20
 
 #define NUMBER_LIB_MAN_RULE_COMP_OPERATOR 3
 #define NUMBER_LIB_MAN_RULE_LOG_OPERATORS 3
@@ -56,11 +61,11 @@ typedef struct RULE_TEMP{
 	char  *division_name;
 	char  *sensor_condition_1;
 	char  operator_condition_1;
-	float value_condition_1;
+	int   value_condition_1;
 	char  logic_operator_condition_1_2[SIZE_LIB_MAN_RULE_LABEL_LOG_OPERATORS];
 	char  *sensor_condition_2;
 	char  operator_condition_2;
-	float value_condition_2;
+	int   value_condition_2;
 	int   num_actuator_conditions;
 	char  **actuator_future_state;
 } rule;
@@ -83,6 +88,8 @@ void free_rules_system_memory(rule **system_rules, int number_rules, int * error
 
 void print_rules_system_vector(rule **system_rules, int number_rules, int * error_func);
 
-int rules_association_to_structures(rule **system_rules, int * error_func);
+int rules_association_to_structures(rule ***system_rules, int *number_rules, int number_motes, int * error_func);
+
+int conversion_of_a_piece_of_a_string_into_integer(char * string, int start_index, int * end_index, int string_size);
 
 #endif
