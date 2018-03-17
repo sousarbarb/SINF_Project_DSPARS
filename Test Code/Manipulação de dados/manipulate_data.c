@@ -312,7 +312,7 @@ int main(int argc, char **argv)
 					}
 				}
 			}
-		print_motes_vector(syst_motes,NUM_MOTES,NULL);
+		//print_motes_vector(syst_motes,NUM_MOTES,NULL); /*Para testar a gravação dos valores na estrutura de motes*/
 		}
 	}
 	free_mote_memory(syst_motes,NUM_MOTES,NULL);
