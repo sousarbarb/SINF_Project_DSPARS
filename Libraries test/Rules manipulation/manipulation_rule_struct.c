@@ -323,3 +323,83 @@ void print_rules_system_vector(rule **system_rules, int number_rules, int * erro
 		(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_NONE;
 }
 
+int rules_association_to_structures(rule **system_rules, int * error_func){
+	// Function's code
+	int number_rules, error_1;
+	char charac1, string_aux1[SIZE_STRING_BUFFER_1];
+	
+	// - TEMPLATE
+	printf("\n++++++++++ TEMPLATE FOR THE FILE SensorRules.txt ++++++++++\n\n");
+	printf("Type of comparasion operators that are available to choose: '<' or '>'\n");
+	printf("Type of logic operators that are available to choose: \"AND\" or \"OR\"\n");
+	printf("Possibles actuator's state: \"ON\" or \"OFF\"");
+	printf("Maximum ratings:\n");
+	printf("    Size of division's name:            %d characters\n", SIZE_LIB_MAN_RULE_LABEL_DIVISION_NAME);
+	printf("    Size of sensor's name:              %d characters\n", SIZE_LIB_MAN_RULE_LABEL_SENSOR_CONDITION);
+	printf("    Size of actuator's pretended state: %d characters\n", SIZE_LIB_MAN_RULE_LABEL_ACTUAT_FUT_STATE);
+	printf("    Size of rule's characterization:    %d characters\n", SIZE_STRING_BUFFER_1);
+	printf("Examples of rules definition in the file:\n\n");
+	printf("    (rule 1)    <room_name>: <sensor_name_1><condition_1><value_1> [AND / OR <sensor_name_2><condition_2><value_2>] <actuator>:<state>[,<actuator>:<state>]\n");
+	printf("    (rule 2)    <room_name>: <sensor_name_1><condition_1><value_1> [AND / OR <sensor_name_2><condition_2><value_2>] <actuator>:<state>[,<actuator>:<state>]\n");
+	printf("...\n\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n");
+	
+	// - SensorRules.txt existence verification by the user
+	printf("The file that contains the rules of the system is already created and the rules especified by the template showned before (Y - yes / N - no, and press Enter)? ");
+	charac1 = getchar();
+	getchar();
+	if(('N' == charac1) || ('n' == charac1)){
+		printf("Then, if you want to supervise the system please create the file.\n");
+		
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_NONE;
+		return -1;
+	}
+	
+	// - SensorRules.txt existence verification by the program
+	sensor_rules_file = fopen("SensorRules.txt", "r");
+	if(NULL == sensor_rules_file){
+		printf("\n++++++++++ TEMPLATE FOR THE FILE SensorRules.txt ++++++++++\n\n");
+		printf("Type of comparasion operators that are available to choose: '<' or '>'\n");
+		printf("Type of logic operators that are available to choose: \"AND\" or \"OR\"\n");
+		printf("Possibles actuator's state: \"ON\" or \"OFF\"");
+		printf("Maximum ratings:\n");
+		printf("    Size of division's name:            %d characters\n", SIZE_LIB_MAN_RULE_LABEL_DIVISION_NAME);
+		printf("    Size of sensor's name:              %d characters\n", SIZE_LIB_MAN_RULE_LABEL_SENSOR_CONDITION);
+		printf("    Size of actuator's pretended state: %d characters\n", SIZE_LIB_MAN_RULE_LABEL_ACTUAT_FUT_STATE);
+		printf("    Size of rule's characterization:    %d characters\n", SIZE_STRING_BUFFER_1);
+		printf("Examples of rules definition in the file:\n\n");
+		printf("    (rule 1)    <room_name>: <sensor_name_1><condition_1><value_1> [AND / OR <sensor_name_2><condition_2><value_2>] <actuator>:<state>[,<actuator>:<state>]\n");
+		printf("    (rule 2)    <room_name>: <sensor_name_1><condition_1><value_1> [AND / OR <sensor_name_2><condition_2><value_2>] <actuator>:<state>[,<actuator>:<state>]\n");
+		printf("...\n\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n");
+		
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_7;
+		return -1;
+	}
+	
+	// - Insertion of rule's number to the program know how many it needs to process
+	printf("\n");
+	do{
+		printf("OBS - the number of rules specified must correspond to the number of rules in the file SensorRule.txt\n");
+		printf("Please insert the number of rules that the system needs to atend (number of rules must be grater than 0): ");
+		scanf(" %d", &number_rules);
+		getchar();
+		
+		if(1 > number_rules)
+			printf("Number of rules INVALID.\n");
+	} while(1 > number_rules);
+	
+	// - Creation of the rule's vector of structures that will contain the information relative to the rules aplied to the system
+	system_rules = rules_system_vector_creation(number_rules, &error_1);
+	if(NULL == system_rules || 0 < error_1){
+		printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Memory allocated failed. It wans't possible to create the vector with the use of the function rules_system_vector_creation.\n", ERROR_LIB_MAN_RULE_STRUCT_3);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_3;
+		return -1;
+	}
+	
+	if(NULL != error_func)
+		(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_NONE;
+	return 0;
+}
+
