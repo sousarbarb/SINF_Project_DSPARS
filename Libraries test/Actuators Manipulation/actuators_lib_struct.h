@@ -32,28 +32,28 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ERROR_LIB_ACTUATORES_STRUCT_NONE	0
-#define ERROR_LIB_ACTUATORES_STRUCT_1		1
-#define ERROR_LIB_ACTUATORES_STRUCT_2	  	2
-#define ERROR_LIB_ACTUATORES_STRUCT_3	   	3
-#define ERROR_LIB_ACTUATORES_STRUCT_4	   	4
-#define ERROR_LIB_ACTUATORES_STRUCT_5	   	5
+#define ERROR_LIB_ACTUATORS_STRUCT_NONE		0
+#define ERROR_LIB_ACTUATORS_STRUCT_1		1
+#define ERROR_LIB_ACTUATORS_STRUCT_2	  	2
+#define ERROR_LIB_ACTUATORS_STRUCT_3	   	3
+#define ERROR_LIB_ACTUATORS_STRUCT_4	   	4
+#define ERROR_LIB_ACTUATORS_STRUCT_5	   	5
 
 #define	SIZE_OF_ACTUATION					20
 
 typedef struct ACTUATOR_TEMP{
-	int id;
+	char id[SIZE_OF_ACTUATION];
 	char actuation[SIZE_OF_ACTUATION];
 } actuator;
 
-actuator ** mote_vector_creation(int number_actuatores, int * error_func);
+actuator ** actuators_vector_creation(int number_actuators, int * error_func);
 
-void free_actuation_memory(actuator** system_actuatores, int number_actuatores, int * error_func);
+void free_actuation_memory(actuator** system_actuators, int number_actuators, int * error_func);
 
-int search_actuator(actuator** system_actuatores, int number_actuatores, int actuator_id, int * error_func);
+int search_actuator(actuator** system_actuators, int number_actuators, char *actuator_id, int * error_func);
 
-void print_actuation_vector(actuator** system_actuatores, int number_actuatores, int * error_func);
+void print_actuation_vector(actuator** system_actuators, int number_actuators, int * error_func);
 
-void print_single_actuator(actuator** system_actuatores, int number_actuatores, int actuator_id, int * error_func);
+void print_actuator_state(actuator** system_actuators, int number_actuators, char *actuator_id, int * error_func);
 
 #endif
