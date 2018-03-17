@@ -47,8 +47,8 @@
 #define SIZE_LIB_MAN_RULE_LABEL_LOG_OPERATORS    4
 #define SIZE_LIB_MAN_RULE_LABEL_ACTUAT_STATES    4
 
-#define NUMBER_LIB_MAN_RULE_COMP_OPERATOR 2
-#define NUMBER_LIB_MAN_RULE_LOG_OPERATORS 2
+#define NUMBER_LIB_MAN_RULE_COMP_OPERATOR 3
+#define NUMBER_LIB_MAN_RULE_LOG_OPERATORS 3
 #define NUMBER_LIB_MAN_RULE_ACTUAT_STATES 2
 
 typedef struct RULE_TEMP{
@@ -56,7 +56,7 @@ typedef struct RULE_TEMP{
 	char  *sensor_condition_1;
 	char  operator_condition_1;
 	float value_condition_1;
-	char  logic_operator_condition_1_2[4];
+	char  logic_operator_condition_1_2[SIZE_LIB_MAN_RULE_LABEL_LOG_OPERATORS];
 	char  *sensor_condition_2;
 	char  operator_condition_2;
 	float value_condition_2;
@@ -64,13 +64,11 @@ typedef struct RULE_TEMP{
 	char  **actuator_future_state;
 } rule;
 
-static const char comparison_operators[] = {'<','>'};
-static const char logic_operators[NUMBER_LIB_MAN_RULE_LOG_OPERATORS][SIZE_LIB_MAN_RULE_LABEL_LOG_OPERATORS]  = {"AND", "OR"};
-static const char actuators_state[NUMBER_LIB_MAN_RULE_ACTUAT_STATES][SIZE_LIB_MAN_RULE_LABEL_ACTUAT_STATES]  = {"ON", "OFF"};
+static const char comparison_operators[] = {'_', '<','>'};
+static const char lib_man_rule_logic_operators[NUMBER_LIB_MAN_RULE_LOG_OPERATORS][SIZE_LIB_MAN_RULE_LABEL_LOG_OPERATORS]  = {"___", "AND", "OR"};
+static const char lib_man_rule_actuators_state[NUMBER_LIB_MAN_RULE_ACTUAT_STATES][SIZE_LIB_MAN_RULE_LABEL_ACTUAT_STATES]  = {"ON", "OFF"};
 
 char **actuator_future_state_vector_creation(int number_actfutstat, int max_charact_string, int * error_func);
-
-void free_actuator_future_state_memory(char **vector_act, int number_actfutstat, int * error_func);
 
 void print_actuator_future_state_memory_vector(char **vector_act, int number_actfutstat, int * error_func);
 
@@ -78,8 +76,8 @@ char *string_creation(int max_charact_string, int * error_func);
 
 rule **rules_system_vector_creation(int number_rules, int * error_func);
 
-void free_single_rule_memory(rule *system_rule, int * error_func);
-
 void free_rules_system_memory(rule **system_rules, int number_rules, int * error_func);
+
+void print_rules_system_vector(rule **system_rules, int number_rules, int * error_func);
 
 #endif
