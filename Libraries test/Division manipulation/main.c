@@ -25,19 +25,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include "manipulation_division_struct.h"
+#include "actuators_lib_struct.h"
 
 int main(int argc, char **argv)
 {
-	division **system_divisions;
+	division **system_divisions = NULL;
 	int number_divisions = 0;
-	
 	
 	printf("Insira o número de divisões: ");
 	scanf(" %d", &number_divisions);
 	
-	system_divisions = division_vector_creation(number_divisions, NULL);
-	printf("AERG\n");
-	insert_info_division_struct(system_divisions, number_divisions, NULL);
+	insert_info_division_struct(system_divisions, &number_divisions, NULL);
+	
+	printf("%s\n", system_divisions[0]->sensors[0]);
+	printf("%s\n", system_divisions[0]->sensors[1]);
+	printf("%s\n", system_divisions[1]->sensors[0]);
+	printf("%s\n", system_divisions[1]->sensors[1]);
 	return 0;
 }
 
