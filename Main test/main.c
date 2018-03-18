@@ -35,6 +35,8 @@
 #include "actuators_lib_struct.h"
 #include "manipulation_mote_struct.h"
 #include "manipulation_rule_struct.h"
+#include "manipulation_division_struct.h"
+#include "project_matrix.h"
 
 // Errors
 #define MAIN_ERROR_1  1
@@ -100,6 +102,7 @@ static const char CHANNEL_DEF[]="/dev/pts/";
 int number_motes, number_rules, number_divisions;
 mote **system_motes = NULL;
 rule **system_rules = NULL;
+division **system_divisions = NULL;
 
 // Global flags
 
@@ -468,15 +471,30 @@ int main(int argc, char **argv)
 	/*******************************************
 	 * INIT ROUTINE - DIVISION'S CONFIGURATION
 	 *******************************************/
-	 
-	// PEDRO DE CASTRO ALBERGARIA
+	error_check = 0;
+	do{
+		printf("Insert the number of divisions to consider in the system (needs to be greater than 0): ");
+		scanf(" %d", &number_divisions);
+		getchar();
+	} while(1 > number_divisions);
+	system_divisions = insert_info_division_struct(&number_divisions, &error_check);
+	if((NULL == system_divisions) || (0 < error_check)){
+		printf("[MAIN_ERROR %d] The divisions weren't configurated.\n", MAIN_ERROR_6);
+		free_mote_memory(system_motes, number_motes, NULL);
+		fclose(sensor_data_channel);
+		sensor_data_channel = NULL;
+		fclose(rgb_matrix_channel);
+		rgb_matrix_channel = NULL;
+		exit(-1);
+	}
 	
 	/****************************************
 	 * INIT ROUTINE - RULE'S CONFIGURATION
 	 ****************************************/
 	if((-1 == rules_association_to_structures(&system_rules, &number_rules, number_motes, &error_check) || 0 < error_check)){
-		printf("[MAIN_ERROR %d] The rules weren't created.\n", MAIN_ERROR_6);
+		printf("[MAIN_ERROR %d] The rules weren't created.\n", MAIN_ERROR_7);
 		free_mote_memory(system_motes, number_motes, NULL);
+		free_memory_all(system_divisions, number_divisions, NULL);
 		fclose(sensor_data_channel);
 		sensor_data_channel = NULL;
 		fclose(rgb_matrix_channel);
@@ -512,6 +530,8 @@ int main(int argc, char **argv)
 	 ***********************/
 	free_mote_memory(system_motes, number_motes, NULL);
 	system_motes = NULL;
+	free_memory_all(system_divisions, number_divisions, NULL);
+	system_divisions = NULL;
 	free_rules_system_memory(system_rules, number_rules, NULL);
 	system_rules = NULL;
 	fclose(sensor_data_channel);
