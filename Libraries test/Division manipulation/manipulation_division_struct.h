@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "actuators_lib_struct.h"
+#include "actuators_lib_struct.h"
 
 #define ERROR_LIB_MAN_DIVISION_STRUCT_NONE 0
 #define ERROR_LIB_MAN_DIVISION_STRUCT_1	   1
@@ -40,6 +40,7 @@
 #define ERROR_LIB_MAN_DIVISION_STRUCT_5	   5
 #define ERROR_LIB_MAN_DIVISION_STRUCT_6	   6
 #define ERROR_LIB_MAN_DIVISION_STRUCT_7	   7
+#define ERROR_LIB_MAN_DIVISION_STRUCT_8	   8
 
 #define MAX_CHARACT_STRING	20
 #define SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_NAME   	20
@@ -52,10 +53,10 @@ typedef struct DIVISION_TEMP{
 	int num_sensors;
 	char **sensors;
 	int num_actuator;
-	//actuator **division_actuators;
+	actuator **division_actuators;
 } division;
 
-division ** division_vector_creation(int ndivisions, int * error_func);
+division ** division_vector_creation(int number_ivisions, int * error_func);
 
 char *string_creation(int * error_func);
 
@@ -65,6 +66,8 @@ void free_vector_string_memory(char **vector_string, int number_sensors, int * e
 
 void free_memory_all(division **system_divisions, int number_divisions, int * error_func);
 
-void insert_info_division_struct(division **system_divisions, int * number_divisions, int *error_func);
+division ** insert_info_division_struct(int * number_divisions, int *error_func);
+
+void search_division_actuator(division ** system_divisions, int number_divisions, char *division_name, char *division_actuator_id, int * index_division, int * index_actuator, int * error_func);
 
 #endif

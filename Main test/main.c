@@ -48,11 +48,51 @@
 #define MAIN_ERROR_9  1
 #define MAIN_ERROR_10 1
 
+// Errors - thread_data_processing 
+#define	ERROR1	1
+#define ERROR2	2
+#define ERROR3	3
+#define	ERROR4	4
+#define	ERROR5	5
+#define ERROR6	6
+
 // Constants relative to the communication channels
 #define MAIN_CHANNEL_SENSOR  1
 #define MAIN_CHANNEL_RGBMAT  2
 #define MAIN_CHANNEL_LIM_INF 0
 #define MAIN_CHANNEL_LIM_SUP 5
+
+// ASCII codes
+#define	ASCII_res_number_0	0
+#define ASCII_res_number_9	9
+#define	ASCII_res_char_A	17
+#define ASCII_res_char_F	22
+#define ASCII_res_space		-16
+
+// Parameter's position in the string
+#define	INIT_BOTTOM		0
+#define	INIT_TOP		4
+#define	MOTE_ID_BOTTOM	15
+#define	MOTE_ID_TOP		19
+#define	TEMP_BOTTOM		36
+#define	TEMP_TOP		40
+#define	HUMID_BOTTOM	42
+#define	HUMID_TOP		46
+#define	LIGHT_BOTTOM	48
+#define	LIGHT_TOP		52
+#define	END_BOTTOM		66
+#define	END_TOP			67
+
+// Other constants - thread_data_processing
+#define LINE	70
+#define WORD	6
+#define BASE	16
+#define SPACE   2
+
+// Types of sensors - function search_sensor_mote
+#define TYPE_SENS_TEMP  1
+#define TYPE_SENS_HUM   2
+#define TYPE_SENS_LIGHT 3
 
 // Global variables
 FILE *sensor_data_channel = NULL, *rgb_matrix_channel = NULL;
@@ -63,12 +103,263 @@ rule **system_rules = NULL;
 
 // Global flags
 
+/***************************************************
+ * FUNCTIONS USED BY THREAD DATA PROCESSING (PTH1)
+ ***************************************************/
+int multiplication_by_10(int times){
+	
+	if(0 == times)
+		return 1000;
+	else if(1 == times)
+		return 100;
+	else if(2 == times)
+		return 10;
+	else return 1;
+}
+
+int power(int base, int exponent){
+	int step = 0, result = 1;
+	
+	if((base < 0) || (exponent < 0)){
+		return 0;
+	}
+	else{
+		for(step= 0; step < exponent; step++){
+			result = result * base;
+		}
+		return result;
+	}
+}
+
+float calculate_temperature(int number_Temp){
+	return -39.6 + 0.01*number_Temp;
+}
+
+float calculate_relative_humidity(int number_Humid){
+	return -2.0468 + 0.0367*number_Humid - 1.5955*0.000001*power(number_Humid,2);
+}
+
+float calculate_humidity_compensated_by_temperature(int number_Humid, float humid_relative, float Temp){
+	return (Temp - 25)*(0.01 + 0.00008*number_Humid) + humid_relative;
+}
+
+float calculate_visible_light (int number_Visible_Light){
+	return 0.625*power(10,6)*(number_Visible_Light/4096.0)*(1.5/power(10,5))*1000;
+}
+
 
 /****************************************
  * THREAD DATA PROCESSING (PTH1) - CODE
  ****************************************/
 void *thread_data_processing(void *arg){
+	// Variable's declaration
+	int step_line = 0, step_word = 0, fill_up = 0, times_10 = 0, times_16 = 0;
+	int	decimal_id = 0, convert = 0, flag_invalid = 0, decimal_temp = 0, decimal_humid = 0, decimal_visible_light = 0;
+	float temp = 0, relative_humidity = 0, humidity_compensated_by_temperature = 0, visible_light = 0;
+	char line[LINE], word[WORD];
+	
+	// Code
+	while(1){
+		fgets(line, LINE, sensor_data_channel);
+		printf("DEBUG: %s", line);
+		for(step_line = 0; step_line < strlen(line); step_line++){
+			// Beginning of line
+			if(INIT_BOTTOM == step_line){
+				fill_up = 0;
+				for(step_word = INIT_BOTTOM; step_word <= INIT_TOP; step_word++){
+					if(step_word != (INIT_BOTTOM + SPACE)){
+						word[fill_up] = line[step_word];
+						fill_up++;
+					}
+				}
+				word[fill_up] = '\0';
+				
+				if(0 == strcmp(word,"7E45")){
+					printf("Valid init!\n");
+				}
+				else {
+					printf("ERROR[%d] - The message start bytes are incorrect!\n",ERROR1);
+					//break;
+				}
+			}
+			// MOTE ID
+			else if(MOTE_ID_BOTTOM == step_line){
+				flag_invalid = 0;
+				times_10 = 0;
+				decimal_id = 0;
+				for(step_word = MOTE_ID_BOTTOM; step_word <= MOTE_ID_TOP; step_word++){
+					convert = line[step_word] - '0';
+					if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (MOTE_ID_BOTTOM + SPACE))){
+						decimal_id = decimal_id + convert*multiplication_by_10(times_10);
+						times_10++;
+					}
+					else if(!((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (MOTE_ID_BOTTOM + SPACE))){
+						flag_invalid = 1;
+						break;
+					}
+					else{
+						decimal_id += 0;
+					}
+				}
+				if((decimal_id > 9999) || (flag_invalid)){
+					printf("ERROR[%d] - Mote ID invalid!\n",ERROR2);
+				}
+				else{
+					printf("Mote ID: %d\n",decimal_id);
+				}
+			}
+			// Temperature parameter
+			else if(TEMP_BOTTOM == step_line){
+				flag_invalid = 0;
+				times_16 = 0;
+				decimal_temp = 0;
+				for(step_word = TEMP_TOP; step_word >= TEMP_BOTTOM; step_word--){
+					convert = line[step_word] - '0';
+					if((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F) && (step_word != (TEMP_BOTTOM + SPACE))){
+						convert = line[step_word] - 'A' + 10;
+						decimal_temp = decimal_temp + convert*power(BASE,times_16);
+						times_16++;
+					}
+					else if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (TEMP_BOTTOM + SPACE))){
+						decimal_temp = decimal_temp + convert*power(BASE,times_16);
+						times_16++;
+					}
+					else if(!((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F)) && !((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (TEMP_BOTTOM + SPACE))){ 
+						flag_invalid = 1;
+						break;
+					}
+					else{
+						decimal_temp += 0;
+					}
+				}
+				if(flag_invalid){
+					printf("ERROR[%d] - Temperature parameter invalid!\n",ERROR3);
+				}
+				else{
+					//printf("Temperatura decimal = %d\n", decimal_temp);
+					temp = calculate_temperature(decimal_temp);
+					system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->temperature = temp;
+					
+					printf("Temperature = %.2f ºC\n",temp);
+				}
+			}
+			// Humidity parameter
+			else if(HUMID_BOTTOM == step_line){
+				flag_invalid = 0;
+				times_16 = 0;
+				decimal_humid = 0;
+				for(step_word = HUMID_TOP; step_word >= HUMID_BOTTOM; step_word--){
+					convert = line[step_word] - '0';
+					if((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F) && (step_word != (HUMID_BOTTOM + SPACE))){
+						convert = line[step_word] - 'A' + 10;
+						decimal_humid = decimal_humid + convert*power(BASE,times_16);
+						times_16++;
+					}
+					else if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (HUMID_BOTTOM + SPACE))){
+						decimal_humid = decimal_humid + convert*power(BASE,times_16);
+						times_16++;
+					}
+					else if(!((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F)) && !((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (HUMID_BOTTOM + SPACE))){
+						flag_invalid = 1;
+						break;
+					}
+					else{
+						decimal_humid += 0;
+					}
+				}
+				if(flag_invalid){
+					printf("ERROR[%d] - Humidity parameter invalid!\n",ERROR4);
+				}
+				else{
+					//printf("Humidade decimal = %d\n",decimal_humid);
+					relative_humidity = calculate_relative_humidity(decimal_humid);
+					printf("Relative humidity = %.2f %%\n",relative_humidity);
+					
+					humidity_compensated_by_temperature = calculate_humidity_compensated_by_temperature(decimal_humid,relative_humidity,temp);
+					system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->humidity = humidity_compensated_by_temperature;
+					
+					printf("Humidity compensated by temperature = %.2f %%\n",humidity_compensated_by_temperature);
+				}
+			}
+			// Visible light parameter
+			else if(LIGHT_BOTTOM == step_line){
+				flag_invalid = 0;
+				times_16 = 0;
+				decimal_visible_light = 0;
+				for(step_word = LIGHT_TOP; step_word >= LIGHT_BOTTOM; step_word--){
+					convert = line[step_word] - '0';
+					if((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F) && (step_word != (LIGHT_BOTTOM + SPACE))){
+						convert = line[step_word] - 'A' + 10;
+						decimal_visible_light = decimal_visible_light + convert*power(BASE,times_16);
+						times_16++;
+					}
+					else if((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9) && (step_word != (LIGHT_BOTTOM + SPACE))){
+						decimal_visible_light = decimal_visible_light + convert*power(BASE,times_16);
+						times_16++;
+					}
+					else if(!((convert >= ASCII_res_char_A) && (convert <= ASCII_res_char_F)) && !((convert >= ASCII_res_number_0) && (convert <= ASCII_res_number_9)) && (step_word != (LIGHT_BOTTOM + SPACE))){
+						flag_invalid = 1;
+						break;
+					}
+					else{
+						decimal_visible_light += 0;
+					}
+				}
+				if(flag_invalid){
+					printf("ERROR[%d] - Visible light parameter invalid!\n",ERROR5);
+				}
+				else{
+					//printf("Luz visível decimal = %d\n",decimal_visible_light);
+					visible_light = calculate_visible_light(decimal_visible_light);
+					system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->luminosity = visible_light;
+					
+					printf("Visible light = %.2f lux\n", visible_light);
+				}
+			}
+			// End of line
+			else if (END_BOTTOM == step_line){
+				fill_up = 0;
+				for(step_word = END_BOTTOM; step_word <= END_TOP; step_word++){
+					word[fill_up] = line[step_word];
+					fill_up++;
+				}
+				word[fill_up] = '\0';
+				if(0 == strcmp(word,"7E")){
+					printf("Valid end!\n");
+					break;
+				}
+				else {
+					printf("ERROR[%d] - Invalid end!\n",ERROR6);
+					break;
+				}
+			}
+		}
+	}
 	pthread_exit(NULL);
+}
+
+
+/*******************************************************
+ * FUNCTIONS USED BY THREAD RULE IMPLEMENTATION (PTH2)
+ *******************************************************/
+int search_sensor_mote(char * sensor, int number_motes, int * mote_id_sensor, int * type_sensor){
+	int integer_aux_1=0, integer_aux_2, numeration_sensor;
+	(*type_sensor)=0;
+	switch(sensor[0]){
+		case 'L': integer_aux_1=5; (*type_sensor)=TYPE_SENS_LIGHT; break;
+		case 'H': integer_aux_1=3; (*type_sensor)=TYPE_SENS_HUM; break;
+		case 'T': integer_aux_1=4; (*type_sensor)=TYPE_SENS_TEMP; break;
+		default: return -1;
+	}
+	if('\0' == sensor[integer_aux_1])
+		return 1;
+	numeration_sensor = conversion_of_a_piece_of_a_string_into_integer(sensor, integer_aux_1, &integer_aux_2, strlen(sensor));
+	if(numeration_sensor <= number_motes){
+		(*mote_id_sensor) = numeration_sensor;
+		return 1;
+	}
+	else
+		return 0;
 }
 
 
@@ -92,6 +383,7 @@ void *actualize_actuators(void *arg){
  * THREAD USER INTERFACE (PTH4) - CODE
  ***************************************/
 void *user_interface(void *arg){
+	while(1);
 	pthread_exit(NULL);
 }
 
@@ -196,10 +488,8 @@ int main(int argc, char **argv)
 	 * DEBUG ZONE
 	 **************/
 	print_motes_vector(system_motes, number_motes, &error_check);
-	printf("STATUS print_motes_vector: %d\n", error_check);
 	print_rules_system_vector(system_rules, number_rules, &error_check);
-	printf("STATUS print_rules_system_vector: %d\n", error_check);
-	
+	 
 	/***********************
 	 * CREATION OF THREADS
 	 ***********************/
@@ -216,7 +506,7 @@ int main(int argc, char **argv)
 	pthread_cancel(pth2);
 	pthread_cancel(pth3);
 	pthread_cancel(pth4);
-	 
+	
 	/***********************
 	 * TERMINATION ROUTINE
 	 ***********************/
