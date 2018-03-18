@@ -26,11 +26,12 @@
 
 
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <errno.h>
+#include <pthread.h>
 #include "actuators_lib_struct.h"
 #include "manipulation_mote_struct.h"
 #include "manipulation_rule_struct.h"
@@ -63,6 +64,41 @@ rule **system_rules = NULL;
 // Global flags
 
 
+/****************************************
+ * THREAD DATA PROCESSING (PTH1) - CODE
+ ****************************************/
+void *thread_data_processing(void *arg){
+	pthread_exit(NULL);
+}
+
+
+/********************************************
+ * THREAD RULE IMPLEMENTATION (PTH2) - CODE
+ ********************************************/
+void *thread_rule_implementation(void *arg){
+	pthread_exit(NULL);
+}
+
+
+/********************************************
+ * THREAD ACTUALIZE ACTUATORS (PTH3) - CODE
+ ********************************************/
+void *actualize_actuators(void *arg){
+	pthread_exit(NULL);
+}
+
+
+/***************************************
+ * THREAD USER INTERFACE (PTH4) - CODE
+ ***************************************/
+void *user_interface(void *arg){
+	pthread_exit(NULL);
+}
+
+
+/************************
+ * FUNCTION MAIN - CODE
+ ************************/
 int main(int argc, char **argv)
 {
 	/************************************
@@ -111,6 +147,7 @@ int main(int argc, char **argv)
 	 * VARIABLES DECLARATION
 	 *************************/
 	int error_check = 0;
+	pthread_t pth1, pth2, pth3, pth4;
 	
 	/**********************************
 	 * INIT ROUTINE - WELCOME MESSAGE
@@ -120,7 +157,7 @@ int main(int argc, char **argv)
 	/****************************************
 	 * INIT ROUTINE - MOTE'S CONFIGURATION
 	 ****************************************/
-	printf("++++++++++ MOTE'S CONFIGURATION ++++++++++");
+	printf("++++++++++ MOTE'S CONFIGURATION ++++++++++\n");
 	do{
 		printf("Insert the number of motes that are considered in the system (needs to be greater than 0): ");
 		scanf(" %d", &number_motes);
@@ -164,6 +201,23 @@ int main(int argc, char **argv)
 	printf("STATUS print_rules_system_vector: %d\n", error_check);
 	
 	/***********************
+	 * CREATION OF THREADS
+	 ***********************/
+	pthread_create(&pth1, NULL, thread_data_processing, NULL);
+	pthread_create(&pth2, NULL, thread_rule_implementation, NULL);
+	pthread_create(&pth3, NULL, actualize_actuators, NULL);
+	pthread_create(&pth4, NULL, user_interface, NULL);
+	
+	/****************************************
+	 * CREATION AND CANCELLATION OF THREADS
+	 ****************************************/
+	pthread_join(pth4, NULL);
+	pthread_cancel(pth1);
+	pthread_cancel(pth2);
+	pthread_cancel(pth3);
+	pthread_cancel(pth4);
+	 
+	/***********************
 	 * TERMINATION ROUTINE
 	 ***********************/
 	free_mote_memory(system_motes, number_motes, NULL);
@@ -174,6 +228,10 @@ int main(int argc, char **argv)
 	sensor_data_channel = NULL;
 	fclose(rgb_matrix_channel);
 	rgb_matrix_channel = NULL;
+	printf("\n**********************************************************************\n");
+	printf("************************* END OF PROGRAM HAS *************************\n");
+	printf("**********************************************************************\n\n");
 	return 0;
+	exit(0);
 }
 
