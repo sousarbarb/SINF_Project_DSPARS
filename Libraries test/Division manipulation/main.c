@@ -30,17 +30,19 @@
 int main(int argc, char **argv)
 {
 	division **system_divisions = NULL;
-	int number_divisions = 0;
+	int number_divisions = 0, index_division, index_actuator;
+	char division_name[20] = "ROOM", actuator_name[20] = "HEAT3";
 	
 	printf("Insira o número de divisões: ");
 	scanf(" %d", &number_divisions);
 	
-	insert_info_division_struct(system_divisions, &number_divisions, NULL);
+	system_divisions = insert_info_division_struct(&number_divisions, NULL);
 	
-	printf("%s\n", system_divisions[0]->sensors[0]);
-	printf("%s\n", system_divisions[0]->sensors[1]);
-	printf("%s\n", system_divisions[1]->sensors[0]);
-	printf("%s\n", system_divisions[1]->sensors[1]);
+	search_division_actuator(system_divisions, number_divisions, division_name, actuator_name, &index_division, &index_actuator, NULL);
+	
+	printf("%d\n", index_division);
+	
+	printf("%d\n", index_actuator);
 	return 0;
 }
 
