@@ -261,7 +261,7 @@ void free_rules_system_memory(rule **system_rules, int number_rules, int * error
 	
 	
 	// Function's code
-	int counter;
+	int counter, counter_aux;
 	for(counter = 0; counter < number_rules; counter++){
 		if(NULL != system_rules[counter]->division_name){
 			free(system_rules[counter]->division_name);
@@ -276,6 +276,12 @@ void free_rules_system_memory(rule **system_rules, int number_rules, int * error
 			system_rules[counter]->sensor_condition_1 = NULL;
 		}
 		if(NULL != system_rules[counter]->actuator_future_state){
+			if(0 < system_rules[counter]->num_actuator_conditions){
+				for(counter_aux = 0; counter_aux < system_rules[counter]->num_actuator_conditions; counter_aux++){
+					free(system_rules[counter]->actuator_future_state[counter_aux]);
+					system_rules[counter]->actuator_future_state[counter_aux] = NULL;
+				}
+			}
 			free(system_rules[counter]->actuator_future_state);
 			system_rules[counter]->actuator_future_state = NULL;
 		}
@@ -325,7 +331,7 @@ void print_rules_system_vector(rule **system_rules, int number_rules, int * erro
 
 int rules_association_to_structures(rule ***system_rules, int *number_rules, int number_motes, int * error_func){
 	// Function's code
-	int counter1, counter2, counter3, error_1, integer_aux1;
+	int counter1, counter2, counter3, counter4, error_1, integer_aux1;
 	char charac1, string_aux1[SIZE_STRING_BUFFER_1], string_aux2[SIZE_STRING_BUFFER_2];
 	
 	// - TEMPLATE
@@ -436,20 +442,6 @@ int rules_association_to_structures(rule ***system_rules, int *number_rules, int
 			return -1;
 		}
 		counter2++;
-		
-		/*********************************************************
-		 * INCOMPLETE - (PT) Falta confirmar se a divisão existe
-		 *********************************************************
-		 * 
-		if(...){
-			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: The division especified doesn't exist.\n", ERROR_LIB_MAN_RULE_STRUCT_10);
-			printf("    The problem was found in the RULE %d\n", counter1 + 1);
-			if(NULL != error_func)
-				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_10;
-			return -1;
-		} 
-		 *********************************************************/
-		
 		strcpy((*system_rules)[counter1]->division_name, string_aux2);
 		
 		// - Processing condition 1
@@ -483,18 +475,13 @@ int rules_association_to_structures(rule ***system_rules, int *number_rules, int
 			return -1;
 		}
 		
-		/**********************************************************
-		 * INCOMPLETE - (PT) Falta confirmar se o sensor é valido
-		 **********************************************************
-		 * 
-		if(...){
+		if(1 != validation_of_sensor(string_aux2, number_motes)){
 			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: The sensor especified in the condition doesn't exist.\n", ERROR_LIB_MAN_RULE_STRUCT_11);
 			printf("    The problem was found in the RULE %d\n", counter1 + 1);
 			if(NULL != error_func)
 				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_11;
 			return -1;
-		} 
-		 **********************************************************/
+		}
 		
 		strcpy((*system_rules)[counter1]->sensor_condition_1, string_aux2);
 		(*system_rules)[counter1]->operator_condition_1 = string_aux1[counter2];
@@ -545,18 +532,13 @@ int rules_association_to_structures(rule ***system_rules, int *number_rules, int
 				return -1;
 			}
 			
-			/**********************************************************
-			 * INCOMPLETE - (PT) Falta confirmar se o sensor é valido
-			 **********************************************************
-			 * 
-			if(...){
+			if(1 != validation_of_sensor(string_aux2, number_motes)){
 				printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: The sensor especified in the condition doesn't exist.\n", ERROR_LIB_MAN_RULE_STRUCT_11);
 				printf("    The problem was found in the RULE %d\n", counter1 + 1);
 				if(NULL != error_func)
 					(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_11;
 				return -1;
-			} 
-			 **********************************************************/
+			}
 			
 			strcpy((*system_rules)[counter1]->sensor_condition_2, string_aux2);
 			(*system_rules)[counter1]->operator_condition_2 = string_aux1[counter2];
@@ -567,9 +549,54 @@ int rules_association_to_structures(rule ***system_rules, int *number_rules, int
 			strcpy((*system_rules)[counter1]->logic_operator_condition_1_2, lib_man_rule_logic_operators[0]);
 			(*system_rules)[counter1]->sensor_condition_2[0] = '\0';
 			(*system_rules)[counter1]->operator_condition_2 = comparison_operators[0];
+			(*system_rules)[counter1]->value_condition_2 = 0;
+		}
+		
+		// - Processing actuators
+		while(' ' == string_aux1[counter2] && counter2 < integer_aux1)
+			counter2++;
+		if(integer_aux1 == counter2){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Rule's description invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_9);
+			printf("    The problem was found in the RULE %d\n", counter1 + 1);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_9;
+			return -1;
+		}
+		counter4 = 0;
+		for(counter3 = counter2; counter3 < integer_aux1 && '\0' != string_aux1[counter3]; counter3++)
+			if(':' == string_aux1[counter3])
+				counter4++;
+		(*system_rules)[counter1]->actuator_future_state = actuator_future_state_vector_creation(counter4, SIZE_LIB_MAN_RULE_LABEL_ACTUAT_FUT_STATE, &error_1);
+		if(NULL == (*system_rules)[counter1]->actuator_future_state || 0 < error_1){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Memory allocated failed. It wans't possible to create the vector with the use of the function rules_system_vector_creation.\n", ERROR_LIB_MAN_RULE_STRUCT_3);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_3;
+			return -1;
+		}
+		(*system_rules)[counter1]->num_actuator_conditions = counter4;
+		
+		for(counter3 = 0; (counter3 < (*system_rules)[counter1]->num_actuator_conditions) && ('\0' != string_aux1[counter2]); counter3++){
+			counter4 = 0;
+			while(' ' != string_aux1[counter2] && '\0' != string_aux1[counter2]){
+				(*system_rules)[counter1]->actuator_future_state[counter3][counter4] = string_aux1[counter2];
+				counter2++;
+				counter4++;
+			}
+			(*system_rules)[counter1]->actuator_future_state[counter3][counter4] = '\0';
+			while(' ' == string_aux1[counter2] && '\0' != string_aux1[counter2] && counter2 < integer_aux1)
+				counter2++;
+		}
+		if(counter3 < (*system_rules)[counter1]->num_actuator_conditions){
+			printf("[ERROR_LIB_MAN_RULE_STRUCT %d] rules_association_to_structures: Rule's description invalid.\n", ERROR_LIB_MAN_RULE_STRUCT_9);
+			printf("    The problem was found in the RULE %d\n", counter1 + 1);
+			if(NULL != error_func)
+				(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_9;
+			return -1;
 		}
 	}
 	
+	fclose(sensor_rules_file);
+	sensor_rules_file = NULL;
 	if(NULL != error_func)
 		(*error_func) = ERROR_LIB_MAN_RULE_STRUCT_NONE;
 	return 0;
@@ -585,5 +612,20 @@ int conversion_of_a_piece_of_a_string_into_integer(char * string, int start_inde
 	return integer_value;
 }
 
-
+int validation_of_sensor(char * sensor, int number_motes){
+	int integer_aux_1=0, integer_aux_2, numeration_sensor;
+	switch(sensor[0]){
+		case 'L': integer_aux_1=5; break;
+		case 'H': integer_aux_1=3; break;
+		case 'T': integer_aux_1=4; break;
+		default: return -1;
+	}
+	if('\0' == sensor[integer_aux_1])
+		return 1;
+	numeration_sensor = conversion_of_a_piece_of_a_string_into_integer(sensor, integer_aux_1, &integer_aux_2, strlen(sensor));
+	if(numeration_sensor <= number_motes)
+		return 1;
+	else
+		return 0;
+}
 

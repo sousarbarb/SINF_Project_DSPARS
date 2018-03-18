@@ -92,4 +92,6 @@ int rules_association_to_structures(rule ***system_rules, int *number_rules, int
 
 int conversion_of_a_piece_of_a_string_into_integer(char * string, int start_index, int * end_index, int string_size);
 
+int validation_of_sensor(char * sensor, int number_motes);
+
 #endif
