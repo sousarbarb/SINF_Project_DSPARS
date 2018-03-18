@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+//#include "actuators_lib_struct.h"
 
 #define ERROR_LIB_MAN_DIVISION_STRUCT_NONE 0
 #define ERROR_LIB_MAN_DIVISION_STRUCT_1	   1
@@ -64,6 +65,6 @@ void free_vector_string_memory(char **vector_string, int number_sensors, int * e
 
 void free_memory_all(division **system_divisions, int number_divisions, int * error_func);
 
-void insert_info_division_struct(division **system_divisions, int number_divisions, int *error_func);
+void insert_info_division_struct(division **system_divisions, int * number_divisions, int *error_func);
 
 #endif

@@ -1,7 +1,7 @@
 /*
- * main.c
+ * matrix_test.c
  * 
- * Copyright 2018 Pedro Albergaria <pedro@PedroAlbergaria>
+ * Copyright 2018 Daniel Silva <daniel@debian>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,26 +21,37 @@
  * 
  */
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "manipulation_division_struct.h"
-#include "actuators_lib_struct.h"
+#include "project_matrix.h"
 
 int main(int argc, char **argv)
 {
-	division **system_divisions = NULL;
-	int number_divisions = 0;
+	char *str_aux = NULL, state[4] = {0};
+	int	side, index_division, index_actuator;
 	
-	printf("Insira o número de divisões: ");
-	scanf(" %d", &number_divisions);
+	printf("Nº de células por lado da matrix = ");
+	scanf("%d",&side);
+	getchar();
+	str_aux = alocation_memory_matrix(side);
 	
-	insert_info_division_struct(system_divisions, &number_divisions, NULL);
+	while(1){
+		printf("Índice da divisão = ");
+		scanf("%d",&index_division);
+		getchar();
+		printf("Índice do atuador = ");
+		scanf("%d",&index_actuator);
+		getchar();
+		printf("Estado do atuador: ");
+		scanf("%s",state);
+		getchar();
+		
+		str_aux = configuration_matrix(str_aux,side,index_division,index_actuator,state);
+		printf("\nString resultante: %s\n",str_aux);
+	}
 	
-	printf("%s\n", system_divisions[0]->sensors[0]);
-	printf("%s\n", system_divisions[0]->sensors[1]);
-	printf("%s\n", system_divisions[1]->sensors[0]);
-	printf("%s\n", system_divisions[1]->sensors[1]);
 	return 0;
 }
 

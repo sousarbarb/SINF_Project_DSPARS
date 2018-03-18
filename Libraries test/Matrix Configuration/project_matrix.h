@@ -1,7 +1,7 @@
 /*
- * main.c
+ * define_size_matrix.c
  * 
- * Copyright 2018 Pedro Albergaria <pedro@PedroAlbergaria>
+ * Copyright 2018 Daniel Silva <daniel@debian>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,27 +20,34 @@
  * 
  * 
  */
+ 
+#ifndef _PROJECT_MATRIX_H_
+#define _PROJECT_MATRIX_H_
+
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "manipulation_division_struct.h"
-#include "actuators_lib_struct.h"
 
-int main(int argc, char **argv)
-{
-	division **system_divisions = NULL;
-	int number_divisions = 0;
-	
-	printf("Insira o número de divisões: ");
-	scanf(" %d", &number_divisions);
-	
-	insert_info_division_struct(system_divisions, &number_divisions, NULL);
-	
-	printf("%s\n", system_divisions[0]->sensors[0]);
-	printf("%s\n", system_divisions[0]->sensors[1]);
-	printf("%s\n", system_divisions[1]->sensors[0]);
-	printf("%s\n", system_divisions[1]->sensors[1]);
-	return 0;
-}
+#define ERROR_PROJECT_MATRIX_1		1
+#define ERROR_PROJECT_MATRIX_2		2
+#define ERROR_PROJECT_MATRIX_3		3
+#define ERROR_PROJECT_MATRIX_4		4
+#define ERROR_PROJECT_MATRIX_5		5
 
+#define MAX_PIXELS		700
+#define	SIZE_COLOR		13
+
+static const char on_state[] = "[  0,255,  0]", off_state[] = "[  0,  0,  0]";
+
+int determination_of_maximum(int divisions, int elements);
+
+int number_of_pixels(int constant);
+
+void write_file_matrix(char *file_name, int num_divisions, int num_elements);
+
+char* alocation_memory_matrix(int side);
+
+char* configuration_matrix(char *string_matrix_config, int matrix_side, int index_division, int index_actuator, char* actuator_state);
+
+#endif
