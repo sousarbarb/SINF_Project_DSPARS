@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+//#include "actuators_lib_struct.h"
 
 #define ERROR_LIB_MAN_DIVISION_STRUCT_NONE 0
 #define ERROR_LIB_MAN_DIVISION_STRUCT_1	   1
@@ -37,29 +38,33 @@
 #define ERROR_LIB_MAN_DIVISION_STRUCT_3	   3
 #define ERROR_LIB_MAN_DIVISION_STRUCT_4	   4
 #define ERROR_LIB_MAN_DIVISION_STRUCT_5	   5
+#define ERROR_LIB_MAN_DIVISION_STRUCT_6	   6
+#define ERROR_LIB_MAN_DIVISION_STRUCT_7	   7
 
 #define MAX_CHARACT_STRING	20
+#define SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_NAME   	20
+#define SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_SENSOR 	20
+#define SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_ACTUATOR	20
+#define SIZE_STRING_BUFFER_1                     		100
 
 typedef struct DIVISION_TEMP{
 	char *division_name;
-	int num_luminosity;
-	char **luminosity_sensors;
-	int num_temperature;
-	char **temperature_sensors;
-	int num_humidity;
-	char **humidity_sensores;
+	int num_sensors;
+	char **sensors;
 	int num_actuator;
-	actuator **division_actuators;
+	//actuator **division_actuators;
 } division;
 
-division ** division_vector_creation(int number_divisions, int * error_func);
+division ** division_vector_creation(int ndivisions, int * error_func);
 
-char *string_creation(int max_charact_string, int * error_func);
+char *string_creation(int * error_func);
 
-char **string_vector_sensors_creation(int number_sensors, int max_character_string, int * error_func);
+char **string_vector_sensors_creation(int number_sensors, int * error_func);
 
 void free_vector_string_memory(char **vector_string, int number_sensors, int * error_func);
 
-void free_memory_all(division **system_divisions, int number_sensors, int * error_func);
+void free_memory_all(division **system_divisions, int number_divisions, int * error_func);
+
+void insert_info_division_struct(division **system_divisions, int * number_divisions, int *error_func);
 
 #endif

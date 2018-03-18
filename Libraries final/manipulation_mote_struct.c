@@ -38,7 +38,7 @@ mote ** mote_vector_creation(int number_motes, int * error_func){
 	
 	
 	// Function's code
-	int counter, aux = 0;
+	int counter;
 	mote **system_motes = NULL;
 	system_motes = (mote **) malloc(sizeof(mote *) * number_motes);
 	if(NULL == system_motes){
@@ -61,15 +61,7 @@ mote ** mote_vector_creation(int number_motes, int * error_func){
 				(*error_func) = ERROR_LIB_MAN_MOTE_STRUCT_2;
 			return NULL;
 		}
-		do{
-			printf("[%d] Insert the mote id (must be higher than 0): ", counter);
-			scanf(" %d", &aux);
-			getchar();
-			if(0 < counter) 
-				if(0 <= search_mote(system_motes, counter, aux, NULL))
-					aux = 0;
-		}while(1 > aux);
-		system_motes[counter]->id = aux;
+		system_motes[counter]->id = counter + 1;
 		system_motes[counter]->luminosity = 0;
 		system_motes[counter]->temperature = 0;
 		system_motes[counter]->humidity = 0;
