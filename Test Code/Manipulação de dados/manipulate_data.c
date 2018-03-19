@@ -52,12 +52,12 @@
 #define	INIT_TOP		4
 #define	MOTE_ID_BOTTOM	15
 #define	MOTE_ID_TOP		19
-#define	TEMP_BOTTOM		36
-#define	TEMP_TOP		40
-#define	HUMID_BOTTOM	42
-#define	HUMID_TOP		46
-#define	LIGHT_BOTTOM	48
-#define	LIGHT_TOP		52
+#define	TEMP_BOTTOM		48
+#define	TEMP_TOP		52
+#define	HUMID_BOTTOM	54
+#define	HUMID_TOP		58
+#define	LIGHT_BOTTOM	36
+#define	LIGHT_TOP		40
 #define	END_BOTTOM		66
 #define	END_TOP			67
 
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 	line = (char *) malloc(LINE*sizeof(char));
 	word = (char *) malloc(WORD*sizeof(char));
 	
-	f_read = fopen("/dev/pts/3", "r"); //vai receber strings do programa"file_strings_to_channels"no canal 5
+	f_read = fopen("/dev/pts/1", "r"); // '/dev/pts/X' vai receber strings do programa"file_strings_to_channels"no canal X
 												//compilar apenas com - ./manipulate_data											
 												
 	while(NULL != fgets(line, LINE, f_read)){
@@ -249,12 +249,12 @@ int main(int argc, char **argv)
 					else{
 					//printf("Humidade decimal = %d\n",decimal_humid);
 					relative_humidity = calculate_relative_humidity(decimal_humid);
-					printf("Relative humidity = %.2f % \n",relative_humidity);
+					printf("Relative humidity = %.2f %% \n",relative_humidity);
 					
 					humidity_compensated_by_temperature = calculate_humidity_compensated_by_temperature(decimal_humid,relative_humidity,temp);
 					syst_motes[search_mote(syst_motes,NUM_MOTES,decimal_id,NULL)]->humidity = humidity_compensated_by_temperature;
 					
-					printf("Humidity compensated by temperature = %.2f % \n",humidity_compensated_by_temperature);
+					printf("Humidity compensated by temperature = %.2f %% \n",humidity_compensated_by_temperature);
 					}
 				}
 				
