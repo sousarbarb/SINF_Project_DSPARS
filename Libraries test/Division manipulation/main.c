@@ -30,23 +30,22 @@
 int main(int argc, char **argv)
 {
 	division **system_divisions;
-	int number_divisions = 0, counter1 = 0, counter2 = 0;
-	
-	printf("Insira o número de divisões: ");
-	scanf(" %d", &number_divisions);
+	int number_divisions = 0, index_division, index_actuator;
+	char division_name[20] = "KITCHEN", division_actuator[20]="LIGHT3";
 	
 	system_divisions = insert_info_division_struct(&number_divisions, NULL);
 
 	// Insert test
-	for(counter1 = 0; counter1 < number_divisions; counter1++) {
-		printf("\n\n------DIVISION Nº%d------\n\n", counter1+1);
-		printf("[DIVISION NAME] %s\n", system_divisions[counter1]->division_name);
-		for(counter2 = 0; counter2 < system_divisions[counter1]->num_sensors; counter2++)
-			printf("[SENSOR] %s\n", system_divisions[counter1]->sensors[counter2]);
-		for(counter2 = 0; counter2 < system_divisions[counter1]->num_actuator; counter2++)
-			printf("[ACTUATOR] %s\n", system_divisions[counter1]->division_actuators[counter2]->id);
-	}
+	
+	print_division_struct(system_divisions, number_divisions, NULL);
+	
 	// Search test
+	
+	search_division_actuator(system_divisions, number_divisions, division_name, division_actuator, &index_division, &index_actuator, NULL);
+	
+	printf("%d\n", index_division);
+	printf("%d\n", index_actuator);
+	
 	return 0;
 
 }

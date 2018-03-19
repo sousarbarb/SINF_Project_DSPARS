@@ -58,7 +58,7 @@ typedef struct DIVISION_TEMP{
 
 division ** division_vector_creation(int number_ivisions, int * error_func);
 
-char *string_creation(int * error_func);
+char *string_division_creation(int * error_func);
 
 char **string_vector_sensors_creation(int number_sensors, int * error_func);
 
@@ -69,5 +69,7 @@ void free_memory_all(division **system_divisions, int number_divisions, int * er
 division ** insert_info_division_struct(int * number_divisions, int *error_func);
 
 void search_division_actuator(division ** system_divisions, int number_divisions, char *division_name, char *division_actuator_id, int * index_division, int * index_actuator, int * error_func);
+
+void print_division_struct(division ** system_divisions, int number_divisions, int * error_func); 
 
 #endif

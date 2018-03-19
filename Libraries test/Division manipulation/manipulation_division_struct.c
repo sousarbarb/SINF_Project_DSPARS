@@ -62,19 +62,19 @@ division ** division_vector_creation(int number_divisions, int * error_func) {
 				(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_3;
 			return NULL;
 		}
-		system_divisions[counter]->division_name = string_creation(NULL);
+		system_divisions[counter]->division_name = string_division_creation(NULL);
 	}
 	if(NULL != error_func)
 		(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_NONE;
 	return system_divisions;
 }
 
-char *string_creation(int * error_func) {
+char *string_division_creation(int * error_func) {
 	// Function's code
 	char *string = NULL;
 	string = (char *) malloc(SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_NAME);
 	if(NULL == string){
-		printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] string_creation: Memory allocated failed.\n", ERROR_LIB_MAN_DIVISION_STRUCT_3);
+		printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] string_division_creation: Memory allocated failed.\n", ERROR_LIB_MAN_DIVISION_STRUCT_3);
 		if(NULL != error_func)
 			(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_3;
 		return NULL;
@@ -105,7 +105,7 @@ char **string_vector_sensors_creation(int number_sensors, int * error_func) {
 		return NULL;
 	}
 	for(counter = 0; counter < number_sensors; counter++){
-		vector_sensors[counter] = string_creation(NULL);
+		vector_sensors[counter] = string_division_creation(NULL);
 		if(NULL == vector_sensors[counter]){
 			printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] vector_actuator_future_state_creation: Memory allocated failed.\n", ERROR_LIB_MAN_DIVISION_STRUCT_3);
 			if(0 < counter)
@@ -184,14 +184,6 @@ void free_memory_all(division **system_divisions, int number_divisions, int * er
 }
 
 division ** insert_info_division_struct(int * number_divisions, int *error_func) {
-	//Argument's error checking
-	if(1 > (*number_divisions))  {
-		printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] insert_info_division_struct: Number of divisions invalid.\n", ERROR_LIB_MAN_DIVISION_STRUCT_1);
-		if(NULL != error_func)
-			(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_1;
-		return NULL;
-	}
-	
 	//Function's code 
 	FILE *sensor_configuration = NULL;
 	division **system_divisions = NULL;
@@ -199,11 +191,17 @@ division ** insert_info_division_struct(int * number_divisions, int *error_func)
 	char str_file[SIZE_STRING_BUFFER_1];
 	char str_aux1[SIZE_STRING_BUFFER_1], str_aux2[SIZE_STRING_BUFFER_1], str_aux3[SIZE_STRING_BUFFER_1];
 	
+	do{
+		printf("Insira o número de divisões: ");
+		scanf(" %d", number_divisions);
+	} while(1 > (*number_divisions));
+	
 	system_divisions = division_vector_creation((*number_divisions), NULL);
 	
 	sensor_configuration = fopen("SensorConfiguration.txt", "r");
 	
 	if(NULL == sensor_configuration) {
+		printf("When you write the sensors configuration .txt file, please follow the instructions below\n");
 		printf("\n++++++++++ TEMPLATE FOR THE FILE SensorConfiguration.txt ++++++++++\n\n");
 		printf("Maximum ratings:\n");
 		printf("    Size of division's name:            %d characters\n", SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_NAME);
@@ -290,6 +288,7 @@ division ** insert_info_division_struct(int * number_divisions, int *error_func)
 		counter4 = 0;
 	}
 	fclose(sensor_configuration);
+	sensor_configuration = NULL;
 
 	return system_divisions;
 }
@@ -330,4 +329,32 @@ void search_division_actuator(division ** system_divisions, int number_divisions
 	}
 	(*index_division) = counter1;
 	(*index_actuator) = search_actuator(system_divisions[counter1]->division_actuators, system_divisions[counter1]->num_actuator, division_actuator_id, NULL);
+}
+
+void print_division_struct(division ** system_divisions, int number_divisions, int * error_func) {
+	// Argument's error check
+	if(NULL == system_divisions) {
+		printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] print_division_struct: Pointer to the division struct invalid.\n", ERROR_LIB_MAN_DIVISION_STRUCT_5);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_5;
+		return;
+	}
+	if(1 > number_divisions)  {
+		printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] print_division_struct: Number of divisions invalid.\n", ERROR_LIB_MAN_DIVISION_STRUCT_1);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_1;
+		return;
+	}
+	
+	// Function's code
+	int counter1 = 0, counter2 = 0;
+	
+	for(counter1 = 0; counter1 < number_divisions; counter1++) {
+		printf("\n\n------DIVISION Nº%d------\n\n", counter1+1);
+		printf("[DIVISION NAME] %s\n", system_divisions[counter1]->division_name);
+		for(counter2 = 0; counter2 < system_divisions[counter1]->num_sensors; counter2++)
+			printf("[SENSOR] %s\n", system_divisions[counter1]->sensors[counter2]);
+		for(counter2 = 0; counter2 < system_divisions[counter1]->num_actuator; counter2++)
+			printf("[ACTUATOR] %s\n", system_divisions[counter1]->division_actuators[counter2]->id);
+	}
 }
