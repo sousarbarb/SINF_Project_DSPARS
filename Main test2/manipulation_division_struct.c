@@ -231,48 +231,36 @@ division ** insert_info_division_struct(int * number_divisions, int *error_func)
 			if(',' == str_file[counter2])
 				aux_virgula++;
 		}
-		str_aux2[counter2] = '\0';
+		str_aux2[counter2-counter1] = '\0';
 		counter2++;
 		aux_virgula++;
-		printf("sensores: %d\n",aux_virgula);
 		system_divisions[counter6]->num_sensors = aux_virgula;
 		system_divisions[counter6]->sensors = string_vector_sensors_creation(aux_virgula, NULL);
 		aux_virgula = 0;
-		puts("inicio\n"); /////////////////////////////////////
 		for(counter3 = 0; '\0' != str_aux2[counter3]; counter3++) {
 			system_divisions[counter6]->sensors[counter4][counter7] = str_aux2[counter3];
 			counter7++;
 			if(',' == str_aux2[counter3]) {
-				printf("%d\n",counter3);
-				puts("virgula\n");
 				system_divisions[counter6]->sensors[counter4][counter7-1] = '\0';
-				puts("finito1\n");
 				counter4++;
 				counter7 = 0;
 			}
 			else if('\0' == str_aux2[counter3+1]) {
-				puts("finito2\n");
 				system_divisions[counter6]->sensors[counter4][counter7] = '\0';
 				puts(system_divisions[counter6]->sensors[counter4]);
 			}
 			puts(system_divisions[counter6]->sensors[counter4]);
 		}
-		puts("antes for\n"); //////////////////////////////////
 		for(counter8 = counter2; '\0' != str_file[counter8]; counter8++) {
 			str_aux3[counter8-counter2] = str_file[counter8];
 			if(',' == str_file[counter8])
 				aux_actuators++;
 		}
-		str_aux3[counter8] = '\0';
-		
+		str_aux3[counter8-counter2] = '\0';
 		aux_actuators++;
-		puts(str_aux3);	
 		system_divisions[counter6]->num_actuator = aux_actuators;
-		printf("2\n");
 		system_divisions[counter6]->division_actuators = actuators_vector_creation(aux_actuators, NULL);
-		
 		aux_actuators = 0;
-	
 		for(counter9 = 0;'\0' != str_aux3[counter9]; counter9++) {
 			system_divisions[counter6]->division_actuators[counter10]->id[counter11] = str_aux3[counter9];
 			counter11++;
@@ -289,14 +277,12 @@ division ** insert_info_division_struct(int * number_divisions, int *error_func)
 		counter7 = 0;
 		counter4 = 0;
 	}
-	printf("após for\n");
 	fclose(sensor_configuration);
 	sensor_configuration = NULL;
 	
 	if(NULL != error_func) {
 		(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_NONE;
 	}
-
 	return system_divisions;
 }
 
