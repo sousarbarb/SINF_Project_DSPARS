@@ -62,19 +62,19 @@ division ** division_vector_creation(int number_divisions, int * error_func) {
 				(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_3;
 			return NULL;
 		}
-		system_divisions[counter]->division_name = division_string_creation(NULL);
+		system_divisions[counter]->division_name = string_creation(NULL);
 	}
 	if(NULL != error_func)
 		(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_NONE;
 	return system_divisions;
 }
 
-char *division_string_creation(int * error_func) {
+char *string_creation(int * error_func) {
 	// Function's code
 	char *string = NULL;
 	string = (char *) malloc(SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_NAME);
 	if(NULL == string){
-		printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] division_string_creation: Memory allocated failed.\n", ERROR_LIB_MAN_DIVISION_STRUCT_3);
+		printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] string_creation: Memory allocated failed.\n", ERROR_LIB_MAN_DIVISION_STRUCT_3);
 		if(NULL != error_func)
 			(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_3;
 		return NULL;
@@ -105,7 +105,7 @@ char **string_vector_sensors_creation(int number_sensors, int * error_func) {
 		return NULL;
 	}
 	for(counter = 0; counter < number_sensors; counter++){
-		vector_sensors[counter] = division_string_creation(NULL);
+		vector_sensors[counter] = string_creation(NULL);
 		if(NULL == vector_sensors[counter]){
 			printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] vector_actuator_future_state_creation: Memory allocated failed.\n", ERROR_LIB_MAN_DIVISION_STRUCT_3);
 			if(0 < counter)
@@ -204,29 +204,25 @@ division ** insert_info_division_struct(int * number_divisions, int *error_func)
 	sensor_configuration = fopen("SensorConfiguration.txt", "r");
 	
 	if(NULL == sensor_configuration) {
-		printf("Error opening the file\n");	
-		fclose(sensor_configuration);
+		printf("\n++++++++++ TEMPLATE FOR THE FILE SensorConfiguration.txt ++++++++++\n\n");
+		printf("Maximum ratings:\n");
+		printf("    Size of division's name:            %d characters\n", SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_NAME);
+		printf("    Size of sensor's name:              %d characters\n", SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_SENSOR);
+		printf("    Size of actuator's name: %d characters\n", SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_ACTUATOR);
+		printf("    Size of configuration's characterization:    %d characters\n", SIZE_STRING_BUFFER_1);
+		printf("Examples of sensors configuration in the file:\n\n");
+		printf("    (Configuration 1)    <room_name>:<sensor_name>[,<sensor_name>];<actuator>[,actuator]\n");
+		printf("    (Configuration 2)    <room_name>:<sensor_name>[,<sensor_name>];<actuator>[,actuator]\n");
+		printf("...\n\n+++++++++++++++++++++++++++++++++++++++++++++++++\n\n");
 		if(NULL != error_func) {
 			(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_5;
 			return NULL;
 		}
 	}
-	printf("\n++++++++++ TEMPLATE FOR THE FILE SensorConfiguration.txt ++++++++++\n\n");
-	printf("Maximum ratings:\n");
-	printf("    Size of division's name:            %d characters\n", SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_NAME);
-	printf("    Size of sensor's name:              %d characters\n", SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_SENSOR);
-	printf("    Size of actuator's name: %d characters\n", SIZE_LIB_MAN_DIVISION_LABEL_DIVISION_ACTUATOR);
-	printf("    Size of configuration's characterization:    %d characters\n", SIZE_STRING_BUFFER_1);
-	printf("Examples of sensors configuration in the file:\n\n");
-	printf("    (Configuration 1)    <room_name>:<sensor_name>[,<sensor_name>];<actuator>[,actuator]\n");
-	printf("    (Configuration 2)    <room_name>:<sensor_name>[,<sensor_name>];<actuator>[,actuator]\n");
-	printf("...\n\n+++++++++++++++++++++++++++++++++++++++++++++++++\n\n");
 	
 	for(counter6 = 0; fgets(str_file, SIZE_STRING_BUFFER_1, sensor_configuration) != NULL; counter6++) {
 		if('\n' == str_file[strlen(str_file) - 1])
 			str_file[strlen(str_file) - 1] = '\0';
-			
-		printf("[DIVISION CONFIG %d] %s\n", counter6+1, str_file);
 		
 		for(counter1 = 0; ':' != str_file[counter1]; counter1++) {
 			str_aux1[counter1] = str_file[counter1];
@@ -241,17 +237,25 @@ division ** insert_info_division_struct(int * number_divisions, int *error_func)
 		}
 		str_aux2[counter2] = '\0';
 		counter2++;
-		system_divisions[counter6]->num_sensors = aux_virgula+1;
+		
+		aux_virgula++;
+		
+		system_divisions[counter6]->num_sensors = aux_virgula;
 	
-		system_divisions[counter6]->sensors = string_vector_sensors_creation(aux_virgula+1, NULL);
+		system_divisions[counter6]->sensors = string_vector_sensors_creation(aux_virgula, NULL);
+		
+		aux_virgula = 0;
 		
 		for(counter3 = 0; '\0' != str_aux2[counter3]; counter3++) {
 			system_divisions[counter6]->sensors[counter4][counter7] = str_aux2[counter3];
 			counter7++;
-			if(',' == str_aux2[counter3] || '\0' == str_aux2[counter3]) {
+			if(',' == str_aux2[counter3]) {
 				system_divisions[counter6]->sensors[counter4][counter7-1] = '\0';
 				counter4++;
 				counter7 = 0;
+			}
+			if('\0' == str_aux2[counter3+1]) {
+				system_divisions[counter6]->sensors[counter4][counter7] = '\0';
 			}
 		}
 		for(counter8 = counter2; '\0' != str_file[counter8]; counter8++) {
@@ -260,21 +264,25 @@ division ** insert_info_division_struct(int * number_divisions, int *error_func)
 				aux_actuators++;
 		}
 		str_aux3[counter8] = '\0';
-		counter8++;
 		
-		system_divisions[counter6]->num_actuator = aux_actuators+1;
+		aux_actuators++;
 		
-		system_divisions[counter6]->division_actuators = actuators_vector_creation(aux_actuators+1, NULL);
+		system_divisions[counter6]->num_actuator = aux_actuators;
+		
+		system_divisions[counter6]->division_actuators = actuators_vector_creation(aux_actuators, NULL);
+		
+		aux_actuators = 0;
 	
-		
 		for(counter9 = 0;'\0' != str_aux3[counter9]; counter9++) {
 			system_divisions[counter6]->division_actuators[counter10]->id[counter11] = str_aux3[counter9];
 			counter11++;
-			if(',' == str_aux3[counter9] || '\0' == str_aux3[counter9]) {
+			if(',' == str_aux3[counter9]) {
 				system_divisions[counter6]->division_actuators[counter10]->id[counter11-1] = '\0';
 				counter10++;
 				counter11 = 0;
 			}
+			if('\0' == str_aux3[counter9+1])
+				system_divisions[counter6]->division_actuators[counter10]->id[counter11] = '\0';
 		}
 		counter10 = 0;
 		counter11 = 0;	

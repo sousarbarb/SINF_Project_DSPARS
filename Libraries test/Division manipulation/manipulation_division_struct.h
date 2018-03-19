@@ -58,7 +58,7 @@ typedef struct DIVISION_TEMP{
 
 division ** division_vector_creation(int number_ivisions, int * error_func);
 
-char *division_string_creation(int * error_func);
+char *string_creation(int * error_func);
 
 char **string_vector_sensors_creation(int number_sensors, int * error_func);
 
