@@ -31,6 +31,7 @@ int main(int argc, char **argv)
 {
 	char *str_aux = NULL, state[10] = {0};
 	int	side,n_divisions, n_elements, index_div, index_act;
+	FILE *channel;
 	
 	printf("Número de divisões:");
 	scanf("%d",&n_divisions);
@@ -57,6 +58,9 @@ int main(int argc, char **argv)
 		
 		str_aux = configuration_matrix(str_aux,side,index_div,index_act,state);
 		printf("\nString resultante: %s\n",str_aux);
+		channel = fopen("/dev/pts/3", "w");
+		fprintf(channel, "%s\n", str_aux);
+		fclose(channel);
 		write_config_matrix("matrix.txt",str_aux);
 	}
 	return 0;
