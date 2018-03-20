@@ -76,12 +76,12 @@
 #define	INIT_TOP		4
 #define	MOTE_ID_BOTTOM	15
 #define	MOTE_ID_TOP		19
-#define	TEMP_BOTTOM		36
-#define	TEMP_TOP		40
-#define	HUMID_BOTTOM	42
-#define	HUMID_TOP		46
-#define	LIGHT_BOTTOM	48
-#define	LIGHT_TOP		52
+#define	TEMP_BOTTOM		48
+#define	TEMP_TOP		52
+#define	HUMID_BOTTOM	54
+#define	HUMID_TOP		58
+#define	LIGHT_BOTTOM	36
+#define	LIGHT_TOP		40
 #define	END_BOTTOM		66
 #define	END_TOP			67
 
@@ -682,7 +682,6 @@ int main(int argc, char **argv)
 	/*************************
 	 * VARIABLES DECLARATION
 	 *************************/
-	char actuator_test[20];
 	int error_check = 0;
 	pthread_t pth1, pth2, pth3, pth4;
 	

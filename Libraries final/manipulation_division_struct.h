@@ -72,4 +72,6 @@ void search_division_actuator(division ** system_divisions, int number_divisions
 
 void print_division_struct(division ** system_divisions, int number_divisions, int * error_func); 
 
+int number_max_actuators(division ** system_divisions, int number_divisions, int * error_func);
+
 #endif
