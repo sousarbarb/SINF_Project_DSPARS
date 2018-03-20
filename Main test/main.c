@@ -62,7 +62,7 @@
 #define MAIN_CHANNEL_SENSOR  1
 #define MAIN_CHANNEL_RGBMAT  2
 #define MAIN_CHANNEL_LIM_INF 0
-#define MAIN_CHANNEL_LIM_SUP 5
+#define MAIN_CHANNEL_LIM_SUP 8
 
 // ASCII codes
 #define	ASCII_res_number_0	0
@@ -99,7 +99,7 @@
 // Global variables
 FILE *sensor_data_channel = NULL, *rgb_matrix_channel = NULL;
 static const char CHANNEL_DEF[]="/dev/pts/";
-int number_motes, number_rules, number_divisions;
+int number_motes, number_rules, number_divisions, number_maximum_actuators, matrix_side_size;
 mote **system_motes = NULL;
 rule **system_rules = NULL;
 division **system_divisions = NULL;
@@ -682,7 +682,8 @@ int main(int argc, char **argv)
 	/*************************
 	 * VARIABLES DECLARATION
 	 *************************/
-	int error_check = 0;
+	int error_check = 0, counter_divisions, counter_actuators;
+	char *buffer_rgb_channel = NULL, user_answer;
 	pthread_t pth1, pth2, pth3, pth4;
 	
 	/**********************************
@@ -730,12 +731,50 @@ int main(int argc, char **argv)
 	if((-1 == rules_association_to_structures(&system_rules, &number_rules, number_motes, &error_check) || 0 < error_check)){
 		printf("[MAIN_ERROR %d] The rules weren't created.\n", MAIN_ERROR_7);
 		free_mote_memory(system_motes, number_motes, NULL);
+		system_motes = NULL;
 		free_memory_all(system_divisions, number_divisions, NULL);
+		system_divisions = NULL;
 		fclose(sensor_data_channel);
 		sensor_data_channel = NULL;
 		fclose(rgb_matrix_channel);
 		rgb_matrix_channel = NULL;
 		exit(-1);
+	}
+	
+	/*****************************************
+	 * INIT ROUTINE - MATRIX'S CONFIGURATION
+	 *****************************************/
+	number_maximum_actuators = number_max_actuators(system_divisions, number_divisions, &error_check);
+	write_size_matrix("RGBMatrixConf.txt", number_divisions, number_maximum_actuators);
+	matrix_side_size = determination_of_maximum(number_divisions, number_maximum_actuators);
+	buffer_rgb_channel = alocation_memory_matrix(matrix_side_size);
+	do{
+		printf("The program RGBMatrix is already running (Y - yes / N - no, and press Enter)? ");
+		user_answer = getchar();
+		getchar();
+	} while('Y' != user_answer &&'N' != user_answer &&'y' != user_answer && 'n' != user_answer);
+	if('n' == user_answer ||'N' == user_answer){
+		printf("Then please execute it with the channel's atribuition to communicate with the program.\n");
+		free_mote_memory(system_motes, number_motes, NULL);
+		system_motes = NULL;
+		free_memory_all(system_divisions, number_divisions, NULL);
+		system_divisions = NULL;
+		free_rules_system_memory(system_rules, number_rules, NULL);
+		system_rules = NULL;
+		fclose(sensor_data_channel);
+		sensor_data_channel = NULL;
+		fclose(rgb_matrix_channel);
+		rgb_matrix_channel = NULL;
+		exit(-1);
+	}
+	for(counter_divisions = 0; counter_divisions < number_divisions; counter_divisions++){
+		for(counter_actuators= 0; counter_actuators < system_divisions[counter_divisions]->num_actuator; counter_actuators++){
+			buffer_rgb_channel = configuration_matrix(buffer_rgb_channel, matrix_side_size, counter_divisions + 1, counter_actuators + 1,"OFF");
+			rgb_matrix_channel = fopen(argv[MAIN_CHANNEL_RGBMAT], "w");
+			fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
+			fclose(rgb_matrix_channel);
+			rgb_matrix_channel = NULL;
+		}
 	}
 	
 	/**************

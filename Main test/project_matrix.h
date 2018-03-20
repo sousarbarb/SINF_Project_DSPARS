@@ -39,7 +39,7 @@
 #define MAX_PIXELS		700
 #define	SIZE_COLOR		13
 
-static const char on_state[] = "[  0,255,  0]", off_state[] = "[  0,  0,  0]";
+static const char on_state[] = "[  0,255,  0]", off_state[] = "[127,127,127]";
 
 int determination_of_maximum(int divisions, int elements);
 
