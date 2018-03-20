@@ -66,7 +66,6 @@ division ** division_vector_creation(int number_divisions, int * error_func) {
 	}
 	if(NULL != error_func)
 		(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_NONE;
-	printf("Número de divisões: %d\n",number_divisions);
 	return system_divisions;
 }
 
@@ -247,9 +246,7 @@ division ** insert_info_division_struct(int * number_divisions, int *error_func)
 			}
 			else if('\0' == str_aux2[counter3+1]) {
 				system_divisions[counter6]->sensors[counter4][counter7] = '\0';
-				puts(system_divisions[counter6]->sensors[counter4]);
 			}
-			puts(system_divisions[counter6]->sensors[counter4]);
 		}
 		for(counter8 = counter2; '\0' != str_file[counter8]; counter8++) {
 			str_aux3[counter8-counter2] = str_file[counter8];
@@ -358,4 +355,35 @@ void print_division_struct(division ** system_divisions, int number_divisions, i
 	if(NULL != error_func) {
 		(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_NONE;
 	}
+}
+
+int number_max_actuators(division ** system_divisions, int number_divisions, int * error_func) {
+	// Argument's check 
+	if(NULL == system_divisions) {
+		printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] number_max_actuators: Pointer to the division struct invalid.\n", ERROR_LIB_MAN_DIVISION_STRUCT_5);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_5;
+		return -1;
+	}
+	if(1 > number_divisions)  {
+		printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] number_max_actuators: Number of divisions invalid.\n", ERROR_LIB_MAN_DIVISION_STRUCT_1);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_1;
+		return -1;
+	}
+	
+	// Function's code
+	int counter1 = 0, number_max_actuators = 0, number_max_actuators_test = 0;
+	
+	for(counter1 = 0; counter1 < number_divisions; counter1++) {
+		number_max_actuators_test  = system_divisions[counter1]->num_actuator;
+		if(counter1 == 0) 
+			number_max_actuators = number_max_actuators_test;
+		else if(number_max_actuators_test > number_max_actuators)
+			number_max_actuators = number_max_actuators_test;
+	}
+	if(NULL != error_func) {
+		(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_NONE;
+	}
+	return number_max_actuators;
 }

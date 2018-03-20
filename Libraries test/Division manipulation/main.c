@@ -30,8 +30,8 @@
 int main(int argc, char **argv)
 {
 	division **system_divisions;
-	int number_divisions = 0, index_division, index_actuator;
-	char division_name[20] = "KITCHEN", division_actuator[20]="LIGHT3";
+	int number_divisions = 0, index_division, index_actuator, number_actuators;
+	char division_name[20] = "KITCHEN", division_actuator[20]="HEAT";
 	
 	system_divisions = insert_info_division_struct(&number_divisions, NULL);
 
@@ -43,8 +43,12 @@ int main(int argc, char **argv)
 	
 	search_division_actuator(system_divisions, number_divisions, division_name, division_actuator, &index_division, &index_actuator, NULL);
 	
-	printf("%d\n", index_division);
-	printf("%d\n", index_actuator);
+	printf("[INDEX DIVISION] %d\n", index_division);
+	printf("[INDEX ACTUATOR] %d\n", index_actuator);
+	
+	number_actuators = number_max_actuators(system_divisions, number_divisions, NULL);
+	
+	printf("Número de atuadores: %d\n", number_actuators);
 	
 	return 0;
 
