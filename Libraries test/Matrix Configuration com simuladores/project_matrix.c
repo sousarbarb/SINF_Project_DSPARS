@@ -79,10 +79,10 @@ char* alocation_memory_matrix(int side){
 	}
 	for(counter = 0; counter < area_matrix; counter++){
 		if(counter == (area_matrix - 1)){
-			strcat(buffer_matrix,"[127,127,127]]");
+			strcat(buffer_matrix,"[  0,  0,  0]]");
 		}
 		else 
-			strcat(buffer_matrix,"[127,127,127],");
+			strcat(buffer_matrix,"[  0,  0,  0],");
 	}
 	return buffer_matrix;
 }
