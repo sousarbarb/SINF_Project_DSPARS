@@ -76,12 +76,12 @@
 #define	INIT_TOP		4
 #define	MOTE_ID_BOTTOM	15
 #define	MOTE_ID_TOP		19
-#define	TEMP_BOTTOM		48
-#define	TEMP_TOP		52
-#define	HUMID_BOTTOM	54
-#define	HUMID_TOP		58
-#define	LIGHT_BOTTOM	36
-#define	LIGHT_TOP		40
+#define	TEMP_BOTTOM		36
+#define	TEMP_TOP		40
+#define	HUMID_BOTTOM	42
+#define	HUMID_TOP		46
+#define	LIGHT_BOTTOM	48
+#define	LIGHT_TOP		52
 #define	END_BOTTOM		66
 #define	END_TOP			67
 
@@ -365,11 +365,244 @@ int search_sensor_mote(char * sensor, int number_motes, int * mote_id_sensor, in
 		return 0;
 }
 
+int find_actuator_future_state(char *actuator_future_state, char *actuator){
+	int index_colon;
+	for(index_colon = 0; ':' != actuator_future_state[index_colon] && '\0' != actuator_future_state[index_colon] && index_colon < SIZE_LIB_MAN_RULE_LABEL_ACTUAT_FUT_STATE; index_colon++)
+		actuator[index_colon] = actuator_future_state[index_colon];
+	actuator[index_colon] = '\0';
+	index_colon+=2;
+	if('N' == actuator[index_colon])
+		return 1;	// ON CONDITION
+	else
+		return 0;	// OFF CONDITION
+}
+
 
 /********************************************
  * THREAD RULE IMPLEMENTATION (PTH2) - CODE
  ********************************************/
 void *thread_rule_implementation(void *arg){
+	char actuator[SIZE_LIB_MAN_RULE_LABEL_ACTUAT_FUT_STATE];
+	int rule_index, mote_id_sensor_1, type_sensor_1, mote_id_sensor_2, type_sensor_2, logic_value_condition_1 = 0, logic_value_condition_2 = 0;
+	float value_sensor_1, value_sensor_2;
+	while(1){
+		for(rule_index = 0; rule_index < number_rules; rule_index++){
+			switch(system_rules[rule_index]->logic_operator_condition_1_2[0]){
+				case '_':
+					search_sensor_mote(system_rules[rule_index]->sensor_condition_1, number_motes, &mote_id_sensor_1, &type_sensor_1);
+					
+					// Sensor_1's type (temperature, humidity, luminosity) search
+					switch(type_sensor_1){
+						case TYPE_SENS_TEMP: 
+							value_sensor_1 = system_motes[mote_id_sensor_1 - 1]->temperature;
+							break;
+						case TYPE_SENS_HUM: 
+							value_sensor_1 = system_motes[mote_id_sensor_1 - 1]->humidity;
+							break;
+						case TYPE_SENS_LIGHT: 
+							value_sensor_1 = system_motes[mote_id_sensor_1 - 1]->luminosity;
+							break;
+						default:
+							printf("[MAIN_ERROR %d] It wansn't possible to know what's the logic operator between the first and second condition.\n", MAIN_ERROR_8);
+							pthread_exit(NULL);
+					}
+					
+					// Discovering the compare operator in condition 1
+					switch(system_rules[rule_index]->operator_condition_1){
+						case '>':
+							if(((int)value_sensor_1) > system_rules[rule_index]->value_condition_1){
+								 printf("[RULE %d] Mote %d Type %d Value %.2f '>' TRUE\n", rule_index, mote_id_sensor_1, type_sensor_1, value_sensor_1);
+								/*************
+								 * ACTUATORS
+								 *************/
+							}
+							break;
+						case '<':
+							if(((int)value_sensor_1) < system_rules[rule_index]->value_condition_1){
+								 printf("[RULE %d] Mote %d Type %d Value %.2f '<' TRUE\n", rule_index, mote_id_sensor_1, type_sensor_1, value_sensor_1);
+								/*************
+								 * ACTUATORS
+								 *************/
+							}
+							break;
+						default:
+							printf("[MAIN_ERROR %d] Operator in condition 1 invalid.\n", MAIN_ERROR_10);
+							pthread_exit(NULL);
+					}
+					
+					break;
+				case 'A': 
+					search_sensor_mote(system_rules[rule_index]->sensor_condition_1, number_motes, &mote_id_sensor_1, &type_sensor_1);
+					search_sensor_mote(system_rules[rule_index]->sensor_condition_2, number_motes, &mote_id_sensor_2, &type_sensor_2);
+					
+					// Sensor_1's type (temperature, humidity, luminosity) search
+					switch(type_sensor_1){
+						case TYPE_SENS_TEMP: 
+							value_sensor_1 = system_motes[mote_id_sensor_1 - 1]->temperature;
+							break;
+						case TYPE_SENS_HUM: 
+							value_sensor_1 = system_motes[mote_id_sensor_1 - 1]->humidity;
+							break;
+						case TYPE_SENS_LIGHT: 
+							value_sensor_1 = system_motes[mote_id_sensor_1 - 1]->luminosity;
+							break;
+						default:
+							printf("[MAIN_ERROR %d] It wansn't possible to know what's the sensor's type.\n", MAIN_ERROR_9);
+							pthread_exit(NULL);
+					}
+					
+					// Sensor_2's type (temperature, humidity, luminosity) search
+					switch(type_sensor_2){
+						case TYPE_SENS_TEMP: 
+							value_sensor_2 = system_motes[mote_id_sensor_2 - 1]->temperature;
+							break;
+						case TYPE_SENS_HUM: 
+							value_sensor_2 = system_motes[mote_id_sensor_2 - 1]->humidity;
+							break;
+						case TYPE_SENS_LIGHT: 
+							value_sensor_2 = system_motes[mote_id_sensor_2 - 1]->luminosity;
+							break;
+						default:
+							printf("[MAIN_ERROR %d] It wansn't possible to know what's the sensor's type.\n", MAIN_ERROR_9);
+							pthread_exit(NULL);
+					}
+					
+					// Discovering the compare operator in condition 1
+					switch(system_rules[rule_index]->operator_condition_1){
+						case '>':
+							if(((int)value_sensor_1) > system_rules[rule_index]->value_condition_1)
+								logic_value_condition_1 = 1;
+							else
+								logic_value_condition_1 = 0;
+							break;
+						case '<':
+							if(((int)value_sensor_1) < system_rules[rule_index]->value_condition_1)
+								logic_value_condition_1 = 1;
+							else
+								logic_value_condition_1 = 0;
+							break;
+						default:
+							logic_value_condition_1 = 0;
+							printf("[MAIN_ERROR %d] Operator in condition 1 invalid.\n", MAIN_ERROR_10);
+							pthread_exit(NULL);
+					}
+					
+					// Discovering the compare operator in condition 2
+					switch(system_rules[rule_index]->operator_condition_2){
+						case '>':
+							if(((int)value_sensor_2) > system_rules[rule_index]->value_condition_2)
+								logic_value_condition_2 = 1;
+							else
+								logic_value_condition_2 = 0;
+							break;
+						case '<':
+							if(((int)value_sensor_2) < system_rules[rule_index]->value_condition_2)
+								logic_value_condition_2 = 1;
+							else
+								logic_value_condition_2 = 0;
+							break;
+						default:
+							logic_value_condition_2 = 0;
+							printf("[MAIN_ERROR %d] Operator in condition 2 invalid.\n", MAIN_ERROR_10);
+							pthread_exit(NULL);
+					}
+					
+					if(1==logic_value_condition_1 && 1==logic_value_condition_2){
+						/*************
+						 * ACTUATORS
+						 *************/
+					}
+					
+					break;
+				case 'O': 
+					search_sensor_mote(system_rules[rule_index]->sensor_condition_1, number_motes, &mote_id_sensor_1, &type_sensor_1);
+					search_sensor_mote(system_rules[rule_index]->sensor_condition_2, number_motes, &mote_id_sensor_2, &type_sensor_2);
+					
+					// Sensor_1's type (temperature, humidity, luminosity) search
+					switch(type_sensor_1){
+						case TYPE_SENS_TEMP: 
+							value_sensor_1 = system_motes[mote_id_sensor_1 - 1]->temperature;
+							break;
+						case TYPE_SENS_HUM: 
+							value_sensor_1 = system_motes[mote_id_sensor_1 - 1]->humidity;
+							break;
+						case TYPE_SENS_LIGHT: 
+							value_sensor_1 = system_motes[mote_id_sensor_1 - 1]->luminosity;
+							break;
+						default:
+							printf("[MAIN_ERROR %d] It wansn't possible to know what's the sensor's type.\n", MAIN_ERROR_9);
+							pthread_exit(NULL);
+					}
+					
+					// Sensor_2's type (temperature, humidity, luminosity) search
+					switch(type_sensor_2){
+						case TYPE_SENS_TEMP: 
+							value_sensor_2 = system_motes[mote_id_sensor_2 - 1]->temperature;
+							break;
+						case TYPE_SENS_HUM: 
+							value_sensor_2 = system_motes[mote_id_sensor_2 - 1]->humidity;
+							break;
+						case TYPE_SENS_LIGHT: 
+							value_sensor_2 = system_motes[mote_id_sensor_2 - 1]->luminosity;
+							break;
+						default:
+							printf("[MAIN_ERROR %d] It wansn't possible to know what's the sensor's type.\n", MAIN_ERROR_9);
+							pthread_exit(NULL);
+					}
+					
+					// Discovering the compare operator in condition 1
+					switch(system_rules[rule_index]->operator_condition_1){
+						case '>':
+							if(((int)value_sensor_1) > system_rules[rule_index]->value_condition_1)
+								logic_value_condition_1 = 1;
+							else
+								logic_value_condition_1 = 0;
+							break;
+						case '<':
+							if(((int)value_sensor_1) < system_rules[rule_index]->value_condition_1)
+								logic_value_condition_1 = 1;
+							else
+								logic_value_condition_1 = 0;
+							break;
+						default:
+							logic_value_condition_1 = 0;
+							printf("[MAIN_ERROR %d] Operator in condition 1 invalid.\n", MAIN_ERROR_10);
+							pthread_exit(NULL);
+					}
+					
+					// Discovering the compare operator in condition 2
+					switch(system_rules[rule_index]->operator_condition_2){
+						case '>':
+							if(((int)value_sensor_2) > system_rules[rule_index]->value_condition_2)
+								logic_value_condition_2 = 1;
+							else
+								logic_value_condition_2 = 0;
+							break;
+						case '<':
+							if(((int)value_sensor_2) < system_rules[rule_index]->value_condition_2)
+								logic_value_condition_2 = 1;
+							else
+								logic_value_condition_2 = 0;
+							break;
+						default:
+							logic_value_condition_2 = 0;
+							printf("[MAIN_ERROR %d] Operator in condition 2 invalid.\n", MAIN_ERROR_10);
+							pthread_exit(NULL);
+					}
+					
+					if(1==logic_value_condition_1 || 1==logic_value_condition_2){
+						/*************
+						 * ACTUATORS
+						 *************/
+					}
+					
+					break;
+				default: 
+					printf("[MAIN_ERROR %d] It wansn't possible to know what's the logic operator between the first and second condition.\n", MAIN_ERROR_8);
+					pthread_exit(NULL);
+			}
+		}
+	}
 	pthread_exit(NULL);
 }
 
@@ -472,11 +705,6 @@ int main(int argc, char **argv)
 	 * INIT ROUTINE - DIVISION'S CONFIGURATION
 	 *******************************************/
 	error_check = 0;
-	do{
-		printf("Insert the number of divisions to consider in the system (needs to be greater than 0): ");
-		scanf(" %d", &number_divisions);
-		getchar();
-	} while(1 > number_divisions);
 	system_divisions = insert_info_division_struct(&number_divisions, &error_check);
 	if((NULL == system_divisions) || (0 < error_check)){
 		printf("[MAIN_ERROR %d] The divisions weren't configurated.\n", MAIN_ERROR_6);
@@ -507,6 +735,7 @@ int main(int argc, char **argv)
 	 **************/
 	print_motes_vector(system_motes, number_motes, &error_check);
 	print_rules_system_vector(system_rules, number_rules, &error_check);
+	print_division_struct(system_divisions, number_divisions, &error_check); 
 	 
 	/***********************
 	 * CREATION OF THREADS

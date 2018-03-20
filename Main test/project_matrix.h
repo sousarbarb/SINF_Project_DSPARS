@@ -1,10 +1,7 @@
 /*
  * define_size_matrix.c
  * 
- * Copyright 2018
- *     Daniel Queirós da Silva		<up201503071@fe.up.pt>
- *     Pedro de Castro Albergaria	<up201504635@fe.up.pt>
- *     Ricardo Barbosa Sousa		<up201503004@fe.up.pt>
+ * Copyright 2018 Daniel Silva <daniel@debian>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
