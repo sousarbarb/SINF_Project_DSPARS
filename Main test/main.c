@@ -365,18 +365,6 @@ int search_sensor_mote(char * sensor, int number_motes, int * mote_id_sensor, in
 		return 0;
 }
 
-int find_actuator_future_state(char *actuator_future_state, char *actuator){
-	int index_colon;
-	for(index_colon = 0; ':' != actuator_future_state[index_colon] && '\0' != actuator_future_state[index_colon] && index_colon < SIZE_LIB_MAN_RULE_LABEL_ACTUAT_FUT_STATE; index_colon++)
-		actuator[index_colon] = actuator_future_state[index_colon];
-	actuator[index_colon] = '\0';
-	index_colon+=2;
-	if('N' == actuator[index_colon])
-		return 1;	// ON CONDITION
-	else
-		return 0;	// OFF CONDITION
-}
-
 
 /********************************************
  * THREAD RULE IMPLEMENTATION (PTH2) - CODE
@@ -416,6 +404,11 @@ void *thread_rule_implementation(void *arg){
 								 * ACTUATORS
 								 *************/
 							}
+							// DEBUG
+							else
+								 printf("[RULE %d] Mote %d Type %d Value %.2f '>' FALSE\n", rule_index, mote_id_sensor_1, type_sensor_1, value_sensor_1);
+							// END OF DEBUG
+							
 							break;
 						case '<':
 							if(((int)value_sensor_1) < system_rules[rule_index]->value_condition_1){
@@ -424,6 +417,11 @@ void *thread_rule_implementation(void *arg){
 								 * ACTUATORS
 								 *************/
 							}
+							// DEBUG
+							else
+								 printf("[RULE %d] Mote %d Type %d Value %.2f '<' FALSE\n", rule_index, mote_id_sensor_1, type_sensor_1, value_sensor_1);
+							// END OF DEBUG
+							
 							break;
 						default:
 							printf("[MAIN_ERROR %d] Operator in condition 1 invalid.\n", MAIN_ERROR_10);
@@ -508,10 +506,15 @@ void *thread_rule_implementation(void *arg){
 					}
 					
 					if(1==logic_value_condition_1 && 1==logic_value_condition_2){
+						 printf("[RULE %d] Mote %d Type %d Value %.2f [AND] Mote %d Type %d Value %.2f TRUE\n", rule_index, mote_id_sensor_1, type_sensor_1, value_sensor_1, mote_id_sensor_2, type_sensor_2, value_sensor_2);
 						/*************
 						 * ACTUATORS
 						 *************/
 					}
+					// DEBUG
+					else
+						 printf("[RULE %d] Mote %d Type %d Value %.2f [AND] Mote %d Type %d Value %.2f FALSE\n", rule_index, mote_id_sensor_1, type_sensor_1, value_sensor_1, mote_id_sensor_2, type_sensor_2, value_sensor_2);
+					// END OF DEBUG
 					
 					break;
 				case 'O': 
@@ -591,10 +594,15 @@ void *thread_rule_implementation(void *arg){
 					}
 					
 					if(1==logic_value_condition_1 || 1==logic_value_condition_2){
+						 printf("[RULE %d] Mote %d Type %d Value %.2f [OR] Mote %d Type %d Value %.2f TRUE\n", rule_index, mote_id_sensor_1, type_sensor_1, value_sensor_1, mote_id_sensor_2, type_sensor_2, value_sensor_2);
 						/*************
 						 * ACTUATORS
 						 *************/
 					}
+					// DEBUG
+					else
+						 printf("[RULE %d] Mote %d Type %d Value %.2f [OR] Mote %d Type %d Value %.2f FALSE\n", rule_index, mote_id_sensor_1, type_sensor_1, value_sensor_1, mote_id_sensor_2, type_sensor_2, value_sensor_2);
+					// END OF DEBUG
 					
 					break;
 				default: 
@@ -674,6 +682,7 @@ int main(int argc, char **argv)
 	/*************************
 	 * VARIABLES DECLARATION
 	 *************************/
+	char actuator_test[20];
 	int error_check = 0;
 	pthread_t pth1, pth2, pth3, pth4;
 	
@@ -735,7 +744,7 @@ int main(int argc, char **argv)
 	 **************/
 	print_motes_vector(system_motes, number_motes, &error_check);
 	print_rules_system_vector(system_rules, number_rules, &error_check);
-	print_division_struct(system_divisions, number_divisions, &error_check); 
+	print_division_struct(system_divisions, number_divisions, &error_check);
 	 
 	/***********************
 	 * CREATION OF THREADS

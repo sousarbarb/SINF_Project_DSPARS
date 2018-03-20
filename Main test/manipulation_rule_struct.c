@@ -629,3 +629,24 @@ int validation_of_sensor(char * sensor, int number_motes){
 		return 0;
 }
 
+int find_actuator_future_state(char *actuator_future_state, char *actuator){
+	int index_colon;
+	for(index_colon = 0; ':' != actuator_future_state[index_colon] && '\0' != actuator_future_state[index_colon] && index_colon < SIZE_LIB_MAN_RULE_LABEL_ACTUAT_FUT_STATE; index_colon++){
+		actuator[index_colon] = actuator_future_state[index_colon];
+	}
+	actuator[index_colon] = '\0';
+	index_colon+=2;
+	if('N' == actuator_future_state[index_colon])
+		return 1;	// ON CONDITION
+	else
+		return 0;	// OFF CONDITION
+}
+
+int find_rules_division_exist(rule **system_rules, int number_rules, char *division_name){
+	int counter1 = 0;
+	for(counter1 = 0; counter1 < number_rules; counter1++)
+		if(0 == strcmp(system_rules[counter1]->division_name, division_name))
+			return 1;
+	return 0;
+}
+

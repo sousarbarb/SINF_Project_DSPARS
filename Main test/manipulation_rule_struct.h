@@ -94,4 +94,8 @@ int conversion_of_a_piece_of_a_string_into_integer(char * string, int start_inde
 
 int validation_of_sensor(char * sensor, int number_motes);
 
+int find_actuator_future_state(char *actuator_future_state, char *actuator);
+
+int find_rules_division_exist(rule **system_rules, int number_rules, char *division_name);
+
 #endif
