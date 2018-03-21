@@ -99,7 +99,7 @@
 // Global variables
 FILE *sensor_data_channel = NULL, *rgb_matrix_channel = NULL;
 static const char CHANNEL_DEF[]="/dev/pts/";
-int number_motes, number_rules, number_divisions, number_maximum_actuators, matrix_side_size;
+int number_motes, number_rules, number_divisions, number_maximum_actuators, number_maximum_sensors, matrix_side_size;
 int flag_interface = 1;
 int *flag_rules = NULL;
 char **pointer_rgb_channel = NULL;
@@ -416,14 +416,14 @@ void *thread_rule_implementation(void *arg){
 									search_division_actuator(system_divisions, number_divisions, system_rules[rule_index]->division_name, actuator_string, &index_division, &index_actuators, NULL);
 									
 									if(1 == actuator_fut_state){
-										buffer_rgb_channel = configuration_matrix(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"ON");
+										buffer_rgb_channel = configuration_matrix_actuators(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"ON");
 										rgb_matrix_channel = fopen((*pointer_rgb_channel), "w");
 										fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
 										fclose(rgb_matrix_channel);
 										rgb_matrix_channel = NULL;
 									}
 									else{
-										buffer_rgb_channel = configuration_matrix(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"OFF");
+										buffer_rgb_channel = configuration_matrix_actuators(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"OFF");
 										rgb_matrix_channel = fopen((*pointer_rgb_channel), "w");
 										fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
 										fclose(rgb_matrix_channel);
@@ -443,14 +443,14 @@ void *thread_rule_implementation(void *arg){
 									search_division_actuator(system_divisions, number_divisions, system_rules[rule_index]->division_name, actuator_string, &index_division, &index_actuators, NULL);
 									
 									if(1 == actuator_fut_state){
-										buffer_rgb_channel = configuration_matrix(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"ON");
+										buffer_rgb_channel = configuration_matrix_actuators(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"ON");
 										rgb_matrix_channel = fopen((*pointer_rgb_channel), "w");
 										fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
 										fclose(rgb_matrix_channel);
 										rgb_matrix_channel = NULL;
 									}
 									else{
-										buffer_rgb_channel = configuration_matrix(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"OFF");
+										buffer_rgb_channel = configuration_matrix_actuators(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"OFF");
 										rgb_matrix_channel = fopen((*pointer_rgb_channel), "w");
 										fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
 										fclose(rgb_matrix_channel);
@@ -549,14 +549,14 @@ void *thread_rule_implementation(void *arg){
 							search_division_actuator(system_divisions, number_divisions, system_rules[rule_index]->division_name, actuator_string, &index_division, &index_actuators, NULL);
 							
 							if(1 == actuator_fut_state){
-								buffer_rgb_channel = configuration_matrix(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"ON");
+								buffer_rgb_channel = configuration_matrix_actuators(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"ON");
 								rgb_matrix_channel = fopen((*pointer_rgb_channel), "w");
 								fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
 								fclose(rgb_matrix_channel);
 								rgb_matrix_channel = NULL;
 							}
 							else{
-								buffer_rgb_channel = configuration_matrix(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"OFF");
+								buffer_rgb_channel = configuration_matrix_actuators(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"OFF");
 								rgb_matrix_channel = fopen((*pointer_rgb_channel), "w");
 								fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
 								fclose(rgb_matrix_channel);
@@ -650,14 +650,14 @@ void *thread_rule_implementation(void *arg){
 							search_division_actuator(system_divisions, number_divisions, system_rules[rule_index]->division_name, actuator_string, &index_division, &index_actuators, NULL);
 							
 							if(1 == actuator_fut_state){
-								buffer_rgb_channel = configuration_matrix(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"ON");
+								buffer_rgb_channel = configuration_matrix_actuators(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"ON");
 								rgb_matrix_channel = fopen((*pointer_rgb_channel), "w");
 								fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
 								fclose(rgb_matrix_channel);
 								rgb_matrix_channel = NULL;
 							}
 							else{
-								buffer_rgb_channel = configuration_matrix(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"OFF");
+								buffer_rgb_channel = configuration_matrix_actuators(buffer_rgb_channel, matrix_side_size, index_division + 1, index_actuators + 1,"OFF");
 								rgb_matrix_channel = fopen((*pointer_rgb_channel), "w");
 								fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
 								fclose(rgb_matrix_channel);
@@ -856,7 +856,7 @@ int main(int argc, char **argv)
 	}
 	for(counter_divisions = 0; counter_divisions < number_divisions; counter_divisions++){
 		for(counter_actuators= 0; counter_actuators < system_divisions[counter_divisions]->num_actuator; counter_actuators++){
-			buffer_rgb_channel = configuration_matrix(buffer_rgb_channel, matrix_side_size, counter_divisions + 1, counter_actuators + 1,"OFF");
+			buffer_rgb_channel = configuration_matrix_actuators(buffer_rgb_channel, matrix_side_size, counter_divisions + 1, counter_actuators + 1,"OFF");
 			rgb_matrix_channel = fopen(argv[MAIN_CHANNEL_RGBMAT], "w");
 			fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
 			fclose(rgb_matrix_channel);

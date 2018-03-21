@@ -87,7 +87,7 @@ char* alocation_memory_matrix(int side){
 	return buffer_matrix;
 }
 
-char* configuration_matrix(char *string_matrix_config, int matrix_side, int index_division, int index_actuator, char* actuator_state){	//cada coluna é uma divisão
+char* configuration_matrix_actuators(char *string_matrix_config, int matrix_side, int index_division, int index_actuator, char* actuator_state){	//cada coluna é uma divisão
 	
 	int step = 0, column_actuator_cell = 0, curr_pos = 0, column_top_cell = 0, index_state = 0;
 	
@@ -125,6 +125,108 @@ char* configuration_matrix(char *string_matrix_config, int matrix_side, int inde
 		printf("[ERROR_PROJECT_MATRIX %d] configuration_matrix: Actuator's state invalid.\n",ERROR_PROJECT_MATRIX_5);
 		return string_matrix_config;		
 	}
+	return string_matrix_config;
+}
+
+char* configuration_matrix_sensors(char *string_matrix_config, int matrix_side, int index_division, int index_sensor, int sensor_value, int sensor_type){
+	
+	int column_bottom_cell, column_sensor_cell, index_state = 0, step = 0, curr_pos = 0, type;
+	
+	if((matrix_side < index_division) || (index_division <= 0)){
+		printf("[ERROR_PROJECT_MATRIX %d] configuration_matrix: Division's index incorrect.\n",ERROR_PROJECT_MATRIX_2);
+		return string_matrix_config;
+	}
+	if((index_sensor > matrix_side) || (index_sensor <= 0)){
+		printf("[ERROR_PROJECT_MATRIX %d] configuration_matrix: Sensor's index incorrect.\n",ERROR_PROJECT_MATRIX_3);
+		return string_matrix_config;		
+	}
+	if(string_matrix_config == NULL){
+		printf("[ERROR_PROJECT_MATRIX %d] configuration_matrix: String invalid.\n",ERROR_PROJECT_MATRIX_4);
+		return string_matrix_config;
+	}
+	
+	column_bottom_cell = matrix_side*index_division; //supondo que o index_division não pode ser zero
+	column_sensor_cell = column_bottom_cell - index_sensor + 1; //supondo que o index_actuator não pode ser zero
+	
+	curr_pos = 1 + (SIZE_COLOR + 1)*(column_sensor_cell - 1);
+	index_state = 0;
+	type = sensor_type;
+	switch(type){
+		case 1:
+			if(sensor_value > MAX_TEMP){
+				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
+					string_matrix_config[step] = above_limit[index_state];
+					index_state++;
+				}
+			}
+			else if(sensor_value < MIN_TEMP){
+				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
+					string_matrix_config[step] = under_limit[index_state];
+					index_state++;
+				}
+			}
+			else if((sensor_value > MIN_TEMP) && (sensor_value < MAX_TEMP)){
+				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
+					string_matrix_config[step] = inside_limit[index_state];
+					index_state++;
+				}
+			}
+			else{
+				printf("[ERROR_PROJECT_MATRIX %d] configuration_matrix: Sensor of type %d have a invalid value.\n",ERROR_PROJECT_MATRIX_6,type);
+				return string_matrix_config;		
+			}
+			break;
+			
+		case 2:
+			if(sensor_value > MAX_HUMID){
+				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
+					string_matrix_config[step] = above_limit[index_state];
+					index_state++;
+				}
+			}
+			else if(sensor_value < MIN_HUMID){
+				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
+					string_matrix_config[step] = under_limit[index_state];
+					index_state++;
+				}
+			}
+			else if((sensor_value > MIN_HUMID) && (sensor_value < MAX_HUMID)){
+				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
+					string_matrix_config[step] = inside_limit[index_state];
+					index_state++;
+				}
+			}
+			else{
+				printf("[ERROR_PROJECT_MATRIX %d] configuration_matrix: Sensor of type %d have a invalid value.\n",ERROR_PROJECT_MATRIX_7,type);
+				return string_matrix_config;		
+			}
+			break;
+			
+		case 3:
+			if(sensor_value > MAX_LIGHT){
+				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
+					string_matrix_config[step] = above_limit[index_state];
+					index_state++;
+				}
+			}
+			else if(sensor_value < MIN_LIGHT){
+				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
+					string_matrix_config[step] = under_limit[index_state];
+					index_state++;
+				}
+			}
+			else if((sensor_value > MIN_LIGHT) && (sensor_value < MAX_LIGHT)){
+				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
+					string_matrix_config[step] = inside_limit[index_state];
+					index_state++;
+				}
+			}
+			else{
+				printf("[ERROR_PROJECT_MATRIX %d] configuration_matrix: Sensor of type %d have a invalid value.\n",ERROR_PROJECT_MATRIX_8,type);
+				return string_matrix_config;		
+			}
+			break;
+		}
 	return string_matrix_config;
 }
 
