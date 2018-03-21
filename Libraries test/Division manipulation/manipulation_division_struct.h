@@ -74,4 +74,6 @@ void print_division_struct(division ** system_divisions, int number_divisions, i
 
 int number_max_actuators(division ** system_divisions, int number_divisions, int * error_func);
 
+int number_max_sensors(division ** system_divisions, int number_divisions, int * error_func);
+
 #endif

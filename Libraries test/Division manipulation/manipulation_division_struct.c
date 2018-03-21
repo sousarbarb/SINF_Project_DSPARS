@@ -387,3 +387,35 @@ int number_max_actuators(division ** system_divisions, int number_divisions, int
 	}
 	return number_max_actuators;
 }
+
+int number_max_sensors(division ** system_divisions, int number_divisions, int * error_func) {
+	// Argument's check 
+	if(NULL == system_divisions) {
+		printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] number_max_actuators: Pointer to the division struct invalid.\n", ERROR_LIB_MAN_DIVISION_STRUCT_5);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_5;
+		return -1;
+	}
+	if(1 > number_divisions)  {
+		printf("[ERROR_LIB_MAN_DIVISION_STRUCT %d] number_max_actuators: Number of divisions invalid.\n", ERROR_LIB_MAN_DIVISION_STRUCT_1);
+		if(NULL != error_func)
+			(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_1;
+		return -1;
+	}
+	
+	//Funcion's code
+	
+	int counter1 = 0, number_max_sensors = 0, number_max_sensors_test = 0;
+	
+	for(counter1 = 0; counter1 < number_divisions; counter1++) {
+		number_max_sensors_test = system_divisions[counter1]->num_sensors;
+		if(0 == counter1)
+			number_max_sensors = number_max_sensors_test;
+		else if(number_max_sensors_test > number_max_sensors)
+			number_max_sensors = number_max_sensors_test;
+	}
+	if(NULL != error_func) {
+		(*error_func) = ERROR_LIB_MAN_DIVISION_STRUCT_NONE;
+	}
+	return number_max_sensors;
+}
