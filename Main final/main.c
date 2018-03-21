@@ -101,6 +101,7 @@ FILE *sensor_data_channel = NULL, *rgb_matrix_channel = NULL;
 static const char CHANNEL_DEF[]="/dev/pts/";
 int number_motes, number_rules, number_divisions, number_maximum_actuators, matrix_side_size;
 int flag_interface = 1;
+int *flag_rules = NULL;
 char **pointer_rgb_channel = NULL;
 char *buffer_rgb_channel = NULL;
 mote **system_motes = NULL;
@@ -167,7 +168,7 @@ void *thread_data_processing(void *arg){
 	// Code
 	while(1 == flag_interface){
 		fgets(line, LINE, sensor_data_channel);
-		printf("DEBUG: %s", line);
+		// printf("DEBUG: %s", line);
 		for(step_line = 0; step_line < strlen(line); step_line++){
 			// Beginning of line
 			if(INIT_BOTTOM == step_line){
@@ -181,11 +182,11 @@ void *thread_data_processing(void *arg){
 				word[fill_up] = '\0';
 				
 				if(0 == strcmp(word,"7E45")){
-					printf("Valid init!\n");
+					//printf("Valid init!\n");
 				}
 				else {
 					printf("ERROR[%d] - The message start bytes are incorrect!\n",ERROR1);
-					//break;
+					break;
 				}
 			}
 			// MOTE ID
@@ -209,10 +210,10 @@ void *thread_data_processing(void *arg){
 				}
 				if((decimal_id > 9999) || (flag_invalid)){
 					printf("ERROR[%d] - Mote ID invalid!\n",ERROR2);
-				}
+				}/*
 				else{
 					printf("Mote ID: %d\n",decimal_id);
-				}
+				}*/
 			}
 			// Temperature parameter
 			else if(TEMP_BOTTOM == step_line){
@@ -246,7 +247,7 @@ void *thread_data_processing(void *arg){
 					temp = calculate_temperature(decimal_temp);
 					system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->temperature = temp;
 					
-					printf("Temperature = %.2f ºC\n",temp);
+					//printf("Temperature = %.2f ºC\n",temp);
 				}
 			}
 			// Humidity parameter
@@ -279,12 +280,12 @@ void *thread_data_processing(void *arg){
 				else{
 					//printf("Humidade decimal = %d\n",decimal_humid);
 					relative_humidity = calculate_relative_humidity(decimal_humid);
-					printf("Relative humidity = %.2f %%\n",relative_humidity);
+					//printf("Relative humidity = %.2f %%\n",relative_humidity);
 					
 					humidity_compensated_by_temperature = calculate_humidity_compensated_by_temperature(decimal_humid,relative_humidity,temp);
 					system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->humidity = humidity_compensated_by_temperature;
 					
-					printf("Humidity compensated by temperature = %.2f %%\n",humidity_compensated_by_temperature);
+					//printf("Humidity compensated by temperature = %.2f %%\n",humidity_compensated_by_temperature);
 				}
 			}
 			// Visible light parameter
@@ -319,7 +320,7 @@ void *thread_data_processing(void *arg){
 					visible_light = calculate_visible_light(decimal_visible_light);
 					system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->luminosity = visible_light;
 					
-					printf("Visible light = %.2f lux\n", visible_light);
+					//printf("Visible light = %.2f lux\n", visible_light);
 				}
 			}
 			// End of line
@@ -331,7 +332,7 @@ void *thread_data_processing(void *arg){
 				}
 				word[fill_up] = '\0';
 				if(0 == strcmp(word,"7E")){
-					printf("Valid end!\n");
+					//printf("Valid end!\n");
 					break;
 				}
 				else {
@@ -377,6 +378,11 @@ void *thread_rule_implementation(void *arg){
 	int rule_index, mote_id_sensor_1, type_sensor_1, mote_id_sensor_2, type_sensor_2, logic_value_condition_1 = 0, logic_value_condition_2 = 0;
 	int index_division, index_actuators, counter1, actuator_fut_state;
 	float value_sensor_1, value_sensor_2;
+	flag_rules = (int *) calloc(number_rules, sizeof(int));
+	if(NULL == flag_rules){
+		printf("\nERROR: Please terminate the program by selecting option 4 because the flag_rules wasn't created.\n");
+		pthread_exit(NULL);
+	}
 	while(1 == flag_interface){
 		for(rule_index = 0; rule_index < number_rules; rule_index++){
 			switch(system_rules[rule_index]->logic_operator_condition_1_2[0]){
@@ -402,7 +408,9 @@ void *thread_rule_implementation(void *arg){
 					// Discovering the compare operator in condition 1
 					switch(system_rules[rule_index]->operator_condition_1){
 						case '>':
-							if(((int)value_sensor_1) > system_rules[rule_index]->value_condition_1){
+							if((((int)value_sensor_1) > system_rules[rule_index]->value_condition_1) && 0 == flag_rules[rule_index]){
+								flag_rules[rule_index] = 1;
+								
 								for(counter1 = 0; counter1 < system_rules[rule_index]->num_actuator_conditions; counter1++){
 									actuator_fut_state = find_actuator_future_state(system_rules[rule_index]->actuator_future_state[counter1], actuator_string);
 									search_division_actuator(system_divisions, number_divisions, system_rules[rule_index]->division_name, actuator_string, &index_division, &index_actuators, NULL);
@@ -423,9 +431,13 @@ void *thread_rule_implementation(void *arg){
 									}
 								}
 							}
+							else if(!(((int)value_sensor_1) > system_rules[rule_index]->value_condition_1))
+								flag_rules[rule_index] = 0;
 							break;
 						case '<':
-							if(((int)value_sensor_1) < system_rules[rule_index]->value_condition_1){
+							if((((int)value_sensor_1) < system_rules[rule_index]->value_condition_1) && 0 == flag_rules[rule_index]){
+								flag_rules[rule_index] = 1;
+								
 								for(counter1 = 0; counter1 < system_rules[rule_index]->num_actuator_conditions; counter1++){
 									actuator_fut_state = find_actuator_future_state(system_rules[rule_index]->actuator_future_state[counter1], actuator_string);
 									search_division_actuator(system_divisions, number_divisions, system_rules[rule_index]->division_name, actuator_string, &index_division, &index_actuators, NULL);
@@ -446,6 +458,8 @@ void *thread_rule_implementation(void *arg){
 									}
 								}
 							}
+							else if(!(((int)value_sensor_1) < system_rules[rule_index]->value_condition_1))
+								flag_rules[rule_index] = 0;
 							break;
 						default:
 							printf("[MAIN_ERROR %d] Operator in condition 1 invalid.\n", MAIN_ERROR_10);
@@ -456,7 +470,6 @@ void *thread_rule_implementation(void *arg){
 				case 'A': 
 					search_sensor_mote(system_rules[rule_index]->sensor_condition_1, number_motes, &mote_id_sensor_1, &type_sensor_1);
 					search_sensor_mote(system_rules[rule_index]->sensor_condition_2, number_motes, &mote_id_sensor_2, &type_sensor_2);
-					
 					// Sensor_1's type (temperature, humidity, luminosity) search
 					switch(type_sensor_1){
 						case TYPE_SENS_TEMP: 
@@ -528,8 +541,9 @@ void *thread_rule_implementation(void *arg){
 							printf("[MAIN_ERROR %d] Operator in condition 2 invalid.\n", MAIN_ERROR_10);
 							pthread_exit(NULL);
 					}
-					
-					if(1==logic_value_condition_1 && 1==logic_value_condition_2){
+					if((1==logic_value_condition_1 && 1==logic_value_condition_2) && 0 == flag_rules[rule_index]){
+						flag_rules[rule_index] = 1;
+						
 						for(counter1 = 0; counter1 < system_rules[rule_index]->num_actuator_conditions; counter1++){
 							actuator_fut_state = find_actuator_future_state(system_rules[rule_index]->actuator_future_state[counter1], actuator_string);
 							search_division_actuator(system_divisions, number_divisions, system_rules[rule_index]->division_name, actuator_string, &index_division, &index_actuators, NULL);
@@ -550,12 +564,13 @@ void *thread_rule_implementation(void *arg){
 							}
 						}
 					}
+					else if (!(1==logic_value_condition_1 && 1==logic_value_condition_2))
+						flag_rules[rule_index] = 0;
 					
 					break;
 				case 'O': 
 					search_sensor_mote(system_rules[rule_index]->sensor_condition_1, number_motes, &mote_id_sensor_1, &type_sensor_1);
 					search_sensor_mote(system_rules[rule_index]->sensor_condition_2, number_motes, &mote_id_sensor_2, &type_sensor_2);
-					
 					// Sensor_1's type (temperature, humidity, luminosity) search
 					switch(type_sensor_1){
 						case TYPE_SENS_TEMP: 
@@ -627,8 +642,9 @@ void *thread_rule_implementation(void *arg){
 							printf("[MAIN_ERROR %d] Operator in condition 2 invalid.\n", MAIN_ERROR_10);
 							pthread_exit(NULL);
 					}
-					
-					if(1==logic_value_condition_1 || 1==logic_value_condition_2){
+					if((1==logic_value_condition_1 || 1==logic_value_condition_2) && 0 == flag_rules[rule_index]){
+						flag_rules[rule_index] = 1;
+						
 						for(counter1 = 0; counter1 < system_rules[rule_index]->num_actuator_conditions; counter1++){
 							actuator_fut_state = find_actuator_future_state(system_rules[rule_index]->actuator_future_state[counter1], actuator_string);
 							search_division_actuator(system_divisions, number_divisions, system_rules[rule_index]->division_name, actuator_string, &index_division, &index_actuators, NULL);
@@ -649,7 +665,8 @@ void *thread_rule_implementation(void *arg){
 							}
 						}
 					}
-					
+					else if(!(1==logic_value_condition_1 || 1==logic_value_condition_2))
+						flag_rules[rule_index] = 0;
 					break;
 				default: 
 					printf("[MAIN_ERROR %d] It wansn't possible to know what's the logic operator between the first and second condition.\n", MAIN_ERROR_8);
@@ -878,10 +895,12 @@ int main(int argc, char **argv)
 	system_divisions = NULL;
 	free_rules_system_memory(system_rules, number_rules, NULL);
 	system_rules = NULL;
+	free(buffer_rgb_channel);
+	buffer_rgb_channel = NULL;
+	free(flag_rules);
+	flag_rules = NULL;
 	fclose(sensor_data_channel);
 	sensor_data_channel = NULL;
-	fclose(rgb_matrix_channel);
-	rgb_matrix_channel = NULL;
 	printf("\n**********************************************************************\n");
 	printf("************************* END OF PROGRAM HAS *************************\n");
 	printf("**********************************************************************\n\n");
