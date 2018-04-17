@@ -1,0 +1,25 @@
+********** Relations **********
+
+* BUILDING
+- address[PK], num_floors[NN], owner[NN]
+
+* APARTMENT
+- id[PK], floor[NN], number[NN], proprietary[NN], num_divisions[NN], #address->BUILDING[NN]
+
+* DIVISIONS
+- id[PK], name[NN], num_sensors, num_actuators, #id->APARTMENT[NN]
+
+* USER
+- id[PK], name[NN], permission[NN], password[NN], state[NN], #id->APARTMENT[NN]
+
+* RULES
+- id[PK], name_sensor_condition1[NN], operator_condition1[NN], threshold_condition1[NN], name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule, time[NN], day[NN], #id->DIVISIONS
+
+* SENSOR
+- id[PK], mote_id[NN], sensor_type[NN], data[NN], time[NN], day[NN], #id->DIVISIONS
+
+* ACTUATOR
+- id[PK], name[NN], actuator_state[NN], time[NN], day[NN], #id->DIVISIONS
+
+* ACTUATOR_FUTURE_STATE
+- id[PK], future_state[NN], #id->RULES[NN], #id->ACTUATOR[NN]
