@@ -1,7 +1,7 @@
 ********** Relations **********
 
 * BUILDING
-- address[PK], num_floors[NN], owner[NN]
+- address[PK], num_apartments[NN], num_floors[NN], owner[NN]
 
 * APARTMENT
 - id[PK], floor[NN], number[NN], proprietary[NN], num_divisions[NN], #address->BUILDING[NN]
