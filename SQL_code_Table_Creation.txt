@@ -1,0 +1,71 @@
+CREATE TABLE building (
+    address character varying(256) NOT NULL,
+    num_floors integer NOT NULL,
+    owner character varying(128) NOT NULL
+);
+
+CREATE TABLE apartment (
+    id integer NOT NULL,
+    floor integer NOT NULL,
+    number integer NOT NULL,
+    proprietary character varying(128) NOT NULL,
+    num_divisions integer NOT NULL,
+    address_building character varying(256) NOT NULL
+);
+
+CREATE TABLE divisions (
+    id integer NOT NULL,
+    name character varying(64) NOT NULL,
+    num_sensors integer,
+    num_actuators integer,
+    id_apartment integer NOT NULL
+);
+
+CREATE TABLE users (
+    id integer NOT NULL,
+    name character varying(64) NOT NULL,
+    permission character varying(64) NOT NULL,
+    password character varying(10) NOT NULL,
+    state integer NOT NULL,
+    id_apartment integer NOT NULL
+);
+
+CREATE TABLE rules (
+    id integer NOT NULL,
+    name_sensor_condition1 character varying(20) NOT NULL,
+    operator_condition1 character varying(1) NOT NULL,
+    threshold_condition1 integer NOT NULL,
+    name_sensor_condition2 character varying(20),
+    operator_condition2 character varying(1),
+    threshold_condition2 integer,
+    sampling_period integer,
+    schedule character varying(20),
+    "time" character varying(20) NOT NULL,
+    day integer NOT NULL,
+    id_divisions integer NOT NULL
+);
+
+CREATE TABLE sensor (
+    id integer NOT NULL,
+    mote_id integer NOT NULL,
+    sensor_type character varying(20) NOT NULL,
+    data double precision NOT NULL,
+    "time" character varying(20) NOT NULL,
+    day integer NOT NULL,
+    id_divisions integer NOT NULL
+);
+
+CREATE TABLE actuator (
+    id integer NOT NULL,
+    name character varying(20) NOT NULL,
+    actuator_state character varying(5) NOT NULL,
+    "time" character varying(20) NOT NULL,
+    day integer NOT NULL,
+    id_divisions integer NOT NULL
+);
+
+CREATE TABLE actuator_future_state (
+    id integer NOT NULL,
+    future_state character varying(5) NOT NULL,
+    id_actuator integer NOT NULL
+);
