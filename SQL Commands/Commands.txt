@@ -1,0 +1,5 @@
+ALTER TABLE sensor ALTER COLUMN time TYPE TIME USING "time"::time(0) with time zone;
+
+ALTER TABLE building ADD CHECK (num_floors > 0);
+
+ALTER TABLE users ADD CHECK (permission = 'admin' OR permission = 'normal');
