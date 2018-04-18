@@ -9,3 +9,15 @@
 - INSERT INTO test_table (id, name) VALUES (1, 'Sousa');
 
 - SELECT * FROM test_table - Seleciona todas as colunas e faz aparecer a tabela
+
+- SELECT CURRENT_TIME(0) AT TIME ZONE 'GMT-1';
+
+- ALTER TABLE test_table DROP CONSTRAINT test_table_name_check;
+
+- UPDATE test_table SET name = 'Daniel' WHERE name = 'Pedro';
+
+- INSERT INTO test_table (id, name, time) VALUES (1, 'Daniel', CURRENT_TIME(0) AT TIME ZONE 'GMT-1');
+
+- INSERT INTO test_table (id, name, data) VALUES (8, 'Daniel', CURRENT_DATE);
+
+- SELECT CURRENT_TIMESTAMP(0) AT TIME ZONE 'GMT-1';
