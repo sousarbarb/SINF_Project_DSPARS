@@ -69,5 +69,3 @@ CREATE TABLE actuator_future_state (
     future_state character varying(5) NOT NULL,
     id_actuator integer NOT NULL
 );
-
-ALTER TABLE sensor ALTER COLUMN time TYPE TIME USING "time"::time(0) with time zone;

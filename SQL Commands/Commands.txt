@@ -1,5 +1,11 @@
-ALTER TABLE sensor ALTER COLUMN time TYPE TIME USING "time"::time(0) with time zone;
+- ALTER TABLE sensor ALTER COLUMN time TYPE TIME USING "time"::time(0) with time zone;
 
-ALTER TABLE building ADD CHECK (num_floors > 0);
+- ALTER TABLE building ADD CHECK (num_floors > 0);
 
-ALTER TABLE users ADD CHECK (permission = 'admin' OR permission = 'normal');
+- ALTER TABLE users ADD CHECK (permission = 'admin' OR permission = 'normal');
+
+- ALTER TABLE test_table ADD COLUMN sljsdhsljdhjls INTEGER REFERENCES rules(id); - FK
+
+- INSERT INTO test_table (id, name) VALUES (1, 'Sousa');
+
+- SELECT * FROM test_table - Seleciona todas as colunas e faz aparecer a tabela
