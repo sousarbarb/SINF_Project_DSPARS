@@ -1,0 +1,101 @@
+***** BUILDING *****
+
+- Pesquisar o endereço do building;
+- Pesquisar o numero de apartamentos;
+- Pesquisar o número de pisos;
+- Saber os apartamentos associados a cada edifício;
+- Saber o dono;
+- Inserir a descrição do edifício;
+- Alterar cada atributo (vão ser necessários 4 queries);
+- Eliminar um building.
+
+***** APARTMENT *****
+
+- Pesquisar o número da porta;
+- Pesquisar o andar;
+- Pesquisar o número de divisões;
+- Saber o proprietário;
+- Saber os utilizadores associados ao apartamento;
+- Saber as divisões associados a certo apartamento;
+- Saber os administradores associados ao apartamento;
+- Inserir a descrição do apartamento;
+- Alterar cada atributo (vão ser necessários 6 queries);
+- Eliminar um Apartment.
+
+***** DIVISIONS *****
+
+- Pesquisar o número de divisões
+- Pesquisar a divisão;
+- Saber o número de regras;
+- Saber o número de atuadores;
+- Saber o número de sensores;
+- Saber as regras associadas a certa divisão;
+- Saber os sensores associados a certa divisão;
+- Saber os atuadores associados a certa diIvisão;
+- Saber a que apartamento pertence;
+- Inserir a descrição das divisões;
+- Alterar cada atributo (vão ser necessárias 6 queries);
+- Eliminar uma Division.
+
+***** RULES *****
+
+- Saber condição 1;
+- Saber condição 2;
+- Saber sampling period;
+- Saber schedule;
+- Saber tempo e data;
+- Saber a que divisão pertence;
+- Saber o número de estados futuros dos atuadores referentes à regra;
+- Inserir a descrição das rules;
+- Alterar cada atributo (vão ser necessárias 13 queries);
+- Eliminar uma Rule.
+
+***** USERS *****
+
+- Saber o nome do utilizador;
+- Saber a permissão do utilizador (Administrador ou utilizador normal);
+- Saber a password do utilizador;
+- Saber o estado de atividade (se está ativo ou inativo);
+- Saber a que apartamentos tem acesso;
+- Saber a atividade associada a cada utilizador;
+- Inserir a descrição dos users;
+- Alterar cada atributo (vão ser 5 queries);
+- Eliminar um User.
+
+***** USERS_ACTIVITY *****
+
+- Saber o nome do utilizador;
+- Saber o histórico de atividade;
+- Saber tempo e data;
+- Inserir a descrição dos users_activity;
+- Eliminar um users_activity.
+
+***** SENSOR *****
+
+- Saber o mote;
+- Saber o tipo de sensor;
+- Saber dia e hora;
+- Saber a que divisão pertence;
+- Saber os dados do sensor;
+- Inserir a descrição dos sensors;
+- Alterar cada atributo (vão ser 6 queries);
+- Eliminar um Sensor.
+
+***** ACTUATOR *****
+
+- Saber o nome do atuador;
+- Saber o estado do atuador;
+- Saber data e tempo;
+- Saber a que divisão pertence;
+- Inserir a descrição dos actuators;
+- Alterar cada atributo (vão ser 6 queries);
+- Eliminar um Actuator.
+
+***** ACTUATOR_FUTURE_STATE *****
+
+- Saber o estado futuro do atuador;
+- Saber o atuador associado ao estado;
+- Saber a regra associado ao estado do atuador;
+- Inserir a descrição dos actuator_future_state;
+- Alterar cada atributo (vão ser 4 queries);
+- Eliminar um Actuator_future_state.
