@@ -21,3 +21,5 @@
 - INSERT INTO test_table (id, name, data) VALUES (8, 'Daniel', CURRENT_DATE);
 
 - SELECT CURRENT_TIMESTAMP(0) AT TIME ZONE 'GMT-1';
+
+- UPDATE test_table SET info = 'c', name = 'Pedro' WHERE id = 10
