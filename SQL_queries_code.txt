@@ -1,0 +1,44 @@
++++++++++++++++++
++++++ USERS +++++
++++++++++++++++++
+
+* Saber o nome do utilizador
+	SELECT name FROM users WHERE id = 
+
+* Saber a permissão do utilizador (Administrador ou utilizador normal)
+	SELECT permission FROM users WHERE id = 
+
+* Saber a password do utilizador
+	SELECT password FROM users WHERE id = 
+
+* Saber o estado de atividade (se está ativo ou inativo)
+	SELECT state FROM users WHERE id = 
+	_se estiver a 1 está ativo
+	_se estiver a 0 está inativo
+
+* Saber a que apartamentos tem acesso
+	SELECT * FROM apartment WHERE id = apartment_id
+
+* Saber a atividade associada a cada utilizador
+	SELECT * FROM users_activity WHERE id_users = 
+
+* Inserir a descrição dos users
+	INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (5, 'username', 'normal', '*****', 0, 0)
+
+* Alterar nome do utilizador
+	UPDATE users SET name = 'new_username' WHERE id = 
+
+* Alterar permissão do utilizador
+	UPDATE users SET permission = 'new_permission' WHERE id = 
+
+* Alterar password do utilizador
+	UPDATE users SET password = 'new_password' WHERE id = 
+
+* Alterar estado do utilizador
+	UPDATE users SET state = 'new_state' WHERE id = 
+
+* Eliminar um utilizador
+	DELETE FROM users WHERE id = 
+
+* Alterar apartamento do utilizador
+	UPDATE users SET id_apartment = new_id WHERE id = 
