@@ -102,3 +102,26 @@
 
 * Alterar apartamento do utilizador
 	UPDATE users SET id_apartment = new_id WHERE id = 
+
+
++++++++++++++++++++++++++++++++++
++++++ ACTUATOR_FUTURE_STATE +++++
++++++++++++++++++++++++++++++++++
+
+* Saber o estado futuro do atuador
+	SELECT future_state FROM actuator_future_state WHERE id_actuator = 0 AND id_rules = 0
+
+* Saber o atuador associado ao estado
+	SELECT * FROM actuator WHERE id = id_actuator
+
+* Inserir a descrição dos actuator_future_state
+	INSERT INTO actuator_future_state(id, future_state, id_actuator, id_rules) VALUES (18, 'OFF', 2, 0)
+
+* Alterar cada atributo (vão ser 4 queries)
+	UPDATE actuator_future_state SET future_state = xxx WHERE id = xxx
+	UPDATE actuator_future_state SET id_actuator = xxx WHERE id = xxx
+
+	UPDATE actuator_future_state SET id_rules = xxx WHERE id = xxx
+
+* Eliminar um Actuator_future_state
+	DELETE FROM actuator_future_state WHERE id = 
