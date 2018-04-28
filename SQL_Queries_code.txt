@@ -2,23 +2,23 @@
 +++++ RULES +++++
 +++++++++++++++++
 
-* Saber condiÁ„o 1
+* Saber condi√ß√£o 1
 	_nome_sensor
 	SELECT name_sensor_condition1 FROM rules WHERE id = 
 	_comparador
 	SELECT operator_condition1 FROM rules WHERE id = 
-	_valor da comparaÁ„o
+	_valor da compara√ß√£o
 	SELECT threshold_condition1 FROM rules WHERE id = 
 
-* Saber condiÁ„o lÛgica entre a condiÁ„o 1 e a condiÁ„o 2
-	_caso retorne NULL signfica que n„o existe condiÁ„o 2
+* Saber condi√ß√£o l√≥gica entre a condi√ß√£o 1 e a condi√ß√£o 2
+	_caso retorne NULL signfica que n√£o existe condi√ß√£o 2
 	SELECT logic_operator FROM rules WHERE id = 
 
-* Saber condiÁ„o 2	_nome_sensor
+* Saber condi√ß√£o 2	_nome_sensor
 	SELECT name_sensor_condition2 FROM rules WHERE id = 
 	_comparador
 	SELECT operator_condition2 FROM rules WHERE id = 
-	_valor da comparaÁ„o
+	_valor da compara√ß√£o
 	SELECT threshold_condition2 FROM rules WHERE id = 
 
 * Saber sampling period
@@ -30,16 +30,16 @@
 * Saber tempo e data
 	SELECT time, day FROM rules WHERE id = 
 
-* Saber a que divis„o pertence
+* Saber a que divis√£o pertence
 	SELECT id_divisions FROM rules WHERE id = 
 
-* Saber o n˙mero de estados futuros dos atuadores referentes ‡ regra
+* Saber o n√∫mero de estados futuros dos atuadores referentes √† regra
 	SELECT COUNT(*) FROM actuator_future_state WHERE id_rules = 
 
-* Inserir a descriÁ„o das rules
+* Inserir a descri√ß√£o das rules
 	INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (, , , , , , , , , , , , , )
 
-* Alterar cada atributo (v„o ser necess·rias 13 queries)
+* Alterar cada atributo (v√£o ser necess√°rias 13 queries)
 	UPDATE rules SET id = xxx WHERE id = 
 	UPDATE rules SET name_sensor_condition1 = xxx WHERE id = 
 	UPDATE rules SET operator_condition1 = xxx WHERE id = 
@@ -65,16 +65,16 @@
 * Saber o nome do utilizador
 	SELECT name FROM users WHERE id = 
 
-* Saber a permiss√£o do utilizador (Administrador ou utilizador normal)
+* Saber a permiss√É¬£o do utilizador (Administrador ou utilizador normal)
 	SELECT permission FROM users WHERE id = 
 
 * Saber a password do utilizador
 	SELECT password FROM users WHERE id = 
 
-* Saber o estado de atividade (se est√° ativo ou inativo)
+* Saber o estado de atividade (se est√É¬° ativo ou inativo)
 	SELECT state FROM users WHERE id = 
-	_se estiver a 1 est√° ativo
-	_se estiver a 0 est√° inativo
+	_se estiver a 1 est√É¬° ativo
+	_se estiver a 0 est√É¬° inativo
 
 * Saber a que apartamentos tem acesso
 	SELECT * FROM apartment WHERE id = apartment_id
@@ -82,13 +82,13 @@
 * Saber a atividade associada a cada utilizador
 	SELECT * FROM users_activity WHERE id_users = 
 
-* Inserir a descri√ß√£o dos users
+* Inserir a descri√É¬ß√É¬£o dos users
 	INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (5, 'username', 'normal', '*****', 0, 0)
 
 * Alterar nome do utilizador
 	UPDATE users SET name = 'new_username' WHERE id = 
 
-* Alterar permiss√£o do utilizador
+* Alterar permiss√É¬£o do utilizador
 	UPDATE users SET permission = 'new_permission' WHERE id = 
 
 * Alterar password do utilizador
@@ -114,13 +114,12 @@
 * Saber o atuador associado ao estado
 	SELECT * FROM actuator WHERE id = id_actuator
 
-* Inserir a descriÁ„o dos actuator_future_state
+* Inserir a descri√ß√£o dos actuator_future_state
 	INSERT INTO actuator_future_state(id, future_state, id_actuator, id_rules) VALUES (18, 'OFF', 2, 0)
 
-* Alterar cada atributo (v„o ser 4 queries)
+* Alterar cada atributo (v√£o ser 4 queries)
 	UPDATE actuator_future_state SET future_state = xxx WHERE id = xxx
 	UPDATE actuator_future_state SET id_actuator = xxx WHERE id = xxx
-
 	UPDATE actuator_future_state SET id_rules = xxx WHERE id = xxx
 
 * Eliminar um Actuator_future_state
