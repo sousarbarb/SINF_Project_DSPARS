@@ -1,4 +1,64 @@
 +++++++++++++++++
++++++ RULES +++++
++++++++++++++++++
+
+* Saber condição 1
+	_nome_sensor
+	SELECT name_sensor_condition1 FROM rules WHERE id = 
+	_comparador
+	SELECT operator_condition1 FROM rules WHERE id = 
+	_valor da comparação
+	SELECT threshold_condition1 FROM rules WHERE id = 
+
+* Saber condição lógica entre a condição 1 e a condição 2
+	_caso retorne NULL signfica que não existe condição 2
+	SELECT logic_operator FROM rules WHERE id = 
+
+* Saber condição 2	_nome_sensor
+	SELECT name_sensor_condition2 FROM rules WHERE id = 
+	_comparador
+	SELECT operator_condition2 FROM rules WHERE id = 
+	_valor da comparação
+	SELECT threshold_condition2 FROM rules WHERE id = 
+
+* Saber sampling period
+	SELECT sampling_period FROM rules WHERE id = 
+
+* Saber schedule
+	SELECT schedule FROM rules WHERE id = 
+
+* Saber tempo e data
+	SELECT time, day FROM rules WHERE id = 
+
+* Saber a que divisão pertence
+	SELECT id_divisions FROM rules WHERE id = 
+
+* Saber o número de estados futuros dos atuadores referentes à regra
+	SELECT COUNT(*) FROM actuator_future_state WHERE id_rules = 
+
+* Inserir a descrição das rules
+	INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (, , , , , , , , , , , , , )
+
+* Alterar cada atributo (vão ser necessárias 13 queries)
+	UPDATE rules SET id = xxx WHERE id = 
+	UPDATE rules SET name_sensor_condition1 = xxx WHERE id = 
+	UPDATE rules SET operator_condition1 = xxx WHERE id = 
+	UPDATE rules SET threshold_condition1 = xxx WHERE id = 
+	UPDATE rules SET name_sensor_condition2 = xxx WHERE id = 
+	UPDATE rules SET operator_condition2 = xxx WHERE id = 
+	UPDATE rules SET threshold_condition2 = xxx WHERE id = 
+	UPDATE rules SET sampling_period = xxx WHERE id = 
+	UPDATE rules SET schedule = xxx WHERE id = 
+	UPDATE rules SET time = xxx WHERE id = 
+	UPDATE rules SET id_divisions = xxx WHERE id = 
+	UPDATE rules SET day = xxx WHERE id = 
+	UPDATE rules SET num_actuators_future_state = xxx WHERE id = 
+	UPDATE rules SET logic_operator = xxx WHERE id = 
+
+* Eliminar uma Rule
+	DELETE FROM rules WHERE id = 
+
++++++++++++++++++
 +++++ USERS +++++
 +++++++++++++++++
 
