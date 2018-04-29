@@ -1,4 +1,4 @@
-+++++++++++++++++
+﻿+++++++++++++++++
 +++++ RULES +++++
 +++++++++++++++++
 
@@ -124,3 +124,40 @@
 
 * Eliminar um Actuator_future_state
 	DELETE FROM actuator_future_state WHERE id = 
+
+++++++++++++++++++
+++++ BUILDING ++++
+++++++++++++++++++
+
+* Pesquisar o endereço do building;
+	- SELECT * FROM building WHERE address= 
+
+* Pesquisar o numero de apartamentos;
+	- SELECT num_apartments FROM building WHERE address=
+
+* Pesquisar o número de pisos;
+	- SELECT num_floors FROM building WHERE address=
+
+* Saber o dono;
+	- SELECT owner FROM building WHERE address=
+
+* Eliminar um building;
+	- DELETE address= FROM building
+
+* Saber os apartamentos associados a um edifício;
+	- SELECT * FROM apartment WHERE address=
+
+* Inserir a descrição do edifício;
+	- INSERT INTO building (address, num_floors, owner, num_apartments) VALUES ('TBD', 2, 'FSDFDFS', 3)
+
+* Alterar o endereço do building;
+	- UPDATE building SET address='wsdwdwd' WHERE address='ocsscsn'
+
+* Alterar o número de apartamentos;
+	- UPDATE building SET num_apartments=4 WHERE address='sfsfs'
+
+* Alterar número de pisos;
+	- UPDATE building SET num_floors=2 WHERE address='sfsfs'
+
+* Alterar o dono do edifício;
+	- UPDATE building SET owner='wkdkjdwk' WHERE address='sfsfs'
