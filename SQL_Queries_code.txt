@@ -111,9 +111,8 @@
 * Saber o estado futuro do atuador
 	SELECT future_state FROM actuator_future_state WHERE id_actuator = 0 AND id_rules = 0
 
-* Saber o atuador associado ao estado futuro
-	SELECT name,actuator_state,future_state FROM actuator,actuator_future_state WHERE actuator.id=actuator_future_state.id_actuator 
-	AND actuator_future_state.id_actuator=
+* Saber o atuador associado ao estado futuro 
+	SELECT name,actuator_state,future_state FROM actuator,actuator_future_state WHERE actuator.id=actuator_future_state.id_actuator AND actuator_future_state.id_actuator=
 
 * Inserir a descrição dos actuator_future_state
 	INSERT INTO actuator_future_state(id, future_state, id_actuator, id_rules) VALUES (18, 'OFF', 2, 0)
@@ -146,8 +145,7 @@
 	- DELETE FROM building where address=
 
 * Saber os apartamentos associados a um edifício;
-	- SELECT floor,number,proprietary FROM apartment,building WHERE apartment.address_building=building.address AND 
-	building.address=
+	- SELECT floor,number,proprietary FROM apartment,building WHERE apartment.address_building=building.address AND building.address=
 
 * Inserir a descrição do edifício;
 	- INSERT INTO building (address, num_floors, owner, num_apartments) VALUES ('TBD', 2, 'FSDFDFS', 3)
@@ -187,8 +185,7 @@
 	- SELECT name FROM divisions,apartment WHERE divisions.id_apartment=apartment.id AND apartment.id=
 
 * Saber os administradores associados ao apartamento;
-	- SELECT name FROM users,apartment WHERE users.permission='admin' AND users.state=1 AND users.id_apartment=apartment.id AND 
-	apartment.id=
+	- SELECT name FROM users,apartment WHERE users.permission='admin' AND users.state=1 AND users.id_apartment=apartment.id AND apartment.id=
 
 * Inserir a descrição do apartamento;
 	- INSERT INTO apartment (id,floor,number,proprietary,num_divisions,adress_building) VALUES (1,0,2,'DQS',5,'blabla')
@@ -224,9 +221,7 @@
 	- SELECT num_sensors FROM divisions WHERE id=
 
 * Saber as regras associadas a certa divisão;
-	-SELECT name_sensor_condition1,operator_condition1,threshold_condition1,
-		name_sensor_condition2,operator_condition2,threshold_condition2 
-		FROM rules,divisions WHERE rules.id_divisions = divisions.id AND divisions.id=
+	-SELECT name_sensor_condition1,operator_condition1,threshold_condition1,name_sensor_condition2,operator_condition2,threshold_condition2 FROM rules,divisions WHERE rules.id_divisions = divisions.id AND divisions.id=
 
 * Saber os sensores associados a certa divisão;
 	- SELECT mote_id,sensor_type,data FROM sensor,divisions WHERE sensor.id_divisions = divisions.id AND divisions.id=
