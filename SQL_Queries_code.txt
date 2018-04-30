@@ -310,3 +310,22 @@
 
 * Eliminar um Actuator.
 	- DELETE FROM actuator WHERE id=
+	
+++++++++++++++++++++++++
+++++ USERS_ACTIVITY ++++
+++++++++++++++++++++++++
+
+* Saber o nome do utilizador;
+	- SELECT name FROM users, users_activity WHERE users.id=users_activity.id_users AND id=
+
+* Saber o histórico de atividade;
+	- SELECT activity_description FROM users_activity WHERE id=
+
+* Saber tempo e data;
+	- SELECT day,time FROM users_activity WHERE id=
+
+* Inserir a descrição dos users_activity;
+	- INSERT INTO (id,id_users,activity_description,time,day) values (1,2,'blablablabla',TIME,DATE)
+
+* Eliminar um users_activity.
+	- DELETE FROM users_activity WHERE id=
