@@ -224,10 +224,10 @@
 	- SELECT * FROM rules WHERE id_divisions=
 
 * Saber os sensores associados a certa divisão;
-	- SELECT * FROM sensors WHERE id_divisions=
+	- SELECT * FROM sensor WHERE id_divisions=
 
 * Saber os atuadores associados a certa diIvisão;
-	- SELECT * FROM actuators WHERE id_divisions=
+	- SELECT * FROM actuator WHERE id_divisions=
 
 * Saber a que apartamento pertence;
 	- SELECT * FROM apartment, divisions WHERE divisions.id_apartment = apartment.id AND divisions.id=
@@ -236,12 +236,47 @@
 	- INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (1,'ROOM3',2,3,0,2)
 
 * Alterar cada atributo (vão ser necessárias 6 queries);
-	- UPDATE division SET id=1 WHERE id=0
-	- UPDATE division SET name='ROOM3' WHERE name='ROOM2'
-	- UPDATE division SET num_sensors=2 WHERE num_sensors=1
-	- UPDATE division SET num_actuators=3 WHERE num_actuators=2
-	- UPDATE division SET id_apartment=4 WHERE id_apartment=5
-	- UPDATE division SET num_rules=2 WHERE num_rules=3
+	- UPDATE divisions SET id=1 WHERE id=0
+	- UPDATE divisions SET name='ROOM3' WHERE name='ROOM2'
+	- UPDATE divisions SET num_sensors=2 WHERE num_sensors=1
+	- UPDATE divisions SET num_actuators=3 WHERE num_actuators=2
+	- UPDATE divisions SET id_apartment=4 WHERE id_apartment=5
+	- UPDATE divisions SET num_rules=2 WHERE num_rules=3
 
 * Eliminar uma Division.
-	- DELETE FROM division WHERE id=
+	- DELETE FROM divisions WHERE id=
+
+++++++++++++++++
+++++ SENSOR ++++
+++++++++++++++++
+
+* Saber o mote;
+	- SELECT mote_id FROM sensor WHERE id=
+	
+* Saber o tipo de sensor;
+	- SELECT sensor_type FROM sensor WHERE id=
+	
+* Saber dia e hora;
+	- SELECT day, time FROM sensor WHERE id=
+	
+* Saber a que divisão pertence;
+	- SELECT id_divisions FROM sensor WHERE id=
+
+* Saber os dados do sensor;
+	- SELECT data FROM sensor WHERE id=
+
+* Inserir a descrição dos sensors;
+	- INSERT INTO sensor (id,mote_id,sensor_type,data,time,id_divisions,day) values (1,2,'HUM',30.5,TIME,2,DATE)
+
+* Alterar cada atributo (vão ser 7 queries);
+	- UPDATE sensor SET id=1 WHERE id=0
+	- UPDATE sensor SET mote_id=1 WHERE name=2
+	- UPDATE sensor SET sensor_type='LIGHT' WHERE sensor_type='HUM'
+	- UPDATE sensor SET data=40.5 WHERE data=30.6
+	- UPDATE sensor SET id_divisions=2 WHERE id_divisions=1
+	- UPDATE sensor SET time=???
+	- UPDATE sensor SET day=???
+
+* Eliminar um Sensor.
+
+	- DELETE from sensor WHERE id=
