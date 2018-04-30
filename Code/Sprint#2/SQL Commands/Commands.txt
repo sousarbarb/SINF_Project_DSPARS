@@ -22,4 +22,6 @@
 
 - SELECT CURRENT_TIMESTAMP(0) AT TIME ZONE 'GMT-1';
 
-- UPDATE test_table SET info = 'c', name = 'Pedro' WHERE id = 10
+- UPDATE test_table SET info = 'c', name = 'Pedro' WHERE id = 10;
+
+*- UPDATE sensor SET time=(CURRENT_TIME(0) AT TIME ZONE 'GMT-1') WHERE id=1
