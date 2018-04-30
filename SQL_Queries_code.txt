@@ -200,3 +200,40 @@
 
 * Eliminar um Apartment.
 	- DELETE FROM apartment WHERE id=
+	
++++++++++++++++++++
+++++ DIVISIONS ++++
++++++++++++++++++++
+
+* Pesquisar o número de divisões;
+	- SELECT num_divisions FROM apartment, divisions WHERE apartment.id = divisions.id_apartment AND divisions.id=
+
+* Pesquisar a divisão;
+	- SELECT name FROM divisions WHERE id=
+
+* Saber o número de regras;
+	- SELECT num_rules FROM divisions WHERE id=
+
+* Saber o número de atuadores;
+	- SELECT num_actuators FROM divisions WHERE id=
+
+* Saber o número de sensores;
+	- SELECT num_sensors FROM divisions WHERE id=
+
+* Saber as regras associadas a certa divisão;
+	- SELECT * FROM rules, divisions WHERE rules.id_divisions = divisions.id AND divisions.id=
+
+* Saber os sensores associados a certa divisão;
+	- SELECT
+
+* Saber os atuadores associados a certa diIvisão;
+	- SELECT
+
+* Saber a que apartamento pertence;
+	- SELECT
+
+* Inserir a descrição das divisões;
+
+* Alterar cada atributo (vão ser necessárias 6 queries);
+
+* Eliminar uma Division.
