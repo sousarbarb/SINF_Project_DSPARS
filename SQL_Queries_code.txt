@@ -161,3 +161,42 @@
 
 * Alterar o dono do edifício;
 	- UPDATE building SET owner='wkdkjdwk' WHERE address='sfsfs'
+
++++++++++++++++++++
+++++ APARTMENT ++++
++++++++++++++++++++
+
+* Pesquisar o número da porta;
+	- SELECT number FROM apartment WHERE id=
+
+* Pesquisar o andar;
+	- SELECT floor FROM apartment WHERE id=
+
+* Pesquisar o número de divisões;
+	- SELECT num_divisions FROM apartment WHERE id=
+
+* Saber o proprietário;
+	- SELECT proprietary FROM apartment WHERE id=
+
+* Saber os utilizadores associados ao apartamento;
+	- SELECT * FROM users WHERE id_apartment=
+
+* Saber as divisões associados a certo apartamento;
+	- SELECT * FROM divisions WHERE id_apartment=
+
+* Saber os administradores associados ao apartamento;
+	- SELECT * FROM users WHERE permission='Admin' AND state=1 AND id_apartment=
+
+* Inserir a descrição do apartamento;
+	- INSERT INTO apartment (id,floor,number,proprietary,num_divisions,adress_building) VALUES (1,0,2,'DQS',5,'blabla')
+
+* Alterar cada atributo (vão ser necessários 6 queries);
+	- UPDATE apartment SET id=1 WHERE id=0
+	- UPDATE apartment SET floor=0 WHERE floor=1
+	- UPDATE apartment SET number=2 WHERE number=1
+	- UPDATE apartment SET proprietary='Daniel' WHERE proprietary='ASA'
+	- UPDATE apartment SET num_divisions=4 WHERE num_divisions=5
+	- UPDATE apartment SET adress_building='Rua do Tenta' WHERE adress_building='Bem tentaram'
+
+* Eliminar um Apartment.
+	- DELETE FROM apartment WHERE id=
