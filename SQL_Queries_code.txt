@@ -279,4 +279,34 @@
 
 * Eliminar um Sensor.
 
-	- DELETE from sensor WHERE id=
+	- DELETE FROM sensor WHERE id=
+
+++++++++++++++++++
+++++ ACTUATOR ++++
+++++++++++++++++++
+
+* Saber o nome do atuador;
+	- SELECT name FROM actuator WHERE id=
+
+* Saber o estado do atuador;
+	- SELECT actuator_state FROM actuator WHERE id=
+
+* Saber dia e hora;
+	- SELECT day, time FROM actuator WHERE id=
+
+* Saber a que divisão pertence;
+	- SELECT id_divisions FROM sensor WHERE id=
+
+* Inserir a descrição dos actuators;
+	- INSERT INTO actuator (id,name,actuator_state,time,id_divisions,day) values (1,'HEATER','ON',TIME,2,DATE)
+
+* Alterar cada atributo (vão ser 6 queries);
+	- UPDATE sensor SET id=1 WHERE id=0
+	- UPDATE sensor SET name='HEATER' WHERE name='BLINDS'
+	- UPDATE sensor SET actuator_state='ON' WHERE actuator_state='OFF'
+	- UPDATE sensor SET id_divisions=2 WHERE id_divisions=1
+	- UPDATE sensor SET time=???
+	- UPDATE sensor SET day=???
+
+* Eliminar um Actuator.
+	- DELETE FROM actuator WHERE id=
