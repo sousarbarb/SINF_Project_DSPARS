@@ -31,7 +31,7 @@
 	SELECT time, day FROM rules WHERE id = 
 
 * Saber a que divisão pertence
-	SELECT id_divisions FROM rules WHERE id = 
+	SELECT divisions.id,name FROM divisions,rules WHERE divisions.id=rules.id_divisions AND rules.id=
 
 * Saber o número de estados futuros dos atuadores referentes à regra
 	SELECT COUNT(*) FROM actuator_future_state WHERE id_rules = 
@@ -65,24 +65,24 @@
 * Saber o nome do utilizador
 	SELECT name FROM users WHERE id = 
 
-* Saber a permissÃ£o do utilizador (Administrador ou utilizador normal)
+* Saber a permissão do utilizador (Administrador ou utilizador normal)
 	SELECT permission FROM users WHERE id = 
 
 * Saber a password do utilizador
 	SELECT password FROM users WHERE id = 
 
-* Saber o estado de atividade (se estÃ¡ ativo ou inativo)
+* Saber o estado de atividade (se está ativo ou inativo)
 	SELECT state FROM users WHERE id = 
-	_se estiver a 1 estÃ¡ ativo
-	_se estiver a 0 estÃ¡ inativo
+	_se estiver a 1 está ativo
+	_se estiver a 0 está inativo
 
 * Saber a que apartamentos tem acesso
-	SELECT * FROM apartment WHERE id = apartment_id
+	SELECT floor,number FROM apartment,users WHERE users.name='...' AND state=1 AND apartment.id=users.id_apartment 
 
 * Saber a atividade associada a cada utilizador
-	SELECT * FROM users_activity WHERE id_users = 
+	SELECT activity_description FROM users_activity,users WHERE users_activity.id_users=users.id AND users.name='...'
 
-* Inserir a descriÃ§Ã£o dos users
+* Inserir a descrição dos users
 	INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (5, 'username', 'normal', '*****', 0, 0)
 
 * Alterar nome do utilizador
@@ -111,8 +111,8 @@
 * Saber o estado futuro do atuador
 	SELECT future_state FROM actuator_future_state WHERE id_actuator = 0 AND id_rules = 0
 
-* Saber o atuador associado ao estado
-	SELECT * FROM actuator WHERE id = id_actuator
+* Saber o atuador associado ao estado futuro 
+	SELECT name,actuator_state,future_state FROM actuator,actuator_future_state WHERE actuator.id=actuator_future_state.id_actuator AND actuator_future_state.id_actuator=
 
 * Inserir a descrição dos actuator_future_state
 	INSERT INTO actuator_future_state(id, future_state, id_actuator, id_rules) VALUES (18, 'OFF', 2, 0)
@@ -142,10 +142,10 @@
 	- SELECT owner FROM building WHERE address=
 
 * Eliminar um building;
-	- DELETE address= FROM building
+	- DELETE FROM building where address=
 
 * Saber os apartamentos associados a um edifício;
-	- SELECT * FROM apartment WHERE address=
+	- SELECT floor,number,proprietary FROM apartment,building WHERE apartment.address_building=building.address AND building.address=
 
 * Inserir a descrição do edifício;
 	- INSERT INTO building (address, num_floors, owner, num_apartments) VALUES ('TBD', 2, 'FSDFDFS', 3)
@@ -221,9 +221,7 @@
 	- SELECT num_sensors FROM divisions WHERE id=
 
 * Saber as regras associadas a certa divisão;
-	-SELECT name_sensor_condition1,operator_condition1,threshold_condition1,
-		name_sensor_condition2,operator_condition2,threshold_condition2 
-		FROM rules,divisions WHERE rules.id_divisions = divisions.id AND divisions.id=
+	-SELECT name_sensor_condition1,operator_condition1,threshold_condition1,name_sensor_condition2,operator_condition2,threshold_condition2 FROM rules,divisions WHERE rules.id_divisions = divisions.id AND divisions.id=
 
 * Saber os sensores associados a certa divisão;
 	- SELECT mote_id,sensor_type,data FROM sensor,divisions WHERE sensor.id_divisions = divisions.id AND divisions.id=
