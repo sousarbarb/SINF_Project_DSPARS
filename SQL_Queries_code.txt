@@ -221,19 +221,27 @@
 	- SELECT num_sensors FROM divisions WHERE id=
 
 * Saber as regras associadas a certa divisão;
-	- SELECT * FROM rules, divisions WHERE rules.id_divisions = divisions.id AND divisions.id=
+	- SELECT * FROM rules WHERE id_divisions=
 
 * Saber os sensores associados a certa divisão;
-	- SELECT
+	- SELECT * FROM sensors WHERE id_divisions=
 
 * Saber os atuadores associados a certa diIvisão;
-	- SELECT
+	- SELECT * FROM actuators WHERE id_divisions=
 
 * Saber a que apartamento pertence;
-	- SELECT
+	- SELECT * FROM apartment, divisions WHERE divisions.id_apartment = apartment.id AND divisions.id=
 
 * Inserir a descrição das divisões;
+	- INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (1,'ROOM3',2,3,0,2)
 
 * Alterar cada atributo (vão ser necessárias 6 queries);
+	- UPDATE division SET id=1 WHERE id=0
+	- UPDATE division SET name='ROOM3' WHERE name='ROOM2'
+	- UPDATE division SET num_sensors=2 WHERE num_sensors=1
+	- UPDATE division SET num_actuators=3 WHERE num_actuators=2
+	- UPDATE division SET id_apartment=4 WHERE id_apartment=5
+	- UPDATE division SET num_rules=2 WHERE num_rules=3
 
 * Eliminar uma Division.
+	- DELETE FROM division WHERE id=
