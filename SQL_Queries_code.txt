@@ -179,13 +179,13 @@
 	- SELECT proprietary FROM apartment WHERE id=
 
 * Saber os utilizadores associados ao apartamento;
-	- SELECT * FROM users WHERE id_apartment=
+	- SELECT name FROM users,apartment WHERE users.id_apartment=apartment.id AND apartment.id=
 
 * Saber as divisões associados a certo apartamento;
-	- SELECT * FROM divisions WHERE id_apartment=
+	- SELECT name FROM divisions,apartment WHERE divisions.id_apartment=apartment.id AND apartment.id=
 
 * Saber os administradores associados ao apartamento;
-	- SELECT * FROM users WHERE permission='Admin' AND state=1 AND id_apartment=
+	- SELECT name FROM users,apartment WHERE users.permission='admin' AND users.state=1 AND users.id_apartment=apartment.id AND apartment.id=
 
 * Inserir a descrição do apartamento;
 	- INSERT INTO apartment (id,floor,number,proprietary,num_divisions,adress_building) VALUES (1,0,2,'DQS',5,'blabla')
@@ -209,7 +209,7 @@
 	- SELECT num_divisions FROM apartment, divisions WHERE apartment.id = divisions.id_apartment AND divisions.id=
 
 * Pesquisar a divisão;
-	- SELECT name FROM divisions WHERE id=
+	- SELECT name FROM apartment, divisions WHERE apartment.id = divisions.id_apartment AND divisions.id=
 
 * Saber o número de regras;
 	- SELECT num_rules FROM divisions WHERE id=
@@ -221,16 +221,18 @@
 	- SELECT num_sensors FROM divisions WHERE id=
 
 * Saber as regras associadas a certa divisão;
-	- SELECT * FROM rules WHERE id_divisions=
+	-SELECT name_sensor_condition1,operator_condition1,threshold_condition1,
+		name_sensor_condition2,operator_condition2,threshold_condition2 
+		FROM rules,divisions WHERE rules.id_divisions = divisions.id AND divisions.id=
 
 * Saber os sensores associados a certa divisão;
-	- SELECT * FROM sensor WHERE id_divisions=
+	- SELECT mote_id,sensor_type,data FROM sensor,divisions WHERE sensor.id_divisions = divisions.id AND divisions.id=
 
-* Saber os atuadores associados a certa diIvisão;
-	- SELECT * FROM actuator WHERE id_divisions=
+* Saber os atuadores associados a certa divisão;
+	- SELECT actuator.name,actuator_state FROM actuator,divisions WHERE actuator.id_divisions = divisions.id AND divisions.id=
 
 * Saber a que apartamento pertence;
-	- SELECT * FROM apartment, divisions WHERE divisions.id_apartment = apartment.id AND divisions.id=
+	- SELECT floor,number FROM apartment, divisions WHERE divisions.id_apartment = apartment.id AND divisions.id=
 
 * Inserir a descrição das divisões;
 	- INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (1,'ROOM3',2,3,0,2)
@@ -260,7 +262,7 @@
 	- SELECT day, time FROM sensor WHERE id=
 	
 * Saber a que divisão pertence;
-	- SELECT id_divisions FROM sensor WHERE id=
+	- SELECT name FROM divisions,sensor WHERE divisions.id = sensor.id_divisions AND sensor.id=
 
 * Saber os dados do sensor;
 	- SELECT data FROM sensor WHERE id=
@@ -295,7 +297,7 @@
 	- SELECT day, time FROM actuator WHERE id=
 
 * Saber a que divisão pertence;
-	- SELECT id_divisions FROM actuator WHERE id=
+	- SELECT divisions.name FROM divisions,actuator WHERE divisions.id = actuator.id_divisions AND actuator.id=
 
 * Inserir a descrição dos actuators;
 	- INSERT INTO actuator (id,name,actuator_state,time,id_divisions,day) values (1,'HEATER','ON',TIME,2,DATE)
