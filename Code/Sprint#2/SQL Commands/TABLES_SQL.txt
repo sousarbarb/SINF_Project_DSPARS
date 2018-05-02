@@ -1,0 +1,139 @@
+******************
+**** BUILDING ****
+******************
+
+CREATE TABLE building
+(
+address character varying(256) PRIMARY KEY NOT NULL,
+num_floors INT CHECK (num_floors > 0) NOT NULL,
+owner character varying(128) NOT NULL, 
+num_apartments INT CHECK (num_apartments > 0) NOT NULL
+);
+
+
+*******************
+**** APARTMENT ****
+*******************
+
+CREATE TABLE apartment
+(
+id INT PRIMARY KEY NOT NULL,
+floor INT NOT NULL,
+number INT CHECK (number > 0) NOT NULL,
+proprietary character varying(128) NOT NULL, 
+num_divisions INT CHECK (num_divisions > 0) NOT NULL,
+address_building character varying(128) REFERENCES building(address) NOT NULL
+);
+
+
+***************
+**** USERS ****
+***************
+
+CREATE TABLE users
+(
+id INT PRIMARY KEY NOT NULL,
+name character varying(64) NOT NULL,
+permission character varying(128) CHECK (permission = 'admin' OR permission = 'normal') NOT NULL,
+password character varying(10) NOT NULL, 
+state INT CHECK (state = 0 OR state = 1) NOT NULL,
+id_apartment INT REFERENCES apartment(id) NOT NULL
+);
+
+
+
+************************
+**** USERS_ACTIVITY ****
+************************
+
+CREATE TABLE users_activity
+(
+id INT PRIMARY KEY NOT NULL,
+id_users INT REFERENCES users(id) NOT NULL,
+activity_description character varying(100) NOT NULL,
+time TIME NOT NULL,
+date DATE NOT NULL
+);
+
+
+*******************
+**** DIVISIONS ****
+*******************
+
+CREATE TABLE divisions
+(
+id INT PRIMARY KEY NOT NULL,
+name character varying(64) NOT NULL,
+num_sensors INT CHECK (num_sensors >= 0) NOT NULL,
+num_apartments INT CHECK (num_apartments >= 0) NOT NULL,
+id_aparment INT REFERENCES apartment(id) NOT NULL,
+num_rules INT CHECK(num_rules >= 0) NOT NULL
+);
+
+
+***************
+**** RULES ****
+***************
+
+CREATE TABLE rules
+(
+id INT PRIMARY KEY NOT NULL,
+name_sensor_condition1 character varying(20) NOT NULL,
+operator_condition1 character varying(1) CHECK (operator_condition1 ='<' OR operator_condition1 ='>') NOT NULL,
+threshold_condition1 INT CHECK (threshold_condition1 > 0) NOT NULL,
+name_sensor_condition2 character varying(20),
+operator_condition2 character varying(1) CHECK (operator_condition2 ='<' OR operator_condition2 ='>') NOT NULL,
+threshold_condition2 INT CHECK (threshold_condition2 > 0) NOT NULL,
+sampling_period INT CHECK (sampling_period > 0) NOT NULL,
+schedule character varying(20),
+time TIME NOT NULL,
+id_divisions INT REFERENCES divisions(id) NOT NULL,
+day DATE NOT NULL,
+num_actuators_future_state INT CHECK (num_actuators_future_state > 0),
+logic_operator character varying(3) CHECK (logic_operator = 'AND' OR logic_operator = 'OR')
+);
+
+
+****************
+**** SENSOR ****
+****************
+
+CREATE TABLE sensor
+(
+id INT PRIMARY KEY NOT NULL,
+mote_id INT CHECK (mote_id > 0) NOT NULL,
+sensor_type character varying(20) CHECK (sensor_type = 'LIGHT' OR sensor_type = 'HUM' OR sensor_type = 'TEMP') NOT NULL,
+data DOUBLE PRECISION NOT NULL,
+time TIME NOT NULL,
+id_divisions INT REFERENCES divisions(id) NOT NULL,
+day DATE NOT NULL 
+);
+
+
+******************
+**** ACTUATOR ****
+******************
+
+CREATE TABLE actuator
+(
+id INT PRIMARY KEY NOT NULL,
+name character varying(20) NOT NULL,
+actuator_state character varying(5) CHECK (actuator_state = 'ON' OR actuator_state = 'OFF') NOT NULL,
+time TIME NOT NULL,
+id_divisions INT REFERENCES divisions(id) NOT NULL,
+day DATE NOT NULL
+);
+
+
+*******************************
+**** ACTUATOR_FUTURE_STATE ****
+*******************************
+
+CREATE TABLE actuator_future_state
+(
+id INT PRIMARY KEY NOT NULL,
+future_state character varying(5) CHECK (future_state = 'ON' OR future_state = 'OFF') NOT NULL,
+id_actuator INT REFERENCES actuator(id) NOT NULL,
+id_rules INT REFERENCES rules(id) NOT NULL
+);
+
