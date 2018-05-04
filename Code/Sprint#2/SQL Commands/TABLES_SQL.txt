@@ -106,7 +106,8 @@ sensor_type character varying(20) CHECK (sensor_type = 'LIGHT' OR sensor_type = 
 data DOUBLE PRECISION NOT NULL,
 time TIME NOT NULL,
 id_divisions INT REFERENCES divisions(id) NOT NULL,
-day DATE NOT NULL 
+day DATE NOT NULL,
+sens_matrix_id INT CHECK (sens_matrix_id >= 0) NOT NULL
 );
 
 
@@ -121,7 +122,8 @@ name character varying(20) NOT NULL,
 actuator_state character varying(5) CHECK (actuator_state = 'ON' OR actuator_state = 'OFF') NOT NULL,
 time TIME NOT NULL,
 id_divisions INT REFERENCES divisions(id) NOT NULL,
-day DATE NOT NULL
+day DATE NOT NULL,
+act_matrix_id INT CHECK (act_matrix_id >= 0) NOT NULL
 );
 
 
