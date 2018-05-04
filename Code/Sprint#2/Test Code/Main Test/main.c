@@ -105,8 +105,6 @@ int *flag_rules = NULL;
 char **pointer_rgb_channel = NULL;
 char *buffer_rgb_channel = NULL;
 mote **system_motes = NULL;
-rule **system_rules = NULL;
-division **system_divisions = NULL;
 
 // DATABASE
 const char *conn = "host='db.fe.up.pt' user='sinfa15' password='DSPARS_sinf2018*'";
@@ -146,6 +144,18 @@ void *thread_rule_implementation(void *arg);
  * THREAD USER INTERFACE (PTH3)
  ********************************/
 void *user_interface(void *arg);
+
+
+/****************************
+ * INIT_LOGIN_IN_THE_SYSTEM
+ ****************************/
+void init_login_in_the_system(void);
+
+
+/***********************
+ * INIT_TABLE_CREATION
+ ***********************/
+void init_table_creation(void);
 
 
 /****************************
@@ -234,10 +244,15 @@ int main(int argc, char **argv)
 	} else{
 		printf("[DATABASE_ERROR %d] Able to connect with the database!\n", DB_OK);
 	}
+	 
+	/**************************************************
+	 * INIT ROUTINE - TABLES CREATION IN THE DATABASE
+	 **************************************************/
+	init_table_creation();
 	
-	/****************************************
-	 * INIT ROUTINE - MOTE'S CONFIGURATION
-	 ****************************************/
+	/***************************************
+	 * INIT ROUTINE - MOTE'S CONFIGURATION *
+	 ***************************************/
 	printf("\n++++++++++ MOTE'S CONFIGURATION ++++++++++\n");
 	error_check = 0;
 	do{
@@ -256,6 +271,12 @@ int main(int argc, char **argv)
 		dbconn = NULL;
 		exit(-1);
 	}
+	
+	/**************************************
+	 * INIT ROUTINE - LOGIN IN THE SYSTEM
+	 **************************************/
+	printf("\n++++++++++ LOGIN ++++++++++\n");
+	init_login_in_the_system();
 	
 	/*******************************************
 	 * INIT ROUTINE - DIVISION'S CONFIGURATION
@@ -277,8 +298,9 @@ int main(int argc, char **argv)
 	 * CODE TEST
 	 *************/
 	print_motes_vector(system_motes, number_motes, NULL);
-	PGresult *query = PQexec(dbconn, "SELECT * FROM divisions");
+	PGresult *query = PQexec(dbconn, "SELECT * FROM test_table");
 	printf("Result Query: %d\n", PQresultStatus(query));
+	printf("Fatal Error: %d\n", PGRES_FATAL_ERROR);
 	printf("Error Message: %s\n", PQresultErrorMessage(query));
 	if (PQresultStatus(query) == PGRES_TUPLES_OK){
 		printf("Tuples OK!\n");
@@ -337,10 +359,56 @@ int main(int argc, char **argv)
  * +++++++++++++++++++++++++++++++++++++++++++++++ *
  ***************************************************/
 /***********************************
+ * INIT_LOGIN_IN_THE_SYSTEM - CODE
+ ***********************************/
+void init_login_in_the_system(void){
+	
+}
+
+
+/******************************
+ * INIT_TABLE_CREATION - CODE
+ ******************************/
+void init_table_creation(void){
+	/* DANIEL DA SILVA QUEIRÓS
+	 * 
+	 * 1-Verificar se cada tabela existe
+	 * 		usar TUPPLES_OK caso se utilize o comando SELECT
+	 * 2-Criar as tabelas
+	 * 		usar o código presente no Github
+	 * 3-Enviar numa flag se as tabelas já estavam criadas ou não
+	 * 		- criar defines TABLE_ALREADY_CREATED e NOT_CREATED
+	 * 		- alterar o argumento para pôr int * flag... (ver um nome para variável)
+	 * 4-Se já existir as tabelas, imprimi-las
+	 * 		- cria uma função geral, à parte, para efetuar esta operação
+	 * 
+	 * OBS - criar uma função que só crie as tabelas e uma função que só verifique se já 
+	 * estão criadas para o Pedro poder chamá-la
+	 * 		- uma função para cada tabela - 1 para criar e 1 para verificar (e depois
+	 * nesta função chamar essas funções todas)
+	 */
+}
+
+
+/***********************************
  * DIVISION'S CONFIGURATION - CODE
  ***********************************/
 void init_divisions_configuration(void){
-	
+	/* PEDRO DE CASTRO MOTA CALBERGARIA
+	 * 
+	 * 1-Perguntar ao utilizador se quer manter o que estava lá antes ou então fazer
+	 *  drop a todas as tabelas e criá-las novamente -> preenchendo esses dados
+	 * 		- caso queira alterar nao fazer drop ao building e ao apartment, users e
+	 *  users activity
+	 * 2-Preencher e processar dados do utilizador
+	 * 		- sensores
+	 * 		- divisões
+	 * 		- atuadores
+	 * 3-Iniciar os atuadores todos a OFF inicialmente
+	 * 
+	 * OBS - por cada divisão inserida, faz uma user_activity (deixar para mais tarde)
+	 * OBS - não esquecer de atualizar number_maximum_actuators e number_maximum_sensors
+	 */
 }
 
 
@@ -348,7 +416,14 @@ void init_divisions_configuration(void){
  * RULE'S CONFIGURATION - CODE
  *******************************/
 void init_rules_configuration(void){
-	
+	/* O TÉCNICO BARBOSA
+	 * 
+	 * 1-Perguntar ao utilizador se quer alterar as regras todas ou não
+	 * 		- não fazer drop ao building, apartment, divisions, user_activity, users, sensors e actuatores
+	 * 2-Preencher dados na DB
+	 * 		- rules
+	 * 		- actuator_future_state
+	 */
 }
 
 
