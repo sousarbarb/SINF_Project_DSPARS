@@ -1,3 +1,5 @@
+TRUNCATE building CASCADE;
+
 INSERT INTO building (address, num_floors, owner, num_apartments) VALUES ('Rua Dr. Roberto Frias, 4200-465 Porto', 1, 'Daniel, Pedro e Ricardo Lda.', 1);
 
 INSERT INTO apartment (id, floor, number, proprietary, num_divisions, address_building) VALUES (0,0,1,'Armando Luís Sousa Araújo',4,'Rua Dr. Roberto Frias, 4200-465 Porto');
