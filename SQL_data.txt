@@ -24,3 +24,24 @@ INSERT INTO sensor (id,mote_id,sensor_type,data,time,id_divisions,day,sens_matri
 INSERT INTO sensor (id,mote_id,sensor_type,data,time,id_divisions,day,sens_matrix_id) values (4,3,'HUM',0,CURRENT_TIME(0) AT TIME ZONE 'GMT-1',2,CURRENT_DATE, 1);
 INSERT INTO sensor (id,mote_id,sensor_type,data,time,id_divisions,day,sens_matrix_id) values (5,4,'TEMP',0,CURRENT_TIME(0) AT TIME ZONE 'GMT-1',3,CURRENT_DATE, 0);
 INSERT INTO sensor (id,mote_id,sensor_type,data,time,id_divisions,day,sens_matrix_id) values (6,4,'HUM',0,CURRENT_TIME(0) AT TIME ZONE 'GMT-1',3,CURRENT_DATE, 1);
+
+
+INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (0, 'LIGHT1', '<', 250, NULL, NULL, NULL, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 0, CURRENT_DATE, 2, NULL);
+
+INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (1, 'LIGHT1', '>', 450, NULL, NULL, NULL, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 0, CURRENT_DATE, 2, NULL);
+
+INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (2, 'TEMP1', '<', 15, NULL, NULL, NULL, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 0, CURRENT_DATE, 1, NULL);
+
+INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (3, 'TEMP1', '>', 25, NULL, NULL, NULL, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 0, CURRENT_DATE, 1, NULL);
+
+INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (4, 'TEMP2', '<', 20, NULL, NULL, NULL, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 1, CURRENT_DATE, 2, NULL);
+
+INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (5, 'TEMP2', '>', 30, NULL, NULL, NULL, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 1, CURRENT_DATE, 2, NULL);
+
+INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (6, 'TEMP3', '>', 28, 'HUM3', '>', 35, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 2, CURRENT_DATE, 1, 'AND');
+
+INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (7, 'TEMP3', '<', 17, 'HUM3', '<', 25, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 2, CURRENT_DATE, 1, 'OR');
+
+INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (8, 'TEMP4', '>', 35, 'HUM4', '>', 42, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 3, CURRENT_DATE, 3, 'OR');
+
+INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (9, 'TEMP4', '<', 20, 'HUM4', '<', 30, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 3, CURRENT_DATE, 3, 'AND');
