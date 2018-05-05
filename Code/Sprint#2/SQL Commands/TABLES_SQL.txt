@@ -65,7 +65,7 @@ CREATE TABLE divisions
 id INT PRIMARY KEY NOT NULL,
 name character varying(64) NOT NULL,
 num_sensors INT CHECK (num_sensors >= 0) NOT NULL,
-num_actuators INT CHECK (num_apartments >= 0) NOT NULL,
+num_actuators INT CHECK (num_actuators >= 0) NOT NULL,
 id_apartment INT REFERENCES apartment(id) NOT NULL,
 num_rules INT CHECK(num_rules >= 0) NOT NULL
 );
