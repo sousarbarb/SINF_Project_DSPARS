@@ -65,8 +65,8 @@ CREATE TABLE divisions
 id INT PRIMARY KEY NOT NULL,
 name character varying(64) NOT NULL,
 num_sensors INT CHECK (num_sensors >= 0) NOT NULL,
-num_apartments INT CHECK (num_apartments >= 0) NOT NULL,
-id_aparment INT REFERENCES apartment(id) NOT NULL,
+num_actuators INT CHECK (num_actuators >= 0) NOT NULL,
+id_apartment INT REFERENCES apartment(id) NOT NULL,
 num_rules INT CHECK(num_rules >= 0) NOT NULL
 );
 
@@ -82,14 +82,14 @@ name_sensor_condition1 character varying(20) NOT NULL,
 operator_condition1 character varying(1) CHECK (operator_condition1 ='<' OR operator_condition1 ='>') NOT NULL,
 threshold_condition1 INT CHECK (threshold_condition1 > 0) NOT NULL,
 name_sensor_condition2 character varying(20),
-operator_condition2 character varying(1) CHECK (operator_condition2 ='<' OR operator_condition2 ='>') NOT NULL,
-threshold_condition2 INT CHECK (threshold_condition2 > 0) NOT NULL,
-sampling_period INT CHECK (sampling_period > 0) NOT NULL,
+operator_condition2 character varying(1) CHECK (operator_condition2 ='<' OR operator_condition2 ='>'),
+threshold_condition2 INT CHECK (threshold_condition2 > 0),
+sampling_period INT CHECK (sampling_period > 0),
 schedule character varying(20),
 time TIME NOT NULL,
 id_divisions INT REFERENCES divisions(id) NOT NULL,
 day DATE NOT NULL,
-num_actuators_future_state INT CHECK (num_actuators_future_state > 0),
+num_actuators_future_state INT CHECK (num_actuators_future_state > 0) NOT NULL,
 logic_operator character varying(3) CHECK (logic_operator = 'AND' OR logic_operator = 'OR')
 );
 
