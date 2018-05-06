@@ -129,7 +129,7 @@ PGconn *dbconn;
 
 
 /***************************************************
- * FUNCTIONS USED BY THREAD DATA PROCESSING (PTH1)
+   FUNCTIONS USED BY THREAD DATA PROCESSING (PTH1)
  ***************************************************/
 int multiplication_by_10(int times);
 int power(int base, int exponent);
@@ -140,58 +140,66 @@ float calculate_visible_light (int number_Visible_Light);
 
 
 /*********************************
- * THREAD DATA PROCESSING (PTH1)
+   THREAD DATA PROCESSING (PTH1)
  *********************************/
 void *thread_data_processing(void *arg);
 
 
 /*******************************************************
- * FUNCTIONS USED BY THREAD RULE IMPLEMENTATION (PTH2)
+   FUNCTIONS USED BY THREAD RULE IMPLEMENTATION (PTH2)
  *******************************************************/
 int search_sensor_mote(char * sensor, int number_motes, int * mote_id_sensor, int * type_sensor);
 
 
 /********************************************
- * THREAD RULE IMPLEMENTATION (PTH2)
+   THREAD RULE IMPLEMENTATION (PTH2)
  ********************************************/
 void *thread_rule_implementation(void *arg);
 
 
 /********************************
- * THREAD USER INTERFACE (PTH3)
+   THREAD USER INTERFACE (PTH3)
  ********************************/
 void *user_interface(void *arg);
 
 
 /****************************
- * INIT_LOGIN_IN_THE_SYSTEM
+   INIT_LOGIN_IN_THE_SYSTEM
  ****************************/
 void init_login_in_the_system(void);
 
 
 /***********************
- * INIT_TABLE_CREATION
+   INIT_TABLE_CREATION
  ***********************/
 void init_table_creation(void);
 
 
 /****************************
- * DIVISION'S CONFIGURATION
+   DIVISION'S CONFIGURATION
  ****************************/
 void init_divisions_configuration(void);
 
 
 /************************
- * RULE'S CONFIGURATION
+   RULE'S CONFIGURATION
  ************************/
 void init_rules_configuration(void);
+
+
+/***************
+   SQL QUERIES
+ ***************/
 PGresult* HAS_query_getNumberDivisions(int id_apartment, int * num_divisions, int * error_check);
 PGresult* HAS_query_getNameDivision(int id_division, char * name_division, int * error_check);
+
 PGresult* HAS_query_updateNumRules(int id_division, int num_rules, int * error_check);
 void HAS_query_clearRulesTable(void);
 void HAS_query_insertRule(int id_rule, char * nam_sens_cond_1, char op_cond_1, int thres_cond_1, char * nam_sens_cond_2, char op_cond_2, int thres_cond_2, int samp_per, char * schedule, int id_division, int num_act_fut_stat, char * logic_op_1_2);
+
 void HAS_query_insertActuatorFutureState(int id_act_fut_stat, char * fut_stat, int id_actuator, int id_rule);
 PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * actuator_name, int * id_actuator, int * error_check);
+
 
 
 /*****************
@@ -200,12 +208,12 @@ PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * a
  * +++++++++++++ *
  *****************/
 /************************
- * FUNCTION MAIN - CODE
+   FUNCTION MAIN - CODE
  ************************/
 int main(int argc, char **argv)
 {
 	/************************************
-	 * INIT ROUTINE - ARGUMENT CHECKING
+	   INIT ROUTINE - ARGUMENT CHECKING
 	 ************************************/
 	// ERROR 1 - The channels inserted aren't valid
 	if(3 !=argc){
@@ -248,36 +256,48 @@ int main(int argc, char **argv)
 	pointer_rgb_channel = &argv[MAIN_CHANNEL_RGBMAT];
 	
 	/*************************
-	 * VARIABLES DECLARATION
+	   VARIABLES DECLARATION
 	 *************************/
 	int error_check = 0;
 	pthread_t pth1, pth2, pth3;
 	
 	/**********************************
-	 * INIT ROUTINE - WELCOME MESSAGE
+	   INIT ROUTINE - WELCOME MESSAGE
 	 **********************************/
-	printf("\n******************** HAS - HOME AUTOMATIVE SYSTEM ********************\n\n");
+	printf("\n\n"
+	       "**********************************************************************\n"
+	       "******************** HAS - HOME AUTOMATIVE SYSTEM ********************\n"
+	       "**********************************************************************\n\n");
 	 
 	/**************************************
-	 * INIT ROUTINE - DATABASE CONNECTION
+	   INIT ROUTINE - DATABASE CONNECTION
 	 **************************************/
 	dbconn = PQconnectdb(conn);
 	if (PQstatus(dbconn) == CONNECTION_BAD){
 		printf("[DATABASE_ERROR %d] Unable to connect with the database. Please try again by restarting the program or check the ethernet connection\n", DB_ERROR_1);
 		exit(-1);
-	} else{
-		printf("[DATABASE_ERROR %d] Able to connect with the database!\n", DB_OK);
 	}
+	
+	/**************************************
+	   INIT ROUTINE - LOGIN IN THE SYSTEM
+	 **************************************/
+	printf("+++++++++++++++++++++++++++\n"
+	       "++++++++++ LOGIN ++++++++++\n"
+	       "+++++++++++++++++++++++++++\n");
+	init_login_in_the_system();
 	 
 	/**************************************************
-	 * INIT ROUTINE - TABLES CREATION IN THE DATABASE
+	   INIT ROUTINE - TABLES CREATION IN THE DATABASE
 	 **************************************************/
 	init_table_creation();
 	
 	/***************************************
-	 * INIT ROUTINE - MOTE'S CONFIGURATION *
+	   INIT ROUTINE - MOTE'S CONFIGURATION *
 	 ***************************************/
-	printf("\n++++++++++ MOTE'S CONFIGURATION ++++++++++\n");
+	printf("\n\n\n\n\n\n"
+	       "++++++++++++++++++++++++++++++++++++++++++\n"
+	       "++++++++++ MOTE'S CONFIGURATION ++++++++++\n"
+	       "++++++++++++++++++++++++++++++++++++++++++\n");
 	error_check = 0;
 	do{
 		printf("Insert the number of motes that are considered in the system (needs to be greater than 0): ");
@@ -296,38 +316,38 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 	
-	/**************************************
-	 * INIT ROUTINE - LOGIN IN THE SYSTEM
-	 **************************************/
-	printf("\n++++++++++ LOGIN ++++++++++\n");
-	init_login_in_the_system();
-	
 	/*******************************************
-	 * INIT ROUTINE - DIVISION'S CONFIGURATION
+	   INIT ROUTINE - DIVISION'S CONFIGURATION
 	 *******************************************/
-	printf("\n++++++++++ DIVISION'S CONFIGURATION ++++++++++\n");
+	printf("\n\n\n\n\n\n"
+	       "++++++++++++++++++++++++++++++++++++++++++++++\n"
+	       "++++++++++ DIVISION'S CONFIGURATION ++++++++++\n"
+	       "++++++++++++++++++++++++++++++++++++++++++++++\n");
 	init_divisions_configuration();
 	
 	/*******************************************
-	 * INIT ROUTINE - RULE'S CONFIGURATION
+	   INIT ROUTINE - RULE'S CONFIGURATION
 	 *******************************************/
-	printf("\n++++++++++ RULE'S CONFIGURATION ++++++++++\n");
+	printf("\n\n\n\n\n\n"
+	       "++++++++++++++++++++++++++++++++++++++++++\n"
+	       "++++++++++ RULE'S CONFIGURATION ++++++++++\n"
+	       "++++++++++++++++++++++++++++++++++++++++++\n");
 	init_rules_configuration();
 	
 	/*****************************************
-	 * INIT ROUTINE - MATRIX'S CONFIGURATION
+	   INIT ROUTINE - MATRIX'S CONFIGURATION
 	 *****************************************/
 	
 	
 	/***********************
-	 * CREATION OF THREADS
+	   CREATION OF THREADS
 	 ***********************//*
 	pthread_create(&pth1, NULL, thread_data_processing, NULL);
 	pthread_create(&pth2, NULL, thread_rule_implementation, NULL);
 	pthread_create(&pth3, NULL, user_interface, NULL);*/
 	
 	/****************************************
-	 * CREATION AND CANCELLATION OF THREADS
+	   CREATION AND CANCELLATION OF THREADS
 	 ****************************************//*
 	pthread_join(pth3, NULL);
 	pthread_cancel(pth1);
@@ -335,7 +355,7 @@ int main(int argc, char **argv)
 	pthread_cancel(pth3);*/
 	
 	/***********************
-	 * TERMINATION ROUTINE
+	   TERMINATION ROUTINE
 	 ***********************/
 	free_mote_memory(system_motes, number_motes, NULL);
 	free(buffer_rgb_channel);
@@ -360,7 +380,7 @@ int main(int argc, char **argv)
  * +++++++++++++++++++++++++++++++++++++++++++++++ *
  ***************************************************/
 /***********************************
- * INIT_LOGIN_IN_THE_SYSTEM - CODE
+   INIT_LOGIN_IN_THE_SYSTEM - CODE
  ***********************************/
 void init_login_in_the_system(void){
 	
@@ -368,7 +388,7 @@ void init_login_in_the_system(void){
 
 
 /******************************
- * INIT_TABLE_CREATION - CODE
+   INIT_TABLE_CREATION - CODE
  ******************************/
 void init_table_creation(void){
 	/* DANIEL DA SILVA QUEIRÓS
@@ -392,7 +412,7 @@ void init_table_creation(void){
 
 
 /***********************************
- * DIVISION'S CONFIGURATION - CODE
+   DIVISION'S CONFIGURATION - CODE
  ***********************************/
 void init_divisions_configuration(void){
 	/* PEDRO DE CASTRO MOTA CALBERGARIA
@@ -414,7 +434,7 @@ void init_divisions_configuration(void){
 
 
 /*******************************
- * RULE'S CONFIGURATION - CODE
+   RULE'S CONFIGURATION - CODE
  *******************************/
 void init_rules_configuration(void){
 	/* O TÉCNICO BARBOSA
@@ -464,7 +484,8 @@ void init_rules_configuration(void){
 			rules_query = HAS_query_getNameDivision(counter_divisions, name_division, &error_check);
 			PQclear(rules_query);
 			printf("\n************************************************************"
-			"\n[DIVISION_ID %d] %s\n", counter_divisions, name_division);
+			       "\n************************************************************"
+			       "\n\n[DIVISION_ID %d] %s\n", counter_divisions, name_division);
 		
 			printf("\n+++++ TEMPLATE APLIED TO THE RULES CREATION +++++\n");
 			printf("Type of comparasion operators that are available to choose: '<' or '>'\n");
@@ -492,8 +513,6 @@ void init_rules_configuration(void){
 			PQclear(rules_query);
 			
 			for(counter_rules = 0; counter_rules < number_rules_per_division; counter_rules++){
-
-				/************************************************************************************************************/
 				/**********************
 				 * RULES MANIPULATION
 				 **********************/
@@ -674,13 +693,15 @@ void init_rules_configuration(void){
 					return;
 				}
 				/************************************************************************************************************/
-
 				number_rules++;
 			}
 		}
 	}
 }
 
+/*************************
+   SQL DIVISIONS QUERIES 
+ *************************/
 PGresult* HAS_query_getNumberDivisions(int id_apartment, int * num_divisions, int * error_check){
 	if(NULL == num_divisions){
 		printf("[HAS_query_getNumberDivisions ERROR] Pointer to the num_divisions invalid.\n");
@@ -757,6 +778,11 @@ PGresult* HAS_query_getNameDivision(int id_division, char * name_division, int *
 	}
 }
 
+
+
+/*********************
+   SQL RULES QUERIES 
+ *********************/
 PGresult* HAS_query_updateNumRules(int id_division, int num_rules, int * error_check){
 	if(0 > id_division){
 		printf("[HAS_query_updateNumRules ERROR] Division id invalid.\n");
@@ -857,6 +883,11 @@ void HAS_query_insertRule(int id_rule, char * nam_sens_cond_1, char op_cond_1, i
 		printf("[HAS_query_insertRule Error Message] %s\n", PQresultErrorMessage(query));
 }
 
+
+
+/*************************************
+   SQL ACTUATOR FUTURE STATE QUERIES 
+ *************************************/
 void HAS_query_insertActuatorFutureState(int id_act_fut_stat, char * fut_stat, int id_actuator, int id_rule){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_insertActuatorFutureState ERROR] Connection to the database is bad.\n");
@@ -932,7 +963,7 @@ PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * a
  * ++++++++++++++++++++++++++++++++ *
  ************************************/
 /**********************************************************
- * FUNCTIONS USED BY THREAD DATA PROCESSING (PTH1) - CODE
+   FUNCTIONS USED BY THREAD DATA PROCESSING (PTH1) - CODE
  **********************************************************/
 int multiplication_by_10(int times){
 	
@@ -977,7 +1008,7 @@ float calculate_visible_light (int number_Visible_Light){
 
 
 /****************************************
- * THREAD DATA PROCESSING (PTH1) - CODE
+   THREAD DATA PROCESSING (PTH1) - CODE
  ****************************************/
 void *thread_data_processing(void *arg){
 	// Variable's declaration
@@ -1168,7 +1199,7 @@ void *thread_data_processing(void *arg){
 
 
 /**************************************************************
- * FUNCTIONS USED BY THREAD RULE IMPLEMENTATION (PTH2) - CODE
+   FUNCTIONS USED BY THREAD RULE IMPLEMENTATION (PTH2) - CODE
  **************************************************************/
 int search_sensor_mote(char * sensor, int number_motes, int * mote_id_sensor, int * type_sensor){
 	int integer_aux_1=0, numeration_sensor;
@@ -1196,7 +1227,7 @@ int search_sensor_mote(char * sensor, int number_motes, int * mote_id_sensor, in
 
 
 /********************************************
- * THREAD RULE IMPLEMENTATION (PTH2) - CODE
+   THREAD RULE IMPLEMENTATION (PTH2) - CODE
  ********************************************/
 void *thread_rule_implementation(void *arg){
 	
@@ -1206,7 +1237,7 @@ void *thread_rule_implementation(void *arg){
 
 
 /***************************************
- * THREAD USER INTERFACE (PTH3) - CODE
+   THREAD USER INTERFACE (PTH3) - CODE
  ***************************************/
 void *user_interface(void *arg){
 	
