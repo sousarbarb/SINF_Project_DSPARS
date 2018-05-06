@@ -31,6 +31,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <termios.h>
 #include <pthread.h>
 #include <postgresql/libpq-fe.h>
 #include "actuators_lib_struct.h"
@@ -113,6 +114,15 @@
 #define TYPE_SENS_HUM   2
 #define TYPE_SENS_LIGHT 3
 
+// User constants
+#define SIZE_MAX_USERNAME        64
+#define SIZE_MAX_USER_PERMISSION 128
+#define SIZE_MAX_USER_PASSWORD   10
+
+// Login constans
+#define INIT_LOGIN_IN_THE_SYSTEM_BUFFER_SIZE 150
+#define LOGIN_LIM_INVALID_TRIES              3
+
 // Global variables
 FILE *sensor_data_channel = NULL, *rgb_matrix_channel = NULL;
 static const char CHANNEL_DEF[]="/dev/pts/";
@@ -126,6 +136,10 @@ mote **system_motes = NULL;
 // DATABASE
 const char *conn = "host='db.fe.up.pt' user='sinfa15' password='DSPARS_sinf2018*'";
 PGconn *dbconn;
+
+// User information
+int user_id, user_id_apartment;
+char username[SIZE_MAX_USERNAME], user_permission[SIZE_MAX_USER_PERMISSION], user_password[SIZE_MAX_USER_PASSWORD];
 
 
 /***************************************************
@@ -200,6 +214,8 @@ void HAS_query_insertRule(int id_rule, char * nam_sens_cond_1, char op_cond_1, i
 void HAS_query_insertActuatorFutureState(int id_act_fut_stat, char * fut_stat, int id_actuator, int id_rule);
 PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * actuator_name, int * id_actuator, int * error_check);
 
+PGresult* HAS_query_getUserInfo(int id_user, int * error_check);
+void HAS_query_showActiveUsersInfo(void);
 
 
 /*****************
@@ -383,7 +399,134 @@ int main(int argc, char **argv)
    INIT_LOGIN_IN_THE_SYSTEM - CODE
  ***********************************/
 void init_login_in_the_system(void){
+	int user_id_aux, error_check, invalid_tries = 0, login_status = 0;
+	char str[INIT_LOGIN_IN_THE_SYSTEM_BUFFER_SIZE];
+	char str_aux[INIT_LOGIN_IN_THE_SYSTEM_BUFFER_SIZE];
+	PGresult *query;
+	// GET ID
+	do{
+		do{
+			printf("    Id (greater or equal than 0; press -1 to exit the program): ");
+			scanf("%d", &user_id_aux);
+			getchar();
+			if(-1 == user_id_aux){
+				PQfinish(dbconn);
+				dbconn = NULL;
+				printf("\n**********************************************************************\n"
+						 "************************* END OF PROGRAM HAS *************************\n"
+						 "**********************************************************************\n\n");
+				exit(-1);
+			}
+			else if(user_id_aux < 0){
+				printf("    User id invalid! ");
+				invalid_tries++;
+					
+				if(LOGIN_LIM_INVALID_TRIES <= invalid_tries){
+					printf("\nLimit of invalid tries reached! The program will now close.\n");
+					HAS_query_showActiveUsersInfo();
+					PQfinish(dbconn);
+					dbconn = NULL;
+					printf("\n**********************************************************************\n"
+							 "************************* END OF PROGRAM HAS *************************\n"
+							 "**********************************************************************\n\n");
+					exit(-1);
+				}
+				printf("Please try again.\n\n");
+			}
+		} while(user_id_aux < 0);
+		
+		query = HAS_query_getUserInfo(user_id_aux, &error_check);
+		if(1 == error_check){
+			printf("Unable to connect with the database! The program will now close.\n");
+			PQclear(query);
+			PQfinish(dbconn);
+			dbconn = NULL;
+			printf("\n**********************************************************************\n"
+					 "************************* END OF PROGRAM HAS *************************\n"
+					 "**********************************************************************\n\n");
+				exit(-1);
+		}
+		else if(2 == error_check || 3 == error_check || PGRES_TUPLES_OK != PQresultStatus(query) || 0 == PQntuples(query)){
+			printf("    User id invalid! ");
+			PQclear(query);
+			invalid_tries++;
+			if(LOGIN_LIM_INVALID_TRIES <= invalid_tries){
+				printf("\n    Limit of invalid tries reached! The program will now close.\n");
+				HAS_query_showActiveUsersInfo();
+				PQfinish(dbconn);
+				dbconn = NULL;
+				printf("\n**********************************************************************\n"
+						 "************************* END OF PROGRAM HAS *************************\n"
+						 "**********************************************************************\n\n");
+				exit(-1);
+			}
+			printf("Please try again.\n\n");
+			continue;
+		}
+		else if(1 != atoi(PQgetvalue(query, 0, 3))){
+			printf("\n    The intended user ins't active at the moment. Please talk with the administrators of the system.\n");
+			HAS_query_showActiveUsersInfo();
+			PQclear(query);
+			PQfinish(dbconn);
+			dbconn = NULL;
+			printf("\n**********************************************************************\n"
+					 "************************* END OF PROGRAM HAS *************************\n"
+					 "**********************************************************************\n\n");
+				exit(-1);
+		}
+		login_status = 1;
+	} while(0 == login_status);
 	
+	login_status = 0;
+	invalid_tries = 0;
+	
+	// GET PASSWORD
+	do{
+		sprintf(str_aux, "    Password (max. number of letter: %d; write 'EXIT' to terminate): *", INIT_LOGIN_IN_THE_SYSTEM_BUFFER_SIZE);
+		strcpy(str, getpass(str_aux));
+		if(0 == strcmp("EXIT", str)){
+			PQclear(query);
+			PQfinish(dbconn);
+			dbconn = NULL;
+			printf("\n**********************************************************************\n"
+					 "************************* END OF PROGRAM HAS *************************\n"
+					 "**********************************************************************\n\n");
+			exit(-1);
+		}
+		else if(0 != strcmp(str, PQgetvalue(query, 0, 2)) || strlen(str) != strlen(PQgetvalue(query, 0, 2))){
+			printf("    Password invalid! ");
+			invalid_tries++;
+			if(LOGIN_LIM_INVALID_TRIES <= invalid_tries){
+				printf("\nLimit of invalid tries reached! The program will now close.\n");
+				PQclear(query);
+				HAS_query_showActiveUsersInfo();
+				PQfinish(dbconn);
+				dbconn = NULL;
+				printf("\n**********************************************************************\n"
+						 "************************* END OF PROGRAM HAS *************************\n"
+						 "**********************************************************************\n\n");
+				exit(-1);
+			}
+			else
+				printf("Please try again.\n\n");
+			continue;
+		}
+		login_status = 1;
+	} while(0 == login_status);
+	
+	user_id = user_id_aux;
+	strcpy(username, PQgetvalue(query, 0, 0));
+	strcpy(user_permission, PQgetvalue(query, 0, 1));
+	strcpy(user_password, PQgetvalue(query, 0, 2));
+	user_id_apartment = atoi(PQgetvalue(query, 0, 4));
+	
+	/***** DEBUG ZONE *****/
+	printf("[USER   ID] %d\n"
+	       "[USER NAME] %s\n"
+	       "[USER_PERM] %s\n"
+	       "[USER_PASS] %s\n"
+	       "[US_ID_APT] %d\n", user_id, username, user_permission, user_password, user_id_apartment);
+	/**********************/
 }
 
 
@@ -955,6 +1098,74 @@ PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * a
 		return NULL;
 	}
 }
+
+
+
+/*********************
+   SQL USERS QUERIES 
+ *********************/
+PGresult* HAS_query_getUserInfo(int id_user, int * error_check){
+	if(CONNECTION_BAD == PQstatus(dbconn)){
+		printf("[HAS_query_getUserInfo ERROR] Connection to the database is bad.\n");
+		if(NULL != error_check)
+			(*error_check) = 1;
+		return NULL;
+	}
+	else if(0 > id_user){
+		printf("[HAS_query_getUserInfo ERROR] User_id invalid (it needs to be equal or higher than zero).\n");
+		if(NULL != error_check)
+			(*error_check) = 2;
+		return NULL;
+	}
+	
+	char str[120];
+	PGresult *query;
+	sprintf(str, "SELECT name, permission, password, state, id_apartment FROM users WHERE id = %d", id_user);
+	query = PQexec(dbconn, str);
+	if(PQresultStatus(query) == PGRES_TUPLES_OK){
+		if(NULL != error_check)
+			(*error_check) = 0;
+		return query;
+	}
+	else{
+		if(NULL != error_check)
+			(*error_check) = 3;
+		return NULL;
+	}
+}
+
+void HAS_query_showActiveUsersInfo(void){
+	if(CONNECTION_BAD == PQstatus(dbconn)){
+		printf("[HAS_query_showUsersInfo ERROR] Connection to the database is bad.\n");
+		exit(-1);
+	}
+	
+	int numb_rows, counter;
+	PGresult *query = PQexec(dbconn, "SELECT id, name, permission, id_apartment FROM users WHERE state = 1");
+	if(PGRES_TUPLES_OK == PQresultStatus(query)){
+		numb_rows = PQntuples(query);
+		if(0 != numb_rows){
+			printf("\n+++++ ACTIVE USERS IN HAS SYSTEM +++++\n");
+			printf("Id\t| Username\t| Permission\t| Id_apartment\n");
+			for(counter = 0; counter < numb_rows; counter++)
+				printf("%d\t| %s\t| %s\t| %d\n", 
+				        atoi(PQgetvalue(query, counter, 0)), 
+				              PQgetvalue(query, counter, 1),
+				                    PQgetvalue(query, counter, 2),
+				                          atoi(PQgetvalue(query, counter, 3)));
+		}
+		else{
+			printf("[HAS_query_showUsersInfo ERROR] There isn't any information about any user in the database.\n");
+		}
+	}
+	else{
+		printf("[HAS_query_showUsersInfo ERROR] Query call ins't ok.\n");
+		printf("Result Query: %d\n", PQresultStatus(query));
+		printf("Error Message: %s\n", PQresultErrorMessage(query));
+	}
+	printf("\n");
+}
+
 
 
 /************************************
