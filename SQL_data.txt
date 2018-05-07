@@ -2,7 +2,7 @@ TRUNCATE building CASCADE;
 
 INSERT INTO building (address, num_floors, owner, num_apartments) VALUES ('Rua Dr. Roberto Frias', 1, 'Daniel,Pedro e Ricardo Lda.', 1);
 
-INSERT INTO apartment (id, floor, number, proprietary, num_divisions, address_building) VALUES (0,0,1,'Armando Sousa Araújo',4,'Rua Dr. Roberto Frias');
+INSERT INTO apartment (id, floor, number, proprietary, num_divisions, address_building) VALUES (0,0,1,'Armando Sousa',4,'Rua Dr. Roberto Frias');
 
 INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (0,'ROOM1',2,3,0,4);
 INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (1,'ROOM2',3,3,0,2);
@@ -68,8 +68,9 @@ INSERT INTO actuator_future_state (id, future_state, id_actuator, id_rules) VALU
 INSERT INTO actuator_future_state (id, future_state, id_actuator, id_rules) VALUES (16, 'ON', 7, 9);
 INSERT INTO actuator_future_state (id, future_state, id_actuator, id_rules) VALUES (17, 'ON', 8, 9);
 
-INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (0, 'Daniel Silva', 'admin', 'FCPORTO', 1, 0);
-INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (1, 'Pedro Albergaria', 'admin', '2BULLS0', 1, 0);
-INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (2, 'Ricardo Sousa', 'admin', '5LB', 1, 0);
-INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (3, 'User', 'normal', '12345', 1, 0);
-INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (4, 'Armando Sousa Araújo', 'admin', 'asa', 0, 0);
+INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (0, 'User', 'admin', '12345', 1, 0);
+INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (1, 'Daniel Silva', 'admin', 'FCPORTO', 1, 0);
+INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (2, 'Pedro Albergaria', 'admin', '2BULLS0', 1, 0);
+INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (3, 'Ricardo Sousa', 'admin', '5LB', 1, 0);
+INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (4, 'Quim', 'normal', 'quim', 1, 0);
+INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (5, 'Armando', 'admin', 'asa', 0, 0);
