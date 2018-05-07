@@ -2,7 +2,7 @@ TRUNCATE building CASCADE;
 
 INSERT INTO building (address, num_floors, owner, num_apartments) VALUES ('Rua Dr. Roberto Frias', 1, 'Daniel,Pedro e Ricardo Lda.', 1);
 
-INSERT INTO apartment (id, floor, number, proprietary, num_divisions, address_building) VALUES (0,0,1,'Armando Sousa Araújo',4,'Rua Dr. Roberto Frias');
+INSERT INTO apartment (id, floor, number, proprietary, num_divisions, address_building) VALUES (0,0,1,'Armando Sousa',4,'Rua Dr. Roberto Frias');
 
 INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (0,'ROOM1',2,3,0,4);
 INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (1,'ROOM2',3,3,0,2);
