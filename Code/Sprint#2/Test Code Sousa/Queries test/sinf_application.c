@@ -38,9 +38,14 @@ PGresult* HAS_query_getUserInfo(int id_user, int * error_check){
 	}
 }
 
+int HAS_query_getMaximumNumberSensorsDivisions(int id_apartment, int * error_check){
+	return 0;
+}
+
 int main()
 {
 	int id, error_check;
+	int return_func;
 	dbconn = PQconnectdb(conn);
 	
 	if (PQstatus(dbconn) == CONNECTION_BAD){
@@ -50,7 +55,11 @@ int main()
 		printf("Able to connect!\n"); 
 	}
 	
-	PGresult *query;
+	printf("Number Maximum Sensors: %d\n", HAS_query_getMaximumNumberSensorsDivisions(0, &error_check));
+	
+	
+	
+	/*
 	while(1){
 		printf("Please insert your user id: ");
 		scanf(" %d", &id);
@@ -73,6 +82,8 @@ int main()
 			printf("ASDFQEWRF\n");
 		}
 		PQclear(query);
-	}
+	}*/
+	
+	
 	PQfinish(dbconn);	
 }
