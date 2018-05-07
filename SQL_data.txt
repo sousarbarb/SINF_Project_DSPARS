@@ -72,4 +72,4 @@ INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (0
 INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (1, 'Pedro Albergaria', 'admin', '2BULLS0', 1, 0);
 INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (2, 'Ricardo Sousa', 'admin', '5LB', 1, 0);
 INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (3, 'User', 'normal', '12345', 1, 0);
-INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (4, 'Armando Araújo', 'admin', 'asa', 0, 0);
+INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (4, 'Armando', 'admin', 'asa', 0, 0);
