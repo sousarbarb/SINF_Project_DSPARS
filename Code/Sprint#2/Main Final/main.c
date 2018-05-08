@@ -85,6 +85,15 @@
 #define ERROR_INIT_RULES_CONFIG_14 14
 #define ERROR_INIT_RULES_CONFIG_15 15
 
+// SEARCH SENSOR
+#define ERROR_CHECK_SENSOR_ARG_INV	-1
+#define	ERROR_CHECK_SENSOR_1	1
+#define ERROR_CHECK_SENSOR_2	2
+#define ERROR_CHECK_SENSOR_3	3
+
+#define	SENSOR_PRESENT		1
+#define	SENSOR_NOT_PRESENT	0
+
 // UPDATE SENSOR
 #define ERROR_UPDATE_DATA_SENSOR_1	1
 #define ERROR_UPDATE_DATA_SENSOR_2	2
@@ -334,6 +343,7 @@ PGresult* HAS_query_getActuatorsState(int * error_check);
 
 void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, float value);
 PGresult* HAS_query_getSensorsData(int * error_check);
+int HAS_query_search_sensor(PGconn *dbconn, char *name, int mote);
 
 PGresult* HAS_query_getUserInfo(int id_user, int * error_check);
 void HAS_query_showActiveUsersInfo(void);void HAS_query_insertUser(int id, char * name, char * permission, char * password, int state, int id_apartment, int * error_check);
@@ -2386,6 +2396,33 @@ PGresult* HAS_query_getSensorsData(int * error_check){
 		if(NULL != error_check)
 			(*error_check) = 2;
 		return NULL;
+	}
+}
+
+int HAS_query_search_sensor(PGconn *dbconn, char *name, int mote){
+	PGresult *query;
+	char str_query[256];
+	if(PQstatus(dbconn) != CONNECTION_OK){
+		printf("ERROR_CHECK_SENSOR %d: The connection to the database is offline!\n",ERROR_CHECK_SENSOR_1);
+		return ERROR_CHECK_SENSOR_ARG_INV;
+	}
+	else if(name == NULL){
+		printf("ERROR_CHECK_SENSOR %d: The sensor's name is invalid\n",ERROR_CHECK_SENSOR_2);
+		return ERROR_CHECK_SENSOR_ARG_INV;
+	}
+	else if(mote < 0){
+		printf("ERROR_CHECK_SENSOR %d: The mote id must be higher than zero!\n",ERROR_CHECK_SENSOR_3);
+		return ERROR_CHECK_SENSOR_ARG_INV;
+	}
+	sprintf(str_query,"SELECT * FROM sensor WHERE sensor_type='%s' AND mote_id=%d",name,mote);
+	query = PQexec(dbconn,str_query);
+	if(PQntuples(query) != SENSOR_NOT_PRESENT){
+		printf("Possible to update!\n");
+		return SENSOR_PRESENT;
+	}
+	else{
+		printf("Impossible to update!\n");
+		return SENSOR_NOT_PRESENT;
 	}
 }
 
