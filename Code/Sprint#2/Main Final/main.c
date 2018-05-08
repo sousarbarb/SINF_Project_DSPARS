@@ -307,6 +307,8 @@ PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * a
 PGresult* HAS_query_getUserInfo(int id_user, int * error_check);
 void HAS_query_showActiveUsersInfo(void);void HAS_query_insertUser(int id, char * name, char * permission, char * password, int state, int id_apartment, int * error_check);
 
+void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, float value);
+void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char *act_state);
 
 /*****************
  * +++++++++++++ *
@@ -364,7 +366,7 @@ int main(int argc, char **argv)
 	/*************************
 	   VARIABLES DECLARATION
 	 *************************/
-	int error_check = 0;
+	int error_check = 0, aux1;
 	char user_answer;
 	pthread_t pth1, pth2, pth3;
 	
@@ -445,7 +447,7 @@ int main(int argc, char **argv)
 	   INIT ROUTINE - MATRIX'S CONFIGURATION
 	 *****************************************/
 	error_check = 0;
-	number_maximum_actuators = HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(0, NULL, &error_check);
+	number_maximum_actuators = HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(0, &aux1, &error_check);
 	if(0 != error_check){
 		printf("[MAIN_ERROR %d] An error has occurred in the number_maximum_actuators calculation.\n", MAIN_ERROR_6);
 		fclose(sensor_data_channel);
@@ -457,7 +459,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 	error_check = 0;
-	number_maximum_sensors = HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(0, NULL, &error_check);
+	number_maximum_sensors = HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(0, &aux1, &error_check);
 	if(0 != error_check){
 		printf("[MAIN_ERROR %d] An error has occurred in the number_maximum_sensors calculation.\n", MAIN_ERROR_7);
 		fclose(sensor_data_channel);
@@ -2201,7 +2203,91 @@ void HAS_query_insertRule(int id_rule, char * nam_sens_cond_1, char op_cond_1, i
 		printf("[HAS_query_insertRule Error Message] %s\n", PQresultErrorMessage(query));
 }
 
-
+/*****************************
+   SQL UPDATE SENSOR QUERIES 
+ *****************************/
+void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, float value){
+	if(PQstatus(dbconn) == CONNECTION_BAD){
+		printf("ERROR_UPDATE_DATA_SENSOR %d: Connection failed!\n",ERROR_UPDATE_DATA_SENSOR_1);
+		return;
+	}
+	else if(mote_id < 0){
+		printf("ERROR_UPDATE_DATA_SENSOR %d: Mote id can't be less than zero!\n",ERROR_UPDATE_DATA_SENSOR_2);
+		return;
+	}
+	else if(type_sens == NULL){
+		printf("ERROR_UPDATE_DATA_SENSOR %d: Sensor's type is invalid!\n",ERROR_UPDATE_DATA_SENSOR_3);
+		return;
+	}
+	char str_query[256];
+	sprintf(str_query,"UPDATE sensor SET data=%f "
+						"WHERE mote_id=%d AND sensor_type='%s'",value,mote_id,type_sens);
+	PGresult *query = PQexec(dbconn,str_query);
+	if(PQresultStatus(query) != PGRES_COMMAND_OK){
+		printf("ERROR_UPDATE_DATA_SENSOR %d: The update query of sensor's data is incorrect!\n",ERROR_UPDATE_DATA_SENSOR_4);
+		PQclear(query);
+		return;
+	}
+	else printf("The data of the sensor named '%s' from the mote %d was successfully updated to the value: %.2f\n",type_sens,mote_id,value);
+	PQclear(query);
+	
+	sprintf(str_query,"UPDATE sensor SET time=(CURRENT_TIME(0) AT TIME ZONE 'GMT-1'),day=CURRENT_DATE "
+						"WHERE mote_id=%d AND sensor_type='%s'",mote_id,type_sens);
+	query = PQexec(dbconn,str_query);
+	if(PQresultStatus(query) != PGRES_COMMAND_OK){
+		printf("ERROR_UPDATE_DATA_SENSOR %d: The update query of sensor's day and time is incorrect!\n",ERROR_UPDATE_DATA_SENSOR_5);
+		PQclear(query);
+		return;
+	}
+	else printf("Date and time were successfully updated to current time and day!\n");
+	PQclear(query);
+	return;
+}
+ 
+ /******************************
+   SQL UPDATE ACTUATOR QUERIES 
+ *******************************/
+void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char *act_state){
+	if(PQstatus(dbconn) == CONNECTION_BAD){
+		printf("ERROR_UPDATE_STATE_ACTUATOR %d: Connection failed!\n",ERROR_UPDATE_STATE_ACTUATOR_1);
+		return;
+	}
+	else if(id < 0){
+		printf("ERROR_UPDATE_STATE_ACTUATOR %d: Id divisions can't be less than zero!\n",ERROR_UPDATE_STATE_ACTUATOR_2);
+		return;
+	}
+	else if(act_state == NULL){
+		printf("ERROR_UPDATE_STATE_ACTUATOR %d: Actuator's state is invalid!\n",ERROR_UPDATE_STATE_ACTUATOR_3);
+		return;
+	}
+	else if(act_name == NULL){
+		printf("ERROR_UPDATE_STATE_ACTUATOR %d: Actuator's name is invalid!\n",ERROR_UPDATE_STATE_ACTUATOR_4);
+		return;		
+	}
+	char str_query[256];
+	sprintf(str_query,"UPDATE actuator SET actuator_state='%s' "
+						"WHERE id_divisions=%d AND name='%s'",act_state,id,act_name);
+	PGresult *query = PQexec(dbconn,str_query);
+	if(PQresultStatus(query) != PGRES_COMMAND_OK){
+		printf("ERROR_UPDATE_STATE_ACTUATOR %d: The update query of the actuator's state is incorrect!\n",ERROR_UPDATE_STATE_ACTUATOR_5);
+		PQclear(query);
+		return;
+	}
+	else printf("The state of the sensor named '%s' with the id %d was successfully updated to the state: '%s'\n",act_name,id,act_state);
+	PQclear(query);
+	
+	sprintf(str_query,"UPDATE actuator SET time=(CURRENT_TIME(0) AT TIME ZONE 'GMT-1'),day=CURRENT_DATE "
+						"WHERE id_divisions=%d AND name='%s'",id,act_name);
+	query = PQexec(dbconn,str_query);
+	if(PQresultStatus(query) != PGRES_COMMAND_OK){
+		printf("ERROR_UPDATE_DATA_SENSOR %d: Query incorrect!\n",ERROR_UPDATE_STATE_ACTUATOR_6);
+		PQclear(query);
+		return;
+	}
+	else printf("Date and time were successfully updated to current time and day!\n");
+	PQclear(query);
+	return;
+}
 
 /*************************************
    SQL ACTUATOR FUTURE STATE QUERIES 
