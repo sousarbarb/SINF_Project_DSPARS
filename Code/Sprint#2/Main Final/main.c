@@ -84,6 +84,22 @@
 #define ERROR_INIT_RULES_CONFIG_14 14
 #define ERROR_INIT_RULES_CONFIG_15 15
 
+// UPDATE SENSOR
+#define ERROR_UPDATE_DATA_SENSOR_1	1
+#define ERROR_UPDATE_DATA_SENSOR_2	2
+#define ERROR_UPDATE_DATA_SENSOR_3	3
+#define ERROR_UPDATE_DATA_SENSOR_4	4
+#define	ERROR_UPDATE_DATA_SENSOR_5	5
+
+// UPDATE ACTUATOR
+
+#define ERROR_UPDATE_STATE_ACTUATOR_1	1
+#define ERROR_UPDATE_STATE_ACTUATOR_2	2
+#define ERROR_UPDATE_STATE_ACTUATOR_3	3
+#define ERROR_UPDATE_STATE_ACTUATOR_4	4
+#define	ERROR_UPDATE_STATE_ACTUATOR_5	5
+#define ERROR_UPDATE_STATE_ACTUATOR_6	6
+
 // ASCII codes
 #define	ASCII_res_number_0	0
 #define ASCII_res_number_9	9
@@ -1631,7 +1647,6 @@ void HAS_print_table(PGconn *dbconn, char *name_table){
 				max_size_col[step_col] = size_elem_max + NUM_SPACES;
 				size_elem_max = 0;
 			}
-			printf("\n");
 				
 			for(step_col = 0; step_col < num_columns; step_col++){		//Nome das colunas
 				res_space = max_size_col[step_col] - strlen(PQfname(query,step_col));
@@ -1721,6 +1736,7 @@ void HAS_print_table(PGconn *dbconn, char *name_table){
 	else{
 		printf("DB query call not ok!\n");
 	}
+	printf("\n");
 }
 
 
