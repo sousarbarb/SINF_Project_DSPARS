@@ -3278,6 +3278,7 @@ void *thread_rule_implementation(void *arg){
 		// Gets the rules information
 		query_imp_rules = HAS_query_getRules(&error_check);
 		number_rules_thread = PQntuples(query_imp_rules);
+		printf("Number Tuples: %d\n", number_rules_thread);
 		
 		// Rule's implementation
 		for(rule_index = 0; rule_index < number_rules_thread; rule_index++){
@@ -3295,6 +3296,7 @@ void *thread_rule_implementation(void *arg){
 						|| ('<' == PQgetvalue(query_imp_rules, rule_index, 2)[0] && (value_sensor_1 < atoi(PQgetvalue(query_imp_rules, rule_index, 3))))){
 					// Execute the future states relative to the present rule
 					// .....
+					printf("[RULE %d] TRUE!\n", atoi(PQgetvalue(query_imp_rules, rule_index, 0)));
 				}
 			}
 
@@ -3355,6 +3357,7 @@ void *thread_rule_implementation(void *arg){
 				if(1==logic_value_condition_1 && 1==logic_value_condition_2){
 					// Execute the future states relative to the present rule
 					// .....
+					printf("[RULE %d] TRUE!\n", atoi(PQgetvalue(query_imp_rules, rule_index, 0)));
 				}
 			}
 
@@ -3412,9 +3415,10 @@ void *thread_rule_implementation(void *arg){
 				}
 				
 				// Implementation of the future states
-				if(1==logic_value_condition_1 || 1==logic_value_condition_2){
+				if(1==logic_value_condition_2 || 1==logic_value_condition_2){
 					// Execute the future states relative to the present rule
 					// .....
+					printf("[RULE %d] TRUE!\n", atoi(PQgetvalue(query_imp_rules, rule_index, 0)));
 				}
 			}
 
