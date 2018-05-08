@@ -340,14 +340,14 @@ PGresult* HAS_query_getRules(int * error_check);
 
 void HAS_query_insertActuatorFutureState(int id_act_fut_stat, char * fut_stat, int id_actuator, int id_rule);
 PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * actuator_name, int * id_actuator, int * error_check);
-int HAS_query_getSpecificSensorData(int id_division, int id_mote, int sensor_type, int * error_check);
-
-void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char *act_state);
-PGresult* HAS_query_getActuatorsState(int * error_check);
 
 void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, float value);
 PGresult* HAS_query_getSensorsData(int * error_check);
 int HAS_query_search_sensor(PGconn *dbconn, char *name, int mote);
+int HAS_query_getSpecificSensorData(int id_division, int id_mote, int sensor_type, int * error_check);
+
+void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char *act_state);
+PGresult* HAS_query_getActuatorsState(int * error_check);
 
 PGresult* HAS_query_getUserInfo(int id_user, int * error_check);
 void HAS_query_showActiveUsersInfo(void);void HAS_query_insertUser(int id, char * name, char * permission, char * password, int state, int id_apartment, int * error_check);
