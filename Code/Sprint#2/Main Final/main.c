@@ -196,7 +196,6 @@ FILE *sensor_data_channel = NULL, *rgb_matrix_channel = NULL;
 static const char CHANNEL_DEF[]="/dev/pts/";
 int number_motes, number_rules, number_divisions, number_maximum_actuators, number_maximum_sensors, matrix_side_size, count_divisions, divisions_configuration, sens_matrix_id, id_sensor, act_matrix_id, id_actuator;
 int flag_interface = 1, flag_command = 1;
-int *flag_rules = NULL;
 char **pointer_rgb_channel = NULL;
 char *buffer_rgb_channel = NULL;
 mote **system_motes = NULL;
@@ -337,9 +336,11 @@ void HAS_query_update_number_divisions_apartament(PGconn *dbconn, int num_divisi
 PGresult* HAS_query_updateNumRules(int id_division, int num_rules, int * error_check);
 void HAS_query_clearRulesTable(void);
 void HAS_query_insertRule(int id_rule, char * nam_sens_cond_1, char op_cond_1, int thres_cond_1, char * nam_sens_cond_2, char op_cond_2, int thres_cond_2, int samp_per, char * schedule, int id_division, int num_act_fut_stat, char * logic_op_1_2);
+PGresult* HAS_query_getRules(int * error_check);
 
 void HAS_query_insertActuatorFutureState(int id_act_fut_stat, char * fut_stat, int id_actuator, int id_rule);
 PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * actuator_name, int * id_actuator, int * error_check);
+int HAS_query_getSpecificSensorData(int id_division, int id_mote, int sensor_type, int * error_check);
 
 void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char *act_state);
 PGresult* HAS_query_getActuatorsState(int * error_check);
@@ -412,162 +413,167 @@ int main(int argc, char **argv)
 	char user_answer;
 	pthread_t pth1, pth2, pth3;
 	
-	/**********************************
-	   INIT ROUTINE - WELCOME MESSAGE
-	 **********************************/
-	printf("\n\n"
-	       "**********************************************************************\n"
-	       "******************** HAS - HOME AUTOMATIVE SYSTEM ********************\n"
-	       "**********************************************************************\n\n");
-	 
-	/**************************************
-	   INIT ROUTINE - DATABASE CONNECTION
-	 **************************************/
-	dbconn = PQconnectdb(conn);
-	if (PQstatus(dbconn) == CONNECTION_BAD){
-		printf("[DATABASE_ERROR %d] Unable to connect with the database. Please try again by restarting the program or check the ethernet connection\n", DB_ERROR_1);
-		exit(-1);
-	}
-	 
-	/**************************************************
-	   INIT ROUTINE - TABLES CREATION IN THE DATABASE
-	 **************************************************/
-	init_table_creation();
 	
-	/**************************************
-	   INIT ROUTINE - LOGIN IN THE SYSTEM
-	 **************************************/
-	printf("+++++++++++++++++++++++++++\n"
-	       "++++++++++ LOGIN ++++++++++\n"
-	       "+++++++++++++++++++++++++++\n");
-	init_login_in_the_system();
 	
-	/***************************************
-	   INIT ROUTINE - MOTE'S CONFIGURATION *
-	 ***************************************/
-	printf("\n"
-	       "++++++++++++++++++++++++++++++++++++++++++\n"
-	       "++++++++++ MOTE'S CONFIGURATION ++++++++++\n"
-	       "++++++++++++++++++++++++++++++++++++++++++\n");
-	error_check = 0;
 	do{
-		printf("Insert the number of motes that are considered in the system (needs to be greater than 0): ");
-		scanf(" %d", &number_motes);
-		getchar();
-	} while(1 > number_motes);
-	system_motes = mote_vector_creation(number_motes, &error_check);
-	if(NULL == system_motes || 0 < error_check){
-		printf("[MAIN_ERROR %d] The motes weren't created.\n", MAIN_ERROR_5);
-		fclose(sensor_data_channel);
-		sensor_data_channel = NULL;
-		fclose(rgb_matrix_channel);
-		rgb_matrix_channel = NULL;
-		PQfinish(dbconn);
-		dbconn = NULL;
-		exit(-1);
-	}
-	
-	/*******************************************
-	   INIT ROUTINE - DIVISION'S CONFIGURATION
-	 *******************************************/
-	printf("\n\n\n\n\n\n"
-	       "++++++++++++++++++++++++++++++++++++++++++++++\n"
-	       "++++++++++ DIVISION'S CONFIGURATION ++++++++++\n"
-	       "++++++++++++++++++++++++++++++++++++++++++++++\n");
-	init_divisions_configuration();
-	
-	/*******************************************
-	   INIT ROUTINE - RULE'S CONFIGURATION
-	 *******************************************/
-	printf("\n\n\n\n\n\n"
-	       "++++++++++++++++++++++++++++++++++++++++++\n"
-	       "++++++++++ RULE'S CONFIGURATION ++++++++++\n"
-	       "++++++++++++++++++++++++++++++++++++++++++\n");
-	init_rules_configuration();
-	
-	/*****************************************
-	   INIT ROUTINE - MATRIX'S CONFIGURATION
-	 *****************************************/
-	error_check = 0;
-	number_maximum_actuators = HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(0, &aux1, &error_check);
-	if(0 != error_check){
-		printf("[MAIN_ERROR %d] An error has occurred in the number_maximum_actuators calculation.\n", MAIN_ERROR_6);
-		fclose(sensor_data_channel);
-		sensor_data_channel = NULL;
-		fclose(rgb_matrix_channel);
-		rgb_matrix_channel = NULL;
-		PQfinish(dbconn);
-		dbconn = NULL;
-		exit(-1);
-	}
-	error_check = 0;
-	number_maximum_sensors = HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(0, &aux1, &error_check);
-	if(0 != error_check){
-		printf("[MAIN_ERROR %d] An error has occurred in the number_maximum_sensors calculation.\n", MAIN_ERROR_7);
-		fclose(sensor_data_channel);
-		sensor_data_channel = NULL;
-		free(flag_rules);
-		flag_rules = NULL;
-		fclose(rgb_matrix_channel);
-		rgb_matrix_channel = NULL;
-		PQfinish(dbconn);
-		dbconn = NULL;
-		printf("\n**********************************************************************\n");
-		printf("************************* END OF PROGRAM HAS *************************\n");
-		printf("**********************************************************************\n\n");
-		exit(-1);
-	}
-	write_size_matrix("RGBMatrixConf.txt", number_divisions, number_maximum_sensors + number_maximum_actuators);
-	matrix_side_size = determination_of_maximum(number_divisions, number_maximum_sensors + number_maximum_actuators);
-	buffer_rgb_channel = alocation_memory_matrix(matrix_side_size);
-	do{
-		printf("The program RGBMatrix is already running (Y - yes / N - no, and press Enter)? ");
-		user_answer = getchar();
-		getchar();
-	} while('Y' != user_answer &&'N' != user_answer &&'y' != user_answer && 'n' != user_answer);
-	if('n' == user_answer ||'N' == user_answer){
-		printf("Then please execute it with the channel's atribuition to communicate with the program.\n");
+		
+		/**********************************
+		   INIT ROUTINE - WELCOME MESSAGE
+		 **********************************/
+		printf("\n\n"
+			   "**********************************************************************\n"
+			   "******************** HAS - HOME AUTOMATIVE SYSTEM ********************\n"
+			   "**********************************************************************\n\n");
+		 
+		/**************************************
+		   INIT ROUTINE - DATABASE CONNECTION
+		 **************************************/
+		dbconn = PQconnectdb(conn);
+		if (PQstatus(dbconn) == CONNECTION_BAD){
+			printf("[DATABASE_ERROR %d] Unable to connect with the database. Please try again by restarting the program or check the ethernet connection\n", DB_ERROR_1);
+			exit(-1);
+		}
+		 
+		/**************************************************
+		   INIT ROUTINE - TABLES CREATION IN THE DATABASE
+		 **************************************************/
+		init_table_creation();
+		
+		/**************************************
+		   INIT ROUTINE - LOGIN IN THE SYSTEM
+		 **************************************/
+		printf("+++++++++++++++++++++++++++\n"
+			   "++++++++++ LOGIN ++++++++++\n"
+			   "+++++++++++++++++++++++++++\n");
+		init_login_in_the_system();
+		
+		/***************************************
+		   INIT ROUTINE - MOTE'S CONFIGURATION *
+		 ***************************************/
+		printf("\n"
+			   "++++++++++++++++++++++++++++++++++++++++++\n"
+			   "++++++++++ MOTE'S CONFIGURATION ++++++++++\n"
+			   "++++++++++++++++++++++++++++++++++++++++++\n");
+		error_check = 0;
+		do{
+			printf("Insert the number of motes that are considered in the system (needs to be greater than 0): ");
+			scanf(" %d", &number_motes);
+			getchar();
+		} while(1 > number_motes);
+		system_motes = mote_vector_creation(number_motes, &error_check);
+		if(NULL == system_motes || 0 < error_check){
+			printf("[MAIN_ERROR %d] The motes weren't created.\n", MAIN_ERROR_5);
+			fclose(sensor_data_channel);
+			sensor_data_channel = NULL;
+			fclose(rgb_matrix_channel);
+			rgb_matrix_channel = NULL;
+			PQfinish(dbconn);
+			dbconn = NULL;
+			exit(-1);
+		}
+		
+		/*******************************************
+		   INIT ROUTINE - DIVISION'S CONFIGURATION
+		 *******************************************/
+		printf("\n\n\n\n\n\n"
+			   "++++++++++++++++++++++++++++++++++++++++++++++\n"
+			   "++++++++++ DIVISION'S CONFIGURATION ++++++++++\n"
+			   "++++++++++++++++++++++++++++++++++++++++++++++\n");
+		init_divisions_configuration();
+		
+		/*******************************************
+		   INIT ROUTINE - RULE'S CONFIGURATION
+		 *******************************************/
+		printf("\n\n\n\n\n\n"
+			   "++++++++++++++++++++++++++++++++++++++++++\n"
+			   "++++++++++ RULE'S CONFIGURATION ++++++++++\n"
+			   "++++++++++++++++++++++++++++++++++++++++++\n");
+		init_rules_configuration();
+		
+		/*****************************************
+		   INIT ROUTINE - MATRIX'S CONFIGURATION
+		 *****************************************/
+		error_check = 0;
+		number_maximum_actuators = HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(0, &aux1, &error_check);
+		if(0 != error_check){
+			printf("[MAIN_ERROR %d] An error has occurred in the number_maximum_actuators calculation.\n", MAIN_ERROR_6);
+			fclose(sensor_data_channel);
+			sensor_data_channel = NULL;
+			fclose(rgb_matrix_channel);
+			rgb_matrix_channel = NULL;
+			PQfinish(dbconn);
+			dbconn = NULL;
+			exit(-1);
+		}
+		error_check = 0;
+		number_maximum_sensors = HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(0, &aux1, &error_check);
+		if(0 != error_check){
+			printf("[MAIN_ERROR %d] An error has occurred in the number_maximum_sensors calculation.\n", MAIN_ERROR_7);
+			fclose(sensor_data_channel);
+			sensor_data_channel = NULL;
+			fclose(rgb_matrix_channel);
+			rgb_matrix_channel = NULL;
+			PQfinish(dbconn);
+			dbconn = NULL;
+			printf("\n**********************************************************************\n");
+			printf("************************* END OF PROGRAM HAS *************************\n");
+			printf("**********************************************************************\n\n");
+			exit(-1);
+		}
+		write_size_matrix("RGBMatrixConf.txt", number_divisions, number_maximum_sensors + number_maximum_actuators);
+		matrix_side_size = determination_of_maximum(number_divisions, number_maximum_sensors + number_maximum_actuators);
+		buffer_rgb_channel = alocation_memory_matrix(matrix_side_size);
+		do{
+			printf("The program RGBMatrix is already running (Y - yes / N - no, and press Enter)? ");
+			user_answer = getchar();
+			getchar();
+		} while('Y' != user_answer &&'N' != user_answer &&'y' != user_answer && 'n' != user_answer);
+		if('n' == user_answer ||'N' == user_answer){
+			printf("Then please execute it with the channel's atribuition to communicate with the program.\n");
+			free_mote_memory(system_motes, number_motes, NULL);
+			system_motes = NULL;
+			fclose(sensor_data_channel);
+			sensor_data_channel = NULL;
+			fclose(rgb_matrix_channel);
+			rgb_matrix_channel = NULL;
+			printf("\n**********************************************************************\n");
+			printf("************************* END OF PROGRAM HAS *************************\n");
+			printf("**********************************************************************\n\n");
+			exit(-1);
+		}
+		init_matrix_configuration();
+		
+		
+		/***********************
+		   CREATION OF THREADS
+		 ***********************/
+		//pthread_create(&pth1, NULL, thread_data_processing, NULL);
+		pthread_create(&pth2, NULL, thread_rule_implementation, NULL);
+		pthread_create(&pth3, NULL, user_interface, NULL);
+		
+		/****************************************
+		   CREATION AND CANCELLATION OF THREADS
+		 ****************************************/
+		pthread_join(pth3, NULL);
+		//pthread_cancel(pth1);
+		pthread_cancel(pth2);
+		pthread_cancel(pth3);
+		
+		/***********************
+		   TERMINATION ROUTINE
+		 ***********************/
 		free_mote_memory(system_motes, number_motes, NULL);
-		system_motes = NULL;
+		free(buffer_rgb_channel);
+		buffer_rgb_channel = NULL;
 		fclose(sensor_data_channel);
 		sensor_data_channel = NULL;
-		fclose(rgb_matrix_channel);
-		rgb_matrix_channel = NULL;
-		printf("\n**********************************************************************\n");
-		printf("************************* END OF PROGRAM HAS *************************\n");
-		printf("**********************************************************************\n\n");
-		exit(-1);
-	}
-	init_matrix_configuration();
+		PQfinish(dbconn);
+		dbconn = NULL;
+		
+	}while(1 == flag_command);
 	
 	
-	/***********************
-	   CREATION OF THREADS
-	 ***********************//*
-	pthread_create(&pth1, NULL, thread_data_processing, NULL);
-	pthread_create(&pth2, NULL, thread_rule_implementation, NULL);
-	pthread_create(&pth3, NULL, user_interface, NULL);*/
 	
-	/****************************************
-	   CREATION AND CANCELLATION OF THREADS
-	 ****************************************//*
-	pthread_join(pth3, NULL);
-	pthread_cancel(pth1);
-	pthread_cancel(pth2);
-	pthread_cancel(pth3);*/
-	
-	/***********************
-	   TERMINATION ROUTINE
-	 ***********************/
-	free_mote_memory(system_motes, number_motes, NULL);
-	free(buffer_rgb_channel);
-	buffer_rgb_channel = NULL;
-	free(flag_rules);
-	flag_rules = NULL;
-	fclose(sensor_data_channel);
-	sensor_data_channel = NULL;
-	PQfinish(dbconn);
-	dbconn = NULL;
 	printf("\n**********************************************************************\n");
 	printf("************************* END OF PROGRAM HAS *************************\n");
 	printf("**********************************************************************\n\n");
@@ -2453,6 +2459,40 @@ void HAS_query_insertRule(int id_rule, char * nam_sens_cond_1, char op_cond_1, i
 		printf("[HAS_query_insertRule Error Message] %s\n", PQresultErrorMessage(query));
 }
 
+PGresult* HAS_query_getRules(int * error_check){
+	if(CONNECTION_BAD == PQstatus(dbconn)){
+		printf("[HAS_query_getRules ERROR] Connection to the database is bad.\n");
+		if(NULL != error_check)
+			(*error_check) = 1;
+		return NULL;
+	}
+	
+	PGresult *query = PQexec(dbconn, 
+		"SELECT \
+		id, \
+		name_sensor_condition1, operator_condition1, threshold_condition1, \
+		name_sensor_condition2, operator_condition2, threshold_condition2, \
+		logic_operator, \
+		num_actuators_future_state, \
+		id_divisions, \
+		sampling_period, \
+		schedule, \
+		time, \
+		day \
+		FROM rules");
+	if(PQresultStatus(query) == PGRES_TUPLES_OK){
+		if(NULL != error_check)
+			(*error_check) = 0;
+		return query;
+	}
+	else{
+		printf("[HAS_query_getRules Error Message] %s\n", PQresultErrorMessage(query));
+		if(NULL != error_check)
+			(*error_check) = 2;
+		return NULL;
+	}
+}
+
 
 /************************
    SQL ACTUATOR QUERIES 
@@ -2609,6 +2649,64 @@ int HAS_query_search_sensor(PGconn *dbconn, char *name, int mote){
 	else{
 		printf("Impossible to update!\n");
 		return SENSOR_NOT_PRESENT;
+	}
+}
+
+int HAS_query_getSpecificSensorData(int id_division, int id_mote, int sensor_type, int * error_check){
+	if(CONNECTION_BAD == PQstatus(dbconn)){
+		printf("[HAS_query_getSpecificSensorData ERROR] Connection to the database is bad.\n");
+		if(NULL != error_check)
+			(*error_check) = 1;
+		return -1;
+	}
+	else if(0 > id_division){
+		printf("[HAS_query_getSpecificSensorData ERROR] Division id invalid.\n");
+		if(NULL != error_check)
+			(*error_check) = 2;
+		return -1;
+	}
+	else if(id_mote < 0){
+		printf("[HAS_query_getSpecificSensorData ERROR] Mote id can't be less than zero!\n");
+		if(NULL != error_check)
+			(*error_check) = 3;
+		return -1;
+	}
+	else if(sensor_type != TYPE_SENS_HUM && sensor_type != TYPE_SENS_LIGHT && sensor_type != TYPE_SENS_TEMP){
+		printf("[HAS_query_getSpecificSensorData ERROR] Sensor's type is invalid!\n");
+		if(NULL != error_check)
+			(*error_check) = 3;
+		return -1;
+	}
+	
+	char str[120];
+	PGresult *query;
+	switch(sensor_type){
+	case TYPE_SENS_TEMP: 
+		sprintf(str, "SELECT data FROM sensor WHERE mote_id = %d AND sensor_type = 'TEMP' AND id_divisions = %d", id_mote, id_division);
+		break;
+	case TYPE_SENS_HUM: 
+		sprintf(str, "SELECT data FROM sensor WHERE mote_id = %d AND sensor_type = 'HUM' AND id_divisions = %d", id_mote, id_division);
+		break;
+	case TYPE_SENS_LIGHT: 
+		sprintf(str, "SELECT data FROM sensor WHERE mote_id = %d AND sensor_type = 'LIGHT' AND id_divisions = %d", id_mote, id_division);
+		break;
+	default:
+		printf("[HAS_query_getSpecificSensorData ERROR] Sensor's type is invalid!\n");
+		if(NULL != error_check)
+			(*error_check) = 3;
+		return -1;
+	}
+	query = PQexec(dbconn, str);
+	if(PQresultStatus(query) == PGRES_TUPLES_OK){
+		if(NULL != error_check)
+			(*error_check) = 0;
+		return atoi(PQgetvalue(query, 0, 0));
+	}
+	else{
+		printf("[HAS_query_getSpecificSensorData Error Message] %s\n", PQresultErrorMessage(query));
+		if(NULL != error_check)
+			(*error_check) = 4;
+		return -1;
 	}
 }
 
@@ -3168,8 +3266,166 @@ void atualize_RGBstring_actuators_state_RGBMatrix(char * buffer_rgb_pssRGB, int 
    THREAD RULE IMPLEMENTATION (PTH2) - CODE
  ********************************************/
 void *thread_rule_implementation(void *arg){
+	// Variables Declaration
+	int rule_index, number_rules_thread, error_check;
+	int mote_id_sensor_1, type_sensor_1, mote_id_sensor_2, type_sensor_2;
+	int logic_value_condition_1 = 0, logic_value_condition_2 = 0;
+	int value_sensor_1, value_sensor_2;
 	
+	PGresult *query_imp_rules;
 	
+	while(1 == flag_interface){
+		// Gets the rules information
+		query_imp_rules = HAS_query_getRules(&error_check);
+		number_rules_thread = PQntuples(query_imp_rules);
+		
+		// Rule's implementation
+		for(rule_index = 0; rule_index < number_rules_thread; rule_index++){
+			
+			// ONLY EXIST CONDITION 1
+			if(1 == PQgetisnull(query_imp_rules, rule_index, 7)){
+				// Search for the characteristics of the SENSOR 1 - MOTE_ID, SENSOR_TYPE
+				search_sensor_mote(PQgetvalue(query_imp_rules, rule_index, 1), number_motes, &mote_id_sensor_1, &type_sensor_1);
+				
+				// Get sensor_CONDITION_1 value
+				value_sensor_1 = HAS_query_getSpecificSensorData(atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_1, type_sensor_1, &error_check);
+				
+				// Implementation of the future states
+				if(('>' == PQgetvalue(query_imp_rules, rule_index, 2)[0] && (value_sensor_1 > atoi(PQgetvalue(query_imp_rules, rule_index, 3)))) 
+						|| ('<' == PQgetvalue(query_imp_rules, rule_index, 2)[0] && (value_sensor_1 < atoi(PQgetvalue(query_imp_rules, rule_index, 3))))){
+					// Execute the future states relative to the present rule
+					// .....
+				}
+			}
+
+
+			// CONDITION 1 AND CONDITION 2
+			else if('A' == (PQgetvalue(query_imp_rules, rule_index, 7)[0])){
+				// Search for the characteristics of the SENSOR 1 - MOTE_ID, SENSOR_TYPE
+				search_sensor_mote(PQgetvalue(query_imp_rules, rule_index, 1), number_motes, &mote_id_sensor_1, &type_sensor_1);
+				
+				// Search for the characteristics of the SENSOR 2 - MOTE_ID, SENSOR_TYPE
+				search_sensor_mote(PQgetvalue(query_imp_rules, rule_index, 4), number_motes, &mote_id_sensor_2, &type_sensor_2);
+				
+				// Get sensor_CONDITION_1 value
+				value_sensor_1 = HAS_query_getSpecificSensorData(atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_1, type_sensor_1, &error_check);
+				
+				// Get sensor_CONDITION_2 value
+				value_sensor_2 = HAS_query_getSpecificSensorData(atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_2, type_sensor_2, &error_check);
+				
+				// Discovering the compare operator in CONDITION_1
+				switch(PQgetvalue(query_imp_rules, rule_index, 2)[0]){
+				case '>':
+					if(value_sensor_1 > atoi(PQgetvalue(query_imp_rules, rule_index, 3)))
+						logic_value_condition_1 = 1;
+					else
+						logic_value_condition_1 = 0;
+					break;
+				case '<':
+					if(value_sensor_1 < atoi(PQgetvalue(query_imp_rules, rule_index, 3)))
+						logic_value_condition_1 = 1;
+					else
+						logic_value_condition_1 = 0;
+					break;
+				default:
+					printf("[thread_rule_implementation Error] Operator in condition 1 invalid.\n");
+					pthread_exit(NULL);
+				}
+				
+				// Discovering the compare operator in CONDITION_2
+				switch(PQgetvalue(query_imp_rules, rule_index, 5)[0]){
+				case '>':
+					if(value_sensor_2 > atoi(PQgetvalue(query_imp_rules, rule_index, 6)))
+						logic_value_condition_2 = 1;
+					else
+						logic_value_condition_2 = 0;
+					break;
+				case '<':
+					if(value_sensor_2 < atoi(PQgetvalue(query_imp_rules, rule_index, 6)))
+						logic_value_condition_2 = 1;
+					else
+						logic_value_condition_2 = 0;
+					break;
+				default:
+					printf("[thread_rule_implementation Error] Operator in condition 2 invalid.\n");
+					pthread_exit(NULL);
+				}
+				
+				// Implementation of the future states
+				if(1==logic_value_condition_1 && 1==logic_value_condition_2){
+					// Execute the future states relative to the present rule
+					// .....
+				}
+			}
+
+
+			// CONDITION 1 OR CONDITION 2
+			else if('O' == (PQgetvalue(query_imp_rules, rule_index, 7)[0])){
+				// Search for the characteristics of the SENSOR 1 - MOTE_ID, SENSOR_TYPE
+				search_sensor_mote(PQgetvalue(query_imp_rules, rule_index, 1), number_motes, &mote_id_sensor_1, &type_sensor_1);
+				
+				// Search for the characteristics of the SENSOR 2 - MOTE_ID, SENSOR_TYPE
+				search_sensor_mote(PQgetvalue(query_imp_rules, rule_index, 4), number_motes, &mote_id_sensor_2, &type_sensor_2);
+				
+				// Get sensor_CONDITION_1 value
+				value_sensor_1 = HAS_query_getSpecificSensorData(atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_1, type_sensor_1, &error_check);
+				
+				// Get sensor_CONDITION_2 value
+				value_sensor_2 = HAS_query_getSpecificSensorData(atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_2, type_sensor_2, &error_check);
+				
+				// Discovering the compare operator in CONDITION_1
+				switch(PQgetvalue(query_imp_rules, rule_index, 2)[0]){
+				case '>':
+					if(value_sensor_1 > atoi(PQgetvalue(query_imp_rules, rule_index, 3)))
+						logic_value_condition_1 = 1;
+					else
+						logic_value_condition_1 = 0;
+					break;
+				case '<':
+					if(value_sensor_1 < atoi(PQgetvalue(query_imp_rules, rule_index, 3)))
+						logic_value_condition_1 = 1;
+					else
+						logic_value_condition_1 = 0;
+					break;
+				default:
+					printf("[thread_rule_implementation Error] Operator in condition 1 invalid.\n");
+					pthread_exit(NULL);
+				}
+				
+				// Discovering the compare operator in CONDITION_2
+				switch(PQgetvalue(query_imp_rules, rule_index, 5)[0]){
+				case '>':
+					if(value_sensor_2 > atoi(PQgetvalue(query_imp_rules, rule_index, 6)))
+						logic_value_condition_2 = 1;
+					else
+						logic_value_condition_2 = 0;
+					break;
+				case '<':
+					if(value_sensor_2 < atoi(PQgetvalue(query_imp_rules, rule_index, 6)))
+						logic_value_condition_2 = 1;
+					else
+						logic_value_condition_2 = 0;
+					break;
+				default:
+					printf("[thread_rule_implementation Error] Operator in condition 2 invalid.\n");
+					pthread_exit(NULL);
+				}
+				
+				// Implementation of the future states
+				if(1==logic_value_condition_1 || 1==logic_value_condition_2){
+					// Execute the future states relative to the present rule
+					// .....
+				}
+			}
+
+
+			// ERROR HAS OCURRED
+			else{
+				printf("[thread_rule_implementation Error] Logic operator of the conditions 1 and 2 is invalid ([RULE %d]).\n", rule_index);
+				pthread_exit(NULL);
+			}
+		}
+	}
 	pthread_exit(NULL);
 }
 
