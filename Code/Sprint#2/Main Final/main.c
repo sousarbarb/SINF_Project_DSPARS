@@ -317,6 +317,8 @@ int HAS_query_create_users_activity_table(PGconn *dbconn);
 void HAS_query_show_users_activity_table(PGconn *dbconn);
 
 void HAS_print_table(PGconn *dbconn, char *name_table);
+void HAS_print_table_restrictions(PGconn *dbconn, char *name_table, int id);
+void HAS_print_division_info(PGconn *dbconn, char user_answer, int number_divisions);
 
 
 /***************
@@ -330,6 +332,7 @@ void HAS_query_delete_tables(PGconn *dbconn, int *error_check);
 void HAS_query_insert_division_info(PGconn *dbconn, char *str, int * error_check);
 void HAS_query_insert_divisions_sensors(PGconn *dbconn, char **vector_string, int id_division, int number_sensors, int * error_check);
 void HAS_query_insert_divisions_actuators(PGconn *dbconn, char **vector_string, int id_division, int number_actuators, int * error_check);
+void HAS_query_update_number_divisions_apartament(PGconn *dbconn, int num_divisions);
 
 PGresult* HAS_query_updateNumRules(int id_division, int num_rules, int * error_check);
 void HAS_query_clearRulesTable(void);
@@ -987,6 +990,7 @@ void init_divisions_configuration(void){
 	 */
 	 
 	char user_answer, str[SIZE_STRING_BUFFER] = {0};
+	PGresult *query;
 	 
 	count_divisions = 0;
 	divisions_configuration = 0;
@@ -1016,7 +1020,7 @@ void init_divisions_configuration(void){
 		printf("\nInsert the number of divisions: ");
 		scanf("%d", &number_divisions);
 		getchar();
-		
+		HAS_query_update_number_divisions_apartament(dbconn, number_divisions);
 		do {
 			printf("\n-- Division's configuration template: ROOM1:TEMP1,LIGHT1;HEAT,BLINDS,LIGHT\n");
 			printf("Insert division configuration nº %d: ", count_divisions+1);
@@ -1025,15 +1029,14 @@ void init_divisions_configuration(void){
 			if('\n' == str[strlen(str) - 1])
 				str[strlen(str) - 1] = '\0';
 			HAS_query_insert_division_info(dbconn, str, NULL);	
-		
-			//COLOCAR A VARIÁVEL CONTADORA DO ID DAS DIVISÕES A ZERO AQUI
-		
 			count_divisions++;
 		} while (count_divisions < number_divisions);
 			
 	} else {			// O utilizador que manter a configuração das divisões
 		divisions_configuration = OLD_DIVISIONS_CONFIGURATION;
+		query = HAS_query_getNumberDivisions(0, &number_divisions, NULL);	
 	}
+	PQclear(query);	
 }
 
 
@@ -1787,6 +1790,181 @@ void HAS_print_table(PGconn *dbconn, char *name_table){
 	printf("\n");
 }
 
+void HAS_print_table_restrictions(PGconn *dbconn, char *name_table, int id){
+	
+	int i = 0, num_columns = 0, num_lines = 0, step_line = 0, step_col = 0;
+	int size_name_col = 0, size_elem = 0, size_elem_max = 0, res_space = 0;
+	char str_query[256];
+	
+	if(0==strcmp(name_table, TABNAME_SENS)) {
+		printf("\n-> Sensors");
+	} else if(0==strcmp(name_table, TABNAME_ACT)) {
+		printf("\n-> Actuators");
+	} else if(0==strcmp(name_table, TABNAME_RULES))
+		printf("\n-> Rules");
+	
+	PGresult *query;
+	sprintf(str_query,"SELECT * FROM %s WHERE id_divisions = %d", name_table, id);	
+	query = PQexec(dbconn, str_query);
+	
+	num_lines = PQntuples(query);
+	num_columns = PQnfields(query);
+	int max_size_col[num_columns];		
+					
+	if (PQresultStatus(query) == PGRES_TUPLES_OK){
+		if((num_columns != 0) && (strcmp(name_table,"rules") != 0)){		//Todas as tabelas exceto as 'rules'								
+			for (step_col = 0; step_col < num_columns; step_col++){
+				size_name_col = strlen(PQfname(query,step_col));
+				if(size_name_col > size_elem_max){
+					size_elem_max = size_name_col;
+				}
+				else size_elem_max += 0;
+				
+				for(step_line = 0; step_line < num_lines; step_line++){
+					size_elem = strlen(PQgetvalue(query,step_line,step_col));
+					if(size_elem > size_elem_max)
+						size_elem_max = size_elem;
+					else size_elem_max += 0;
+				}
+				max_size_col[step_col] = size_elem_max + NUM_SPACES;
+				size_elem_max = 0;
+			}
+			printf("\n");
+				
+			for(step_col = 0; step_col < num_columns; step_col++){		//Nome das colunas
+				res_space = max_size_col[step_col] - strlen(PQfname(query,step_col));
+				printf("%s",PQfname(query,step_col));
+				for(i = 0; i < abs(res_space); i++){
+					printf(" ");
+				}
+			}
+			printf("\n");
+			
+			for(step_line = 0; step_line < num_lines; step_line++){		//Elementos
+				for(step_col = 0; step_col < num_columns; step_col++){
+					printf("%s",PQgetvalue(query,step_line,step_col));
+					res_space = max_size_col[step_col] - strlen(PQgetvalue(query,step_line,step_col));
+					for(i = 0; i < abs(res_space); i++){
+						printf(" ");
+					}
+				}
+				printf("\n");
+			}
+		}
+		else if((num_columns != 0) && (strcmp(name_table,"rules") == 0)){		//Tabela das 'rules'
+			for (step_col = 0; step_col < num_columns; step_col++){
+				size_name_col = strlen(PQfname(query,step_col));
+				if(size_name_col > size_elem_max){
+					size_elem_max = size_name_col;
+				}
+				else size_elem_max += 0;
+				
+				for(step_line = 0; step_line < num_lines; step_line++){
+					size_elem = strlen(PQgetvalue(query,step_line,step_col));
+					if(size_elem > size_elem_max)
+						size_elem_max = size_elem;
+					else size_elem_max += 0;
+				}
+				max_size_col[step_col] = size_elem_max + NUM_SPACES;
+				size_elem_max = 0;
+			}
+			printf("\n");
+				
+			for(step_col = 0; step_col < PQfnumber(query,"sampling_period"); step_col++){		//Nome das colunas antes do 'sampling_period'
+				res_space = max_size_col[step_col] - strlen(PQfname(query,step_col));
+				printf("%s",PQfname(query,step_col));
+				for(i = 0; i < abs(res_space); i++){
+					printf(" ");
+				}
+			}
+			printf("\n");
+			
+			for(step_line = 0; step_line < num_lines; step_line++){								//Elementos das colunas antes do 'sampling period'
+				for(step_col = 0; step_col < PQfnumber(query,"sampling_period"); step_col++){
+					printf("%s",PQgetvalue(query,step_line,step_col));
+					res_space = max_size_col[step_col] - strlen(PQgetvalue(query,step_line,step_col));
+					for(i = 0; i < abs(res_space); i++){
+						printf(" ");
+					}
+				}
+				printf("\n");
+			}
+			printf("\n\n");
+			
+			for(step_col = PQfnumber(query,"sampling_period"); step_col < num_columns; step_col++){		//Nome das colunas depois do 'sampling_period'
+				res_space = max_size_col[step_col] - strlen(PQfname(query,step_col));
+				printf("%s",PQfname(query,step_col));
+				for(i = 0; i < abs(res_space); i++){
+					printf(" ");
+				}
+			}
+			printf("\n");
+			
+			for(step_line = 0; step_line < num_lines; step_line++){								//Elementos das colunas depois do 'sampling period'
+				for(step_col = PQfnumber(query,"sampling_period"); step_col < num_columns; step_col++){
+					printf("%s",PQgetvalue(query,step_line,step_col));
+					res_space = max_size_col[step_col] - strlen(PQgetvalue(query,step_line,step_col));
+					for(i = 0; i < abs(res_space); i++){
+						printf(" ");
+					}
+				}
+				printf("\n");
+			}			
+		}			
+		else{
+			printf("The table doesn't exist!\n");
+		}
+	}
+	
+	else{
+		printf("DB query call not ok!\n");
+	}
+}
+
+void HAS_print_division_info(PGconn *dbconn, char user_answer, int num_divisions) {
+	int counter1 = 0, counter2 = 0;
+	char query_string[SIZE_QUERY_STRING], division_name[SIZE_STRING_DIVISION];
+	PGresult *query;
+	
+	for(counter1 = 0; counter1 < num_divisions; counter1++) {
+		sprintf(query_string, "SELECT name FROM divisions WHERE id = %d", counter1);
+		query = PQexec(dbconn, query_string);
+	
+		if(PQresultStatus(query) != PGRES_TUPLES_OK) {
+			printf("Query failed.\n");
+			PQclear(query);
+			PQfinish(dbconn);
+			exit(-1);
+		}
+		
+		query_string[0] = '\0'; 
+		
+		for(counter2 = 0; counter2 < PQntuples(query); counter2++) {
+			strcpy(division_name, PQgetvalue(query, counter2, 0));
+			printf("\n------ %s ------\n", division_name);
+			
+			switch(user_answer) {
+				case '2':
+					HAS_print_table_restrictions(dbconn, TABNAME_RULES, counter1);
+					break;
+				case '3':
+					HAS_print_table_restrictions(dbconn, TABNAME_SENS, counter1);
+					break;
+				case '4':
+					HAS_print_table_restrictions(dbconn, TABNAME_ACT, counter1);
+					break;
+				case '5':
+					HAS_print_table_restrictions(dbconn, TABNAME_SENS, counter1);
+					HAS_print_table_restrictions(dbconn, TABNAME_ACT, counter1);
+					break;
+				default:
+					printf("No info needed.\n");
+					break;
+			}
+		}
+	}
+	PQclear(query);	
+}
 
 /*************************
    SQL DIVISIONS QUERIES 
@@ -2163,6 +2341,14 @@ void HAS_query_insert_divisions_actuators(PGconn *dbconn, char **vector_string, 
 	PQclear(division_query);
 }
 
+void HAS_query_update_number_divisions_apartament(PGconn *dbconn, int num_divisions) {
+	PGresult *query;
+	char query_string[SIZE_QUERY_STRING];
+	
+	sprintf(query_string, "UPDATE apartment SET num_divisions = %d WHERE id=0", num_divisions);
+	query = PQexec(dbconn, query_string);
+	PQclear(query);
+}
 
 /*********************
    SQL RULES QUERIES 
@@ -2992,7 +3178,46 @@ void *thread_rule_implementation(void *arg){
    THREAD USER INTERFACE (PTH3) - CODE
  ***************************************/
 void *user_interface(void *arg){
+	char user_answer;
 	
-	
+	while(1 == flag_interface) {
+		printf("\n");
+		printf("++++++++++++++++++++++++++++++++++++++++\n");
+		printf("+++++++++++++++ HAS MENU +++++++++++++++\n");
+		printf("++++++++++++++++++++++++++++++++++++++++\n");
+		printf("\n");
+		printf("1. Display division's information       \n");
+		printf("2. Display division's rules information \n");
+		printf("3. Display sensor's information         \n");
+		printf("4. Display actuators's information      \n");
+		printf("5. Display actuators's and sensors information      \n");
+		printf("6. Exit Home Automative System          \n");
+		printf("\n");
+		printf("Insert the desired option (press Enter after): ");
+		user_answer = getchar();
+		getchar();
+		switch(user_answer){
+			case '1':
+				HAS_print_table(dbconn, TABNAME_DIVIS);
+				break;
+			case '2':
+				HAS_print_division_info(dbconn, user_answer, number_divisions);
+				break;
+			case '3':
+				HAS_print_division_info(dbconn, user_answer, number_divisions);
+				break;
+			case '4':
+				HAS_print_division_info(dbconn, user_answer, number_divisions);
+				break;
+			case '5':
+				HAS_print_division_info(dbconn, user_answer, number_divisions);
+				break;
+			case '6':
+				flag_interface = 0;
+				break;
+			default:
+				printf("Insert a valid option.\n");
+		}
+	}
 	pthread_exit(NULL);
 }
