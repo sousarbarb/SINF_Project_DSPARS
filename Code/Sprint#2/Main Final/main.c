@@ -2767,8 +2767,10 @@ void *thread_data_processing(void *arg){
 				else{
 					//printf("Temperatura decimal = %d\n", decimal_temp);
 					temp = calculate_temperature(decimal_temp);
-					system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->temperature = temp;
-					
+					//system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->temperature = temp;
+					if(HAS_query_search_sensor(dbconn,"TEMP",decimal_id) == SENSOR_PRESENT){
+						HAS_query_update_dataSensor(dbconn,decimal_id,"TEMP",temp);
+					}
 					//printf("Temperature = %.2f ºC\n",temp);
 				}
 			}
@@ -2805,8 +2807,10 @@ void *thread_data_processing(void *arg){
 					//printf("Relative humidity = %.2f %%\n",relative_humidity);
 					
 					humidity_compensated_by_temperature = calculate_humidity_compensated_by_temperature(decimal_humid,relative_humidity,temp);
-					system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->humidity = humidity_compensated_by_temperature;
-					
+					//system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->humidity = humidity_compensated_by_temperature;
+					if(HAS_query_search_sensor(dbconn,"HUM",decimal_id) == SENSOR_PRESENT){
+						HAS_query_update_dataSensor(dbconn,decimal_id,"HUM",humidity_compensated_by_temperature);
+					}		
 					//printf("Humidity compensated by temperature = %.2f %%\n",humidity_compensated_by_temperature);
 				}
 			}
@@ -2840,8 +2844,10 @@ void *thread_data_processing(void *arg){
 				else{
 					//printf("Luz visível decimal = %d\n",decimal_visible_light);
 					visible_light = calculate_visible_light(decimal_visible_light);
-					system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->luminosity = visible_light;
-					
+					//system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->luminosity = visible_light;
+					if(HAS_query_search_sensor(dbconn,"LIGHT",decimal_id) == SENSOR_PRESENT){
+						HAS_query_update_dataSensor(dbconn,decimal_id,"LIGHT",visible_light);
+					}
 					//printf("Visible light = %.2f lux\n", visible_light);
 				}
 			}
