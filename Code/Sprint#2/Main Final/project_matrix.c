@@ -155,19 +155,19 @@ char* configuration_matrix_sensors(char *string_matrix_config, int matrix_side, 
 		case 1:
 			if(sensor_value > MAX_TEMP){
 				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
-					string_matrix_config[step] = above_limit[index_state];
+					string_matrix_config[step] = above_limit_temperature[index_state];
 					index_state++;
 				}
 			}
 			else if(sensor_value < MIN_TEMP){
 				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
-					string_matrix_config[step] = under_limit[index_state];
+					string_matrix_config[step] = under_limit_temperature[index_state];
 					index_state++;
 				}
 			}
 			else if((sensor_value > MIN_TEMP) && (sensor_value < MAX_TEMP)){
 				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
-					string_matrix_config[step] = inside_limit[index_state];
+					string_matrix_config[step] = inside_limit_temperature[index_state];
 					index_state++;
 				}
 			}
@@ -180,19 +180,19 @@ char* configuration_matrix_sensors(char *string_matrix_config, int matrix_side, 
 		case 2:
 			if(sensor_value > MAX_HUMID){
 				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
-					string_matrix_config[step] = above_limit[index_state];
+					string_matrix_config[step] = above_limit_humidity[index_state];
 					index_state++;
 				}
 			}
 			else if(sensor_value < MIN_HUMID){
 				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
-					string_matrix_config[step] = under_limit[index_state];
+					string_matrix_config[step] = under_limit_humidity[index_state];
 					index_state++;
 				}
 			}
 			else if((sensor_value > MIN_HUMID) && (sensor_value < MAX_HUMID)){
 				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
-					string_matrix_config[step] = inside_limit[index_state];
+					string_matrix_config[step] = inside_limit_humidity[index_state];
 					index_state++;
 				}
 			}
@@ -205,19 +205,19 @@ char* configuration_matrix_sensors(char *string_matrix_config, int matrix_side, 
 		case 3:
 			if(sensor_value > MAX_LIGHT){
 				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
-					string_matrix_config[step] = above_limit[index_state];
+					string_matrix_config[step] = above_limit_light[index_state];
 					index_state++;
 				}
 			}
 			else if(sensor_value < MIN_LIGHT){
 				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
-					string_matrix_config[step] = under_limit[index_state];
+					string_matrix_config[step] = under_limit_light[index_state];
 					index_state++;
 				}
 			}
 			else if((sensor_value > MIN_LIGHT) && (sensor_value < MAX_LIGHT)){
 				for(step = curr_pos; step <= (curr_pos + SIZE_COLOR - 1); step++){
-					string_matrix_config[step] = inside_limit[index_state];
+					string_matrix_config[step] = inside_limit_light[index_state];
 					index_state++;
 				}
 			}

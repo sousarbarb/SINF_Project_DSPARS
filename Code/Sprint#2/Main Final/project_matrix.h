@@ -44,12 +44,15 @@
 
 #define	MAX_LIGHT	350
 #define MIN_LIGHT	10
-#define	MAX_HUMID	50
+#define	MAX_HUMID	30
 #define	MIN_HUMID	5
-#define MAX_TEMP	40
+#define MAX_TEMP	30
 #define MIN_TEMP	10
 
-static const char on_state[] = "[  0,255,  0]", off_state[] = "[127,127,127]", under_limit[] = "[145,234,237]", above_limit[] = "[ 18, 24,153]", inside_limit[] = "[ 44,109,222]";
+static const char on_state[] = "[  0,255,  0]", off_state[] = "[127,127,127]";
+static const char under_limit_humidity[] = "[145,234,237]", above_limit_humidity[] = "[ 18, 24,153]", inside_limit_humidity[] = "[ 44,109,222]";
+static const char under_limit_light[] = "[193,133, 23]", above_limit_light[] = "[252,255, 88]", inside_limit_light[] = "[247,225, 11]";
+static const char under_limit_temperature[] = "[244,156,225]", above_limit_temperature[] = "[131, 12,105]", inside_limit_temperature[] = "[245, 77,209]";
 
 int determination_of_maximum(int divisions, int elements);
 

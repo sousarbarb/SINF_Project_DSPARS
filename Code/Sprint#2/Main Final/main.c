@@ -26,6 +26,7 @@
 
 
 #include <stdio.h>
+#include <math.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -221,6 +222,8 @@ void *thread_data_processing(void *arg);
    FUNCTIONS USED BY THREAD RULE IMPLEMENTATION (PTH2)
  *******************************************************/
 int search_sensor_mote(char * sensor, int number_motes, int * mote_id_sensor, int * type_sensor);
+void atualize_RGBstring_sensors_state_RGBMatrix(char * buffer_rgb_pssRGB, int matrix_side);
+void atualize_RGBstring_actuators_state_RGBMatrix(char * buffer_rgb_pssRGB, int matrix_side);
 
 
 /********************************************
@@ -257,6 +260,12 @@ void init_divisions_configuration(void);
    RULE'S CONFIGURATION
  ************************/
 void init_rules_configuration(void);
+
+
+/*********************************
+   MATRIX'S CONFIGURATION - CODE
+ *********************************/
+void init_matrix_configuration(void);
 
 
 /*******************************
@@ -320,11 +329,15 @@ void HAS_query_insertRule(int id_rule, char * nam_sens_cond_1, char op_cond_1, i
 void HAS_query_insertActuatorFutureState(int id_act_fut_stat, char * fut_stat, int id_actuator, int id_rule);
 PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * actuator_name, int * id_actuator, int * error_check);
 
+void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char *act_state);
+PGresult* HAS_query_getActuatorsState(int * error_check);
+
+void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, float value);
+PGresult* HAS_query_getSensorsData(int * error_check);
+
 PGresult* HAS_query_getUserInfo(int id_user, int * error_check);
 void HAS_query_showActiveUsersInfo(void);void HAS_query_insertUser(int id, char * name, char * permission, char * password, int state, int id_apartment, int * error_check);
 
-void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, float value);
-void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char *act_state);
 
 /*****************
  * +++++++++++++ *
@@ -419,7 +432,7 @@ int main(int argc, char **argv)
 	/***************************************
 	   INIT ROUTINE - MOTE'S CONFIGURATION *
 	 ***************************************/
-	printf("\n\n\n\n\n\n"
+	printf("\n"
 	       "++++++++++++++++++++++++++++++++++++++++++\n"
 	       "++++++++++ MOTE'S CONFIGURATION ++++++++++\n"
 	       "++++++++++++++++++++++++++++++++++++++++++\n");
@@ -486,6 +499,9 @@ int main(int argc, char **argv)
 		rgb_matrix_channel = NULL;
 		PQfinish(dbconn);
 		dbconn = NULL;
+		printf("\n**********************************************************************\n");
+		printf("************************* END OF PROGRAM HAS *************************\n");
+		printf("**********************************************************************\n\n");
 		exit(-1);
 	}
 	write_size_matrix("RGBMatrixConf.txt", number_divisions, number_maximum_sensors + number_maximum_actuators);
@@ -504,11 +520,12 @@ int main(int argc, char **argv)
 		sensor_data_channel = NULL;
 		fclose(rgb_matrix_channel);
 		rgb_matrix_channel = NULL;
+		printf("\n**********************************************************************\n");
+		printf("************************* END OF PROGRAM HAS *************************\n");
+		printf("**********************************************************************\n\n");
 		exit(-1);
 	}
-	/********************************************************
-	   !!!!! FALTA PÔR OS ATUADORES E OS SENSORES A 0 !!!!!
-	 ********************************************************/
+	init_matrix_configuration();
 	
 	
 	/***********************
@@ -1278,6 +1295,27 @@ void init_rules_configuration(void){
 			}
 		}
 	}
+}
+
+
+/*********************************
+   MATRIX'S CONFIGURATION - CODE
+ *********************************/
+void init_matrix_configuration(void){
+	/*
+	 * Fazer os seguintes queries:
+	 * 		- SELECT id, actuator_state, id_divisions, act_matrix_id FROM actuator
+	 * 		- SELECT id, mote_id, sensor_type, data, id_divisions_ sens_matrix_id FROM sensors
+	 */
+	atualize_RGBstring_sensors_state_RGBMatrix(buffer_rgb_channel, matrix_side_size);
+	atualize_RGBstring_actuators_state_RGBMatrix(buffer_rgb_channel, matrix_side_size);
+	
+	//printf("STRING RGB:\n%s\n", buffer_rgb_channel);
+	
+	rgb_matrix_channel = fopen((*pointer_rgb_channel), "w");
+	fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
+	fclose(rgb_matrix_channel);
+	rgb_matrix_channel = NULL;
 }
 
 
@@ -2219,50 +2257,10 @@ void HAS_query_insertRule(int id_rule, char * nam_sens_cond_1, char op_cond_1, i
 		printf("[HAS_query_insertRule Error Message] %s\n", PQresultErrorMessage(query));
 }
 
-/*****************************
-   SQL UPDATE SENSOR QUERIES 
- *****************************/
-void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, float value){
-	if(PQstatus(dbconn) == CONNECTION_BAD){
-		printf("ERROR_UPDATE_DATA_SENSOR %d: Connection failed!\n",ERROR_UPDATE_DATA_SENSOR_1);
-		return;
-	}
-	else if(mote_id < 0){
-		printf("ERROR_UPDATE_DATA_SENSOR %d: Mote id can't be less than zero!\n",ERROR_UPDATE_DATA_SENSOR_2);
-		return;
-	}
-	else if(type_sens == NULL){
-		printf("ERROR_UPDATE_DATA_SENSOR %d: Sensor's type is invalid!\n",ERROR_UPDATE_DATA_SENSOR_3);
-		return;
-	}
-	char str_query[256];
-	sprintf(str_query,"UPDATE sensor SET data=%f "
-						"WHERE mote_id=%d AND sensor_type='%s'",value,mote_id,type_sens);
-	PGresult *query = PQexec(dbconn,str_query);
-	if(PQresultStatus(query) != PGRES_COMMAND_OK){
-		printf("ERROR_UPDATE_DATA_SENSOR %d: The update query of sensor's data is incorrect!\n",ERROR_UPDATE_DATA_SENSOR_4);
-		PQclear(query);
-		return;
-	}
-	else printf("The data of the sensor named '%s' from the mote %d was successfully updated to the value: %.2f\n",type_sens,mote_id,value);
-	PQclear(query);
-	
-	sprintf(str_query,"UPDATE sensor SET time=(CURRENT_TIME(0) AT TIME ZONE 'GMT-1'),day=CURRENT_DATE "
-						"WHERE mote_id=%d AND sensor_type='%s'",mote_id,type_sens);
-	query = PQexec(dbconn,str_query);
-	if(PQresultStatus(query) != PGRES_COMMAND_OK){
-		printf("ERROR_UPDATE_DATA_SENSOR %d: The update query of sensor's day and time is incorrect!\n",ERROR_UPDATE_DATA_SENSOR_5);
-		PQclear(query);
-		return;
-	}
-	else printf("Date and time were successfully updated to current time and day!\n");
-	PQclear(query);
-	return;
-}
- 
- /******************************
-   SQL UPDATE ACTUATOR QUERIES 
- *******************************/
+
+/************************
+   SQL ACTUATOR QUERIES 
+ ************************/
 void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char *act_state){
 	if(PQstatus(dbconn) == CONNECTION_BAD){
 		printf("ERROR_UPDATE_STATE_ACTUATOR %d: Connection failed!\n",ERROR_UPDATE_STATE_ACTUATOR_1);
@@ -2304,6 +2302,93 @@ void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char
 	PQclear(query);
 	return;
 }
+
+PGresult* HAS_query_getActuatorsState(int * error_check){
+	if(CONNECTION_BAD == PQstatus(dbconn)){
+		printf("[HAS_query_getActuatorsState ERROR] Connection to the database is bad.\n");
+		if(NULL != error_check)
+			(*error_check) = 1;
+		return NULL;
+	}
+	
+	PGresult *query = PQexec(dbconn, "SELECT id, actuator_state, id_divisions, act_matrix_id FROM actuator");
+	if(PQresultStatus(query) == PGRES_TUPLES_OK){
+		if(NULL != error_check)
+			(*error_check) = 0;
+		return query;
+	}
+	else{
+		printf("[HAS_query_getActuatorsState Error Message] %s\n", PQresultErrorMessage(query));
+		if(NULL != error_check)
+			(*error_check) = 2;
+		return NULL;
+	}
+}
+
+
+/***********************
+   SQL SENSORS QUERIES 
+ ***********************/
+void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, float value){
+	if(PQstatus(dbconn) == CONNECTION_BAD){
+		printf("ERROR_UPDATE_DATA_SENSOR %d: Connection failed!\n",ERROR_UPDATE_DATA_SENSOR_1);
+		return;
+	}
+	else if(mote_id < 0){
+		printf("ERROR_UPDATE_DATA_SENSOR %d: Mote id can't be less than zero!\n",ERROR_UPDATE_DATA_SENSOR_2);
+		return;
+	}
+	else if(type_sens == NULL){
+		printf("ERROR_UPDATE_DATA_SENSOR %d: Sensor's type is invalid!\n",ERROR_UPDATE_DATA_SENSOR_3);
+		return;
+	}
+	char str_query[256];
+	sprintf(str_query,"UPDATE sensor SET data=%f "
+						"WHERE mote_id=%d AND sensor_type='%s'",value,mote_id,type_sens);
+	PGresult *query = PQexec(dbconn,str_query);
+	if(PQresultStatus(query) != PGRES_COMMAND_OK){
+		printf("ERROR_UPDATE_DATA_SENSOR %d: The update query of sensor's data is incorrect!\n",ERROR_UPDATE_DATA_SENSOR_4);
+		PQclear(query);
+		return;
+	}
+	else printf("The data of the sensor named '%s' from the mote %d was successfully updated to the value: %.2f\n",type_sens,mote_id,value);
+	PQclear(query);
+	
+	sprintf(str_query,"UPDATE sensor SET time=(CURRENT_TIME(0) AT TIME ZONE 'GMT-1'),day=CURRENT_DATE "
+						"WHERE mote_id=%d AND sensor_type='%s'",mote_id,type_sens);
+	query = PQexec(dbconn,str_query);
+	if(PQresultStatus(query) != PGRES_COMMAND_OK){
+		printf("ERROR_UPDATE_DATA_SENSOR %d: The update query of sensor's day and time is incorrect!\n",ERROR_UPDATE_DATA_SENSOR_5);
+		PQclear(query);
+		return;
+	}
+	else printf("Date and time were successfully updated to current time and day!\n");
+	PQclear(query);
+	return;
+}
+
+PGresult* HAS_query_getSensorsData(int * error_check){
+	if(CONNECTION_BAD == PQstatus(dbconn)){
+		printf("[HAS_query_getSensorsData ERROR] Connection to the database is bad.\n");
+		if(NULL != error_check)
+			(*error_check) = 1;
+		return NULL;
+	}
+	
+	PGresult *query = PQexec(dbconn, "SELECT id, mote_id, sensor_type, data, id_divisions, sens_matrix_id FROM sensor");
+	if(PQresultStatus(query) == PGRES_TUPLES_OK){
+		if(NULL != error_check)
+			(*error_check) = 0;
+		return query;
+	}
+	else{
+		printf("[HAS_query_getSensorsData Error Message] %s\n", PQresultErrorMessage(query));
+		if(NULL != error_check)
+			(*error_check) = 2;
+		return NULL;
+	}
+}
+
 
 /*************************************
    SQL ACTUATOR FUTURE STATE QUERIES 
@@ -2375,7 +2460,6 @@ PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * a
 		return NULL;
 	}
 }
-
 
 
 /*********************
@@ -2772,6 +2856,82 @@ int search_sensor_mote(char * sensor, int number_motes, int * mote_id_sensor, in
 		(*mote_id_sensor) = -1;
 		return 0;
 	}
+}
+
+void atualize_RGBstring_sensors_state_RGBMatrix(char * buffer_rgb_pssRGB, int matrix_side){
+	int counter_rows, numb_rows, error_check;
+	PGresult *query;
+	query = HAS_query_getSensorsData(&error_check);
+	if(NULL != query)
+		numb_rows = PQntuples(query);
+	else
+		numb_rows = 0;
+	if(NULL != query && 0 < numb_rows){
+		for(counter_rows = 0; counter_rows < numb_rows; counter_rows++){
+			switch(PQgetvalue(query, counter_rows, 2)[0]){
+				case 'L':
+				buffer_rgb_pssRGB = configuration_matrix_sensors(
+					buffer_rgb_pssRGB, 
+					matrix_side, 
+					atoi(PQgetvalue(query, counter_rows, 4)) + 1, 
+					atoi(PQgetvalue(query, counter_rows, 5)) + 1, 
+					atoi(PQgetvalue(query, counter_rows, 3)), 
+					TYPE_SENS_LIGHT
+					);
+				break;
+				case 'H':
+				buffer_rgb_pssRGB = configuration_matrix_sensors(
+					buffer_rgb_pssRGB, 
+					matrix_side, 
+					atoi(PQgetvalue(query, counter_rows, 4)) + 1, 
+					atoi(PQgetvalue(query, counter_rows, 5)) + 1, 
+					atoi(PQgetvalue(query, counter_rows, 3)), 
+					TYPE_SENS_HUM
+					);
+				break;
+				case 'T':
+				buffer_rgb_pssRGB = configuration_matrix_sensors(
+					buffer_rgb_pssRGB, 
+					matrix_side, 
+					atoi(PQgetvalue(query, counter_rows, 4)) + 1, 
+					atoi(PQgetvalue(query, counter_rows, 5)) + 1, 
+					atoi(PQgetvalue(query, counter_rows, 3)), 
+					TYPE_SENS_TEMP
+					);
+				break;
+				default:
+				printf("[atualize_RGBstring_sensors_state_RGBMatrix Error Message] Sensor's (%d) type (%s) of the division %d not founded\n", atoi(PQgetvalue(query, counter_rows, 0)), PQgetvalue(query, counter_rows, 2), atoi(PQgetvalue(query, counter_rows, 4)));
+			}
+			
+		}
+		PQclear(query);
+	}
+	else
+		printf("[atualize_RGBstring_sensors_state_RGBMatrix Error Message] There are none sensors to pass their state to the RGBMatrix\n");
+}
+
+void atualize_RGBstring_actuators_state_RGBMatrix(char * buffer_rgb_pssRGB, int matrix_side){
+	int counter_rows, numb_rows, error_check;
+	PGresult *query;
+	query = HAS_query_getActuatorsState(&error_check);
+	if(NULL != query)
+		numb_rows = PQntuples(query);
+	else
+		numb_rows = 0;
+	if(NULL != query && 0 < numb_rows){
+		for(counter_rows = 0; counter_rows < numb_rows; counter_rows++){
+			buffer_rgb_pssRGB = configuration_matrix_actuators(
+				buffer_rgb_pssRGB, 
+				matrix_side, 
+				atoi(PQgetvalue(query, counter_rows, 2)) + 1, 
+				atoi(PQgetvalue(query, counter_rows, 3)) + 1, 
+				PQgetvalue(query, counter_rows, 1)
+				);
+		}
+		PQclear(query);
+	}
+	else
+		printf("[atualize_RGBstring_actuators_state_RGBMatrix Error Message] There are none actuators to pass their state to the RGBMatrix\n");
 }
 
 
