@@ -195,7 +195,7 @@
 FILE *sensor_data_channel = NULL, *rgb_matrix_channel = NULL;
 static const char CHANNEL_DEF[]="/dev/pts/";
 int number_motes, number_rules, number_divisions, number_maximum_actuators, number_maximum_sensors, matrix_side_size, count_divisions, divisions_configuration, sens_matrix_id, id_sensor, act_matrix_id, id_actuator;
-int flag_interface = 1;
+int flag_interface = 1, flag_command = 1;
 int *flag_rules = NULL;
 char **pointer_rgb_channel = NULL;
 char *buffer_rgb_channel = NULL;
@@ -3190,8 +3190,9 @@ void *user_interface(void *arg){
 		printf("2. Display division's rules information \n");
 		printf("3. Display sensor's information         \n");
 		printf("4. Display actuators's information      \n");
-		printf("5. Display actuators's and sensors information      \n");
-		printf("6. Exit Home Automative System          \n");
+		printf("5. Display actuators's and sensors information		\n");
+		printf("6. Logout from the system				\n");
+		printf("7. Exit Home Automative System          \n");
 		printf("\n");
 		printf("Insert the desired option (press Enter after): ");
 		user_answer = getchar();
@@ -3215,6 +3216,9 @@ void *user_interface(void *arg){
 			case '6':
 				flag_interface = 0;
 				break;
+			case '7':
+				flag_interface = 0;
+				flag_command = 0;
 			default:
 				printf("Insert a valid option.\n");
 		}
