@@ -202,7 +202,10 @@ mote **system_motes = NULL;
 
 // DATABASE
 const char *conn = "host='db.fe.up.pt' user='sinfa15' password='DSPARS_sinf2018*'";
-PGconn *dbconn;
+PGconn *dbconn_main;
+PGconn *dbconn_1;
+PGconn *dbconn_2;
+PGconn *dbconn_3;
 
 // User information
 int user_id, user_id_apartment;
@@ -230,8 +233,8 @@ void *thread_data_processing(void *arg);
    FUNCTIONS USED BY THREAD RULE IMPLEMENTATION (PTH2)
  *******************************************************/
 int search_sensor_mote(char * sensor, int number_motes, int * mote_id_sensor, int * type_sensor);
-void atualize_RGBstring_sensors_state_RGBMatrix(char * buffer_rgb_pssRGB, int matrix_side);
-void atualize_RGBstring_actuators_state_RGBMatrix(char * buffer_rgb_pssRGB, int matrix_side);
+void atualize_RGBstring_sensors_state_RGBMatrix(PGconn *dbconn, char * buffer_rgb_pssRGB, int matrix_side);
+void atualize_RGBstring_actuators_state_RGBMatrix(PGconn *dbconn, char * buffer_rgb_pssRGB, int matrix_side);
 
 
 /********************************************
@@ -249,31 +252,31 @@ void *user_interface(void *arg);
 /****************************
    INIT_LOGIN_IN_THE_SYSTEM
  ****************************/
-void init_login_in_the_system(void);
+void init_login_in_the_system(PGconn *dbconn);
 
 
 /***********************
    INIT_TABLE_CREATION
  ***********************/
-void init_table_creation(void);
+void init_table_creation(PGconn *dbconn);
 
 
 /****************************
    DIVISION'S CONFIGURATION
  ****************************/
-void init_divisions_configuration(void);
+void init_divisions_configuration(PGconn *dbconn);
 
 
 /************************
    RULE'S CONFIGURATION
  ************************/
-void init_rules_configuration(void);
+void init_rules_configuration(PGconn *dbconn);
 
 
 /*********************************
    MATRIX'S CONFIGURATION - CODE
  *********************************/
-void init_matrix_configuration(void);
+void init_matrix_configuration(PGconn *dbconn);
 
 
 /*******************************
@@ -323,34 +326,35 @@ void HAS_print_division_info(PGconn *dbconn, char user_answer, int number_divisi
 /***************
    SQL QUERIES
  ***************/
-PGresult* HAS_query_getNumberDivisions(int id_apartment, int * num_divisions, int * error_check);
-PGresult* HAS_query_getNameDivision(int id_division, char * name_division, int * error_check);
-int HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(int id_apartment, int * id_division_max_sensors, int * error_check);
-int HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(int id_apartment, int * id_division_max_actuators, int * error_check);
+PGresult* HAS_query_getNumberDivisions(PGconn *dbconn, int id_apartment, int * num_divisions, int * error_check);
+PGresult* HAS_query_getNameDivision(PGconn *dbconn, int id_division, char * name_division, int * error_check);
+int HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(PGconn *dbconn, int id_apartment, int * id_division_max_sensors, int * error_check);
+int HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(PGconn *dbconn, int id_apartment, int * id_division_max_actuators, int * error_check);
 void HAS_query_delete_tables(PGconn *dbconn, int *error_check);
 void HAS_query_insert_division_info(PGconn *dbconn, char *str, int * error_check);
 void HAS_query_insert_divisions_sensors(PGconn *dbconn, char **vector_string, int id_division, int number_sensors, int * error_check);
 void HAS_query_insert_divisions_actuators(PGconn *dbconn, char **vector_string, int id_division, int number_actuators, int * error_check);
 void HAS_query_update_number_divisions_apartament(PGconn *dbconn, int num_divisions);
 
-PGresult* HAS_query_updateNumRules(int id_division, int num_rules, int * error_check);
-void HAS_query_clearRulesTable(void);
-void HAS_query_insertRule(int id_rule, char * nam_sens_cond_1, char op_cond_1, int thres_cond_1, char * nam_sens_cond_2, char op_cond_2, int thres_cond_2, int samp_per, char * schedule, int id_division, int num_act_fut_stat, char * logic_op_1_2);
-PGresult* HAS_query_getRules(int * error_check);
+PGresult* HAS_query_updateNumRules(PGconn *dbconn, int id_division, int num_rules, int * error_check);
+void HAS_query_clearRulesTable(PGconn *dbconn);
+void HAS_query_insertRule(PGconn *dbconn, int id_rule, char * nam_sens_cond_1, char op_cond_1, int thres_cond_1, char * nam_sens_cond_2, char op_cond_2, int thres_cond_2, int samp_per, char * schedule, int id_division, int num_act_fut_stat, char * logic_op_1_2);
+PGresult* HAS_query_getRules(PGconn *dbconn, int * error_check);
 
-void HAS_query_insertActuatorFutureState(int id_act_fut_stat, char * fut_stat, int id_actuator, int id_rule);
-PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * actuator_name, int * id_actuator, int * error_check);
+void HAS_query_insertActuatorFutureState(PGconn *dbconn, int id_act_fut_stat, char * fut_stat, int id_actuator, int id_rule);
+PGresult* HAS_query_getActuatorIdToActuatorFutureState(PGconn *dbconn, int id_division, char * actuator_name, int * id_actuator, int * error_check);
 
 void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, float value);
-PGresult* HAS_query_getSensorsData(int * error_check);
+PGresult* HAS_query_getSensorsData(PGconn *dbconn, int * error_check);
 int HAS_query_search_sensor(PGconn *dbconn, char *name, int mote);
-int HAS_query_getSpecificSensorData(int id_division, int id_mote, int sensor_type, int * error_check);
+int HAS_query_getSpecificSensorData(PGconn *dbconn, int id_division, int id_mote, int sensor_type, int * error_check);
 
 void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char *act_state);
-PGresult* HAS_query_getActuatorsState(int * error_check);
+PGresult* HAS_query_getActuatorsState(PGconn *dbconn, int * error_check);
 
-PGresult* HAS_query_getUserInfo(int id_user, int * error_check);
-void HAS_query_showActiveUsersInfo(void);void HAS_query_insertUser(int id, char * name, char * permission, char * password, int state, int id_apartment, int * error_check);
+PGresult* HAS_query_getUserInfo(PGconn *dbconn, int id_user, int * error_check);
+void HAS_query_showActiveUsersInfo(PGconn *dbconn);
+void HAS_query_insertUser(PGconn *dbconn, int id, char * name, char * permission, char * password, int state, int id_apartment, int * error_check);
 
 
 /*****************
@@ -428,8 +432,8 @@ int main(int argc, char **argv)
 		/**************************************
 		   INIT ROUTINE - DATABASE CONNECTION
 		 **************************************/
-		dbconn = PQconnectdb(conn);
-		if (PQstatus(dbconn) == CONNECTION_BAD){
+		dbconn_main = PQconnectdb(conn);
+		if (PQstatus(dbconn_main) == CONNECTION_BAD){
 			printf("[DATABASE_ERROR %d] Unable to connect with the database. Please try again by restarting the program or check the ethernet connection\n", DB_ERROR_1);
 			exit(-1);
 		}
@@ -437,7 +441,7 @@ int main(int argc, char **argv)
 		/**************************************************
 		   INIT ROUTINE - TABLES CREATION IN THE DATABASE
 		 **************************************************/
-		init_table_creation();
+		init_table_creation(dbconn_main);
 		
 		/**************************************
 		   INIT ROUTINE - LOGIN IN THE SYSTEM
@@ -445,7 +449,7 @@ int main(int argc, char **argv)
 		printf("+++++++++++++++++++++++++++\n"
 			   "++++++++++ LOGIN ++++++++++\n"
 			   "+++++++++++++++++++++++++++\n");
-		init_login_in_the_system();
+		init_login_in_the_system(dbconn_main);
 		
 		/***************************************
 		   INIT ROUTINE - MOTE'S CONFIGURATION *
@@ -467,8 +471,8 @@ int main(int argc, char **argv)
 			sensor_data_channel = NULL;
 			fclose(rgb_matrix_channel);
 			rgb_matrix_channel = NULL;
-			PQfinish(dbconn);
-			dbconn = NULL;
+			PQfinish(dbconn_main);
+			dbconn_main = NULL;
 			exit(-1);
 		}
 		
@@ -479,7 +483,7 @@ int main(int argc, char **argv)
 			   "++++++++++++++++++++++++++++++++++++++++++++++\n"
 			   "++++++++++ DIVISION'S CONFIGURATION ++++++++++\n"
 			   "++++++++++++++++++++++++++++++++++++++++++++++\n");
-		init_divisions_configuration();
+		init_divisions_configuration(dbconn_main);
 		
 		/*******************************************
 		   INIT ROUTINE - RULE'S CONFIGURATION
@@ -488,33 +492,33 @@ int main(int argc, char **argv)
 			   "++++++++++++++++++++++++++++++++++++++++++\n"
 			   "++++++++++ RULE'S CONFIGURATION ++++++++++\n"
 			   "++++++++++++++++++++++++++++++++++++++++++\n");
-		init_rules_configuration();
+		init_rules_configuration(dbconn_main);
 		
 		/*****************************************
 		   INIT ROUTINE - MATRIX'S CONFIGURATION
 		 *****************************************/
 		error_check = 0;
-		number_maximum_actuators = HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(0, &aux1, &error_check);
+		number_maximum_actuators = HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(dbconn_main, 0, &aux1, &error_check);
 		if(0 != error_check){
 			printf("[MAIN_ERROR %d] An error has occurred in the number_maximum_actuators calculation.\n", MAIN_ERROR_6);
 			fclose(sensor_data_channel);
 			sensor_data_channel = NULL;
 			fclose(rgb_matrix_channel);
 			rgb_matrix_channel = NULL;
-			PQfinish(dbconn);
-			dbconn = NULL;
+			PQfinish(dbconn_main);
+			dbconn_main = NULL;
 			exit(-1);
 		}
 		error_check = 0;
-		number_maximum_sensors = HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(0, &aux1, &error_check);
+		number_maximum_sensors = HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(dbconn_main, 0, &aux1, &error_check);
 		if(0 != error_check){
 			printf("[MAIN_ERROR %d] An error has occurred in the number_maximum_sensors calculation.\n", MAIN_ERROR_7);
 			fclose(sensor_data_channel);
 			sensor_data_channel = NULL;
 			fclose(rgb_matrix_channel);
 			rgb_matrix_channel = NULL;
-			PQfinish(dbconn);
-			dbconn = NULL;
+			PQfinish(dbconn_main);
+			dbconn_main = NULL;
 			printf("\n**********************************************************************\n");
 			printf("************************* END OF PROGRAM HAS *************************\n");
 			printf("**********************************************************************\n\n");
@@ -541,7 +545,7 @@ int main(int argc, char **argv)
 			printf("**********************************************************************\n\n");
 			exit(-1);
 		}
-		init_matrix_configuration();
+		init_matrix_configuration(dbconn_main);
 		
 		
 		/***********************
@@ -563,16 +567,21 @@ int main(int argc, char **argv)
 		   TERMINATION ROUTINE
 		 ***********************/
 		free_mote_memory(system_motes, number_motes, NULL);
-		free(buffer_rgb_channel);
-		buffer_rgb_channel = NULL;
-		fclose(sensor_data_channel);
-		sensor_data_channel = NULL;
-		PQfinish(dbconn);
-		dbconn = NULL;
+		PQfinish(dbconn_1);
+		dbconn_1 = NULL;
+		PQfinish(dbconn_2);
+		dbconn_2 = NULL;
+		PQfinish(dbconn_3);
+		dbconn_3 = NULL;
+		PQfinish(dbconn_main);
+		dbconn_main = NULL;
 		
 	}while(1 == flag_command);
 	
-	
+	free(buffer_rgb_channel);
+	buffer_rgb_channel = NULL;
+	fclose(sensor_data_channel);
+	sensor_data_channel = NULL;
 	
 	printf("\n**********************************************************************\n");
 	printf("************************* END OF PROGRAM HAS *************************\n");
@@ -590,7 +599,7 @@ int main(int argc, char **argv)
 /***********************************
    INIT_LOGIN_IN_THE_SYSTEM - CODE
  ***********************************/
-void init_login_in_the_system(void){
+void init_login_in_the_system(PGconn *dbconn){
 	int user_id_aux, error_check, invalid_tries = 0, login_status = 0;
 	char str[INIT_LOGIN_IN_THE_SYSTEM_BUFFER_SIZE];
 	char str_aux[INIT_LOGIN_IN_THE_SYSTEM_BUFFER_SIZE];
@@ -615,7 +624,7 @@ void init_login_in_the_system(void){
 					
 				if(LOGIN_LIM_INVALID_TRIES <= invalid_tries){
 					printf("\nLimit of invalid tries reached! The program will now close.\n");
-					HAS_query_showActiveUsersInfo();
+					HAS_query_showActiveUsersInfo(dbconn);
 					PQfinish(dbconn);
 					dbconn = NULL;
 					printf("\n**********************************************************************\n"
@@ -627,7 +636,7 @@ void init_login_in_the_system(void){
 			}
 		} while(user_id_aux < 0);
 		
-		query = HAS_query_getUserInfo(user_id_aux, &error_check);
+		query = HAS_query_getUserInfo(dbconn, user_id_aux, &error_check);
 		if(1 == error_check){
 			printf("Unable to connect with the database! The program will now close.\n");
 			PQclear(query);
@@ -644,7 +653,7 @@ void init_login_in_the_system(void){
 			invalid_tries++;
 			if(LOGIN_LIM_INVALID_TRIES <= invalid_tries){
 				printf("\n    Limit of invalid tries reached! The program will now close.\n");
-				HAS_query_showActiveUsersInfo();
+				HAS_query_showActiveUsersInfo(dbconn);
 				PQfinish(dbconn);
 				dbconn = NULL;
 				printf("\n**********************************************************************\n"
@@ -657,7 +666,7 @@ void init_login_in_the_system(void){
 		}
 		else if(1 != atoi(PQgetvalue(query, 0, 3))){
 			printf("\n    The intended user ins't active at the moment. Please talk with the administrators of the system.\n");
-			HAS_query_showActiveUsersInfo();
+			HAS_query_showActiveUsersInfo(dbconn);
 			PQclear(query);
 			PQfinish(dbconn);
 			dbconn = NULL;
@@ -691,7 +700,7 @@ void init_login_in_the_system(void){
 			if(LOGIN_LIM_INVALID_TRIES <= invalid_tries){
 				printf("\nLimit of invalid tries reached! The program will now close.\n");
 				PQclear(query);
-				HAS_query_showActiveUsersInfo();
+				HAS_query_showActiveUsersInfo(dbconn);
 				PQfinish(dbconn);
 				dbconn = NULL;
 				printf("\n**********************************************************************\n"
@@ -727,7 +736,7 @@ void init_login_in_the_system(void){
 /******************************
    INIT_TABLE_CREATION - CODE
  ******************************/
-void init_table_creation(void){
+void init_table_creation(PGconn *dbconn){
 	/* DANIEL DA SILVA QUEIRÓS
 	 * 
 	 * 1-Verificar se cada tabela existe
@@ -905,7 +914,7 @@ void init_table_creation(void){
 			
 			if(res_query == TABLE_CREATED){
 				printf("INFO_USERS: The table 'users' was successfully created!\n");
-				HAS_query_insertUser(0, "User", "admin", "12345", 1, 0, NULL);
+				HAS_query_insertUser(dbconn, 0, "User", "admin", "12345", 1, 0, NULL);
 			}
 			else if(res_query == TABLE_NOT_CREATED){
 				printf("INFO_USERS: The table 'users' couldn't be created!\n");
@@ -978,7 +987,7 @@ void init_table_creation(void){
 /***********************************
    DIVISION'S CONFIGURATION - CODE
  ***********************************/
-void init_divisions_configuration(void){
+void init_divisions_configuration(PGconn *dbconn){
 	/* PEDRO DE CASTRO MOTA CALBERGARIA
 	 * 
 	 * 1-Perguntar ao utilizador se quer manter o que estava lá antes ou então fazer
@@ -1040,7 +1049,7 @@ void init_divisions_configuration(void){
 			
 	} else {			// O utilizador que manter a configuração das divisões
 		divisions_configuration = OLD_DIVISIONS_CONFIGURATION;
-		query = HAS_query_getNumberDivisions(0, &number_divisions, NULL);	
+		query = HAS_query_getNumberDivisions(dbconn, 0, &number_divisions, NULL);	
 	}
 	PQclear(query);	
 }
@@ -1049,7 +1058,7 @@ void init_divisions_configuration(void){
 /*******************************
    RULE'S CONFIGURATION - CODE
  *******************************/
-void init_rules_configuration(void){
+void init_rules_configuration(PGconn *dbconn){
 	/* O TÉCNICO BARBOSA
 	 * 
 	 * 1-Perguntar ao utilizador se quer alterar as regras todas ou não
@@ -1092,13 +1101,13 @@ void init_rules_configuration(void){
 	if('Y' == user_answer || 'y' == user_answer || NEW_DIVISIONS_CONFIGURATION == divisions_configuration){
 		number_rules = 0;
 		counter_act_fut_sta = 0;
-		HAS_query_clearRulesTable();
-		rules_query = HAS_query_getNumberDivisions(0, &number_divisions, &error_check);
+		HAS_query_clearRulesTable(dbconn);
+		rules_query = HAS_query_getNumberDivisions(dbconn, 0, &number_divisions, &error_check);
 		PQclear(rules_query);
 		printf("Number of divisions associated with the apartment 0: %d\n", number_divisions);
 		
 		for(counter_divisions = 0; counter_divisions < number_divisions; counter_divisions++){
-			rules_query = HAS_query_getNameDivision(counter_divisions, name_division, &error_check);
+			rules_query = HAS_query_getNameDivision(dbconn, counter_divisions, name_division, &error_check);
 			PQclear(rules_query);
 			printf("\n************************************************************"
 			       "\n************************************************************"
@@ -1126,7 +1135,7 @@ void init_rules_configuration(void){
 					printf("Please insert a valid number of rules.\n");
 			}while(0 > number_rules_per_division);
 			
-			rules_query = HAS_query_updateNumRules(counter_divisions, number_rules_per_division, &error_check);
+			rules_query = HAS_query_updateNumRules(dbconn, counter_divisions, number_rules_per_division, &error_check);
 			PQclear(rules_query);
 			
 			for(counter_rules = 0; counter_rules < number_rules_per_division; counter_rules++){
@@ -1269,7 +1278,7 @@ void init_rules_configuration(void){
 						counter4++;
 				num_actuator_conditions = counter4;
 
-				HAS_query_insertRule(number_rules, sensor_condition_1, operator_condition_1, value_condition_1, sensor_condition_2, operator_condition_2, value_condition_2, 0, NULL, counter_divisions, num_actuator_conditions, logic_operator_condition_1_2);
+				HAS_query_insertRule(dbconn, number_rules, sensor_condition_1, operator_condition_1, value_condition_1, sensor_condition_2, operator_condition_2, value_condition_2, 0, NULL, counter_divisions, num_actuator_conditions, logic_operator_condition_1_2);
 
 				
 				for(counter3 = 0; (counter3 < num_actuator_conditions) && ('\0' != string_aux1[counter2]); counter3++){
@@ -1290,7 +1299,7 @@ void init_rules_configuration(void){
 					}
 					act_future_stat_ON_OFF[counter4] = '\0';
 					
-					rules_query = HAS_query_getActuatorIdToActuatorFutureState(counter_divisions, act_future_stat, &id_actuator_aux, &error_check);
+					rules_query = HAS_query_getActuatorIdToActuatorFutureState(dbconn, counter_divisions, act_future_stat, &id_actuator_aux, &error_check);
 					PQclear(rules_query);
 					if(0 > id_actuator_aux){
 						printf("[INIT_RULES_CONFIG %d] Actuator %d of the future states invalid.\n", ERROR_INIT_RULES_CONFIG_11, counter3 + 1);
@@ -1298,7 +1307,7 @@ void init_rules_configuration(void){
 						return;
 					}
 					
-					HAS_query_insertActuatorFutureState(counter_act_fut_sta, act_future_stat_ON_OFF, id_actuator_aux, number_rules);
+					HAS_query_insertActuatorFutureState(dbconn, counter_act_fut_sta, act_future_stat_ON_OFF, id_actuator_aux, number_rules);
 					
 					while(' ' == string_aux1[counter2] && '\0' != string_aux1[counter2] && counter2 < integer_aux1)
 						counter2++;
@@ -1320,14 +1329,14 @@ void init_rules_configuration(void){
 /*********************************
    MATRIX'S CONFIGURATION - CODE
  *********************************/
-void init_matrix_configuration(void){
+void init_matrix_configuration(PGconn *dbconn){
 	/*
 	 * Fazer os seguintes queries:
 	 * 		- SELECT id, actuator_state, id_divisions, act_matrix_id FROM actuator
 	 * 		- SELECT id, mote_id, sensor_type, data, id_divisions_ sens_matrix_id FROM sensors
 	 */
-	atualize_RGBstring_sensors_state_RGBMatrix(buffer_rgb_channel, matrix_side_size);
-	atualize_RGBstring_actuators_state_RGBMatrix(buffer_rgb_channel, matrix_side_size);
+	atualize_RGBstring_sensors_state_RGBMatrix(dbconn, buffer_rgb_channel, matrix_side_size);
+	atualize_RGBstring_actuators_state_RGBMatrix(dbconn, buffer_rgb_channel, matrix_side_size);
 	
 	//printf("STRING RGB:\n%s\n", buffer_rgb_channel);
 	
@@ -1584,7 +1593,7 @@ int HAS_query_create_sensor_table(PGconn *dbconn){
 									"id INT PRIMARY KEY NOT NULL,"\
 									"mote_id INT CHECK (mote_id > 0) NOT NULL,"\
 									"sensor_type character varying(20) CHECK (sensor_type = 'LIGHT' OR sensor_type = 'HUM' OR sensor_type = 'TEMP') NOT NULL,"\
-									"data DOUBLE PRECISION NOT NULL,"\
+									"data INT NOT NULL,"\
 									"time TIME NOT NULL,"\
 									"id_divisions INT REFERENCES divisions(id) NOT NULL,"\
 									"day DATE NOT NULL,"\
@@ -1975,7 +1984,7 @@ void HAS_print_division_info(PGconn *dbconn, char user_answer, int num_divisions
 /*************************
    SQL DIVISIONS QUERIES 
  *************************/
-PGresult* HAS_query_getNumberDivisions(int id_apartment, int * num_divisions, int * error_check){
+PGresult* HAS_query_getNumberDivisions(PGconn *dbconn, int id_apartment, int * num_divisions, int * error_check){
 	if(NULL == num_divisions){
 		printf("[HAS_query_getNumberDivisions ERROR] Pointer to the num_divisions invalid.\n");
 		if(NULL != error_check)
@@ -2013,7 +2022,7 @@ PGresult* HAS_query_getNumberDivisions(int id_apartment, int * num_divisions, in
 	}
 }
 
-PGresult* HAS_query_getNameDivision(int id_division, char * name_division, int * error_check){
+PGresult* HAS_query_getNameDivision(PGconn *dbconn, int id_division, char * name_division, int * error_check){
 	if(NULL == name_division){
 		printf("[HAS_query_getNameDivision ERROR] Pointer to the name_division invalid.\n");
 		if(NULL != error_check)
@@ -2051,7 +2060,7 @@ PGresult* HAS_query_getNameDivision(int id_division, char * name_division, int *
 	}
 }
 
-int HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(int id_apartment, int * id_division_max_sensors, int * error_check){
+int HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(PGconn *dbconn, int id_apartment, int * id_division_max_sensors, int * error_check){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_getMaximumNumberSensorsDivisionsInAnApartment ERROR] Connection to the database is bad.\n");
 		if(NULL != error_check)
@@ -2094,7 +2103,7 @@ int HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(int id_apartment, in
 	}
 }
 
-int HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(int id_apartment, int * id_division_max_actuators, int * error_check){
+int HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(PGconn *dbconn, int id_apartment, int * id_division_max_actuators, int * error_check){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_getMaximumNumberSensorsDivisionsInAnApartment ERROR] Connection to the database is bad.\n");
 		if(NULL != error_check)
@@ -2359,7 +2368,7 @@ void HAS_query_update_number_divisions_apartament(PGconn *dbconn, int num_divisi
 /*********************
    SQL RULES QUERIES 
  *********************/
-PGresult* HAS_query_updateNumRules(int id_division, int num_rules, int * error_check){
+PGresult* HAS_query_updateNumRules(PGconn *dbconn, int id_division, int num_rules, int * error_check){
 	if(0 > id_division){
 		printf("[HAS_query_updateNumRules ERROR] Division id invalid.\n");
 		if(NULL != error_check)
@@ -2396,7 +2405,7 @@ PGresult* HAS_query_updateNumRules(int id_division, int num_rules, int * error_c
 	}
 }
 
-void HAS_query_clearRulesTable(void){
+void HAS_query_clearRulesTable(PGconn *dbconn){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_clearRulesTable ERROR] Connection to the database is bad.\n");
 		return;
@@ -2407,7 +2416,7 @@ void HAS_query_clearRulesTable(void){
 	PQclear(query);
 }
 
-void HAS_query_insertRule(int id_rule, char * nam_sens_cond_1, char op_cond_1, int thres_cond_1, char * nam_sens_cond_2, char op_cond_2, int thres_cond_2, int samp_per, char * schedule, int id_division, int num_act_fut_stat, char * logic_op_1_2){
+void HAS_query_insertRule(PGconn *dbconn, int id_rule, char * nam_sens_cond_1, char op_cond_1, int thres_cond_1, char * nam_sens_cond_2, char op_cond_2, int thres_cond_2, int samp_per, char * schedule, int id_division, int num_act_fut_stat, char * logic_op_1_2){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_insertRule ERROR] Connection to the database is bad.\n");
 		return;
@@ -2459,7 +2468,7 @@ void HAS_query_insertRule(int id_rule, char * nam_sens_cond_1, char op_cond_1, i
 		printf("[HAS_query_insertRule Error Message] %s\n", PQresultErrorMessage(query));
 }
 
-PGresult* HAS_query_getRules(int * error_check){
+PGresult* HAS_query_getRules(PGconn *dbconn, int * error_check){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_getRules ERROR] Connection to the database is bad.\n");
 		if(NULL != error_check)
@@ -2539,7 +2548,7 @@ void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char
 	return;
 }
 
-PGresult* HAS_query_getActuatorsState(int * error_check){
+PGresult* HAS_query_getActuatorsState(PGconn *dbconn, int * error_check){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_getActuatorsState ERROR] Connection to the database is bad.\n");
 		if(NULL != error_check)
@@ -2603,7 +2612,7 @@ void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, f
 	return;
 }
 
-PGresult* HAS_query_getSensorsData(int * error_check){
+PGresult* HAS_query_getSensorsData(PGconn *dbconn, int * error_check){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_getSensorsData ERROR] Connection to the database is bad.\n");
 		if(NULL != error_check)
@@ -2652,7 +2661,7 @@ int HAS_query_search_sensor(PGconn *dbconn, char *name, int mote){
 	}
 }
 
-int HAS_query_getSpecificSensorData(int id_division, int id_mote, int sensor_type, int * error_check){
+int HAS_query_getSpecificSensorData(PGconn *dbconn, int id_division, int id_mote, int sensor_type, int * error_check){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_getSpecificSensorData ERROR] Connection to the database is bad.\n");
 		if(NULL != error_check)
@@ -2714,7 +2723,7 @@ int HAS_query_getSpecificSensorData(int id_division, int id_mote, int sensor_typ
 /*************************************
    SQL ACTUATOR FUTURE STATE QUERIES 
  *************************************/
-void HAS_query_insertActuatorFutureState(int id_act_fut_stat, char * fut_stat, int id_actuator, int id_rule){
+void HAS_query_insertActuatorFutureState(PGconn *dbconn, int id_act_fut_stat, char * fut_stat, int id_actuator, int id_rule){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_insertActuatorFutureState ERROR] Connection to the database is bad.\n");
 		return;
@@ -2744,7 +2753,7 @@ void HAS_query_insertActuatorFutureState(int id_act_fut_stat, char * fut_stat, i
 		printf("[HAS_query_insertRule Error Message] %s\n", PQresultErrorMessage(query));
 }
 
-PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * actuator_name, int * id_actuator, int * error_check){
+PGresult* HAS_query_getActuatorIdToActuatorFutureState(PGconn *dbconn, int id_division, char * actuator_name, int * id_actuator, int * error_check){
 	if(0 > id_division){
 		printf("[HAS_query_getActuatorIdToActuatorFutureState ERROR] Division id invalid.\n");
 		if(NULL != error_check)
@@ -2786,7 +2795,7 @@ PGresult* HAS_query_getActuatorIdToActuatorFutureState(int id_division, char * a
 /*********************
    SQL USERS QUERIES 
  *********************/
-PGresult* HAS_query_getUserInfo(int id_user, int * error_check){
+PGresult* HAS_query_getUserInfo(PGconn *dbconn, int id_user, int * error_check){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_getUserInfo ERROR] Connection to the database is bad.\n");
 		if(NULL != error_check)
@@ -2816,7 +2825,7 @@ PGresult* HAS_query_getUserInfo(int id_user, int * error_check){
 	}
 }
 
-void HAS_query_showActiveUsersInfo(void){
+void HAS_query_showActiveUsersInfo(PGconn *dbconn){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_showActiveUsersInfo ERROR] Connection to the database is bad.\n");
 		exit(-1);
@@ -2848,7 +2857,7 @@ void HAS_query_showActiveUsersInfo(void){
 	printf("\n");
 }
 
-void HAS_query_insertUser(int id, char * name, char * permission, char * password, int state, int id_apartment, int * error_check){
+void HAS_query_insertUser(PGconn *dbconn, int id, char * name, char * permission, char * password, int state, int id_apartment, int * error_check){
 	if(CONNECTION_BAD == PQstatus(dbconn)){
 		printf("[HAS_query_insertUser ERROR] Connection to the database is bad.\n");
 		if(NULL != error_check)
@@ -2970,6 +2979,14 @@ void *thread_data_processing(void *arg){
 	int	decimal_id = 0, convert = 0, flag_invalid = 0, decimal_temp = 0, decimal_humid = 0, decimal_visible_light = 0;
 	float temp = 0, relative_humidity = 0, humidity_compensated_by_temperature = 0, visible_light = 0;
 	char line[LINE], word[WORD];
+	PGconn *dbconn_2;
+	
+	dbconn_2 = PQconnectdb(conn);
+	
+	if (PQstatus(dbconn_2) == CONNECTION_BAD){
+		printf("[dbconn_2] Unable to connect\n");
+		pthread_exit(NULL);
+	}
 	
 	// Code
 	while(1 == flag_interface){
@@ -3052,8 +3069,8 @@ void *thread_data_processing(void *arg){
 					//printf("Temperatura decimal = %d\n", decimal_temp);
 					temp = calculate_temperature(decimal_temp);
 					//system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->temperature = temp;
-					if(HAS_query_search_sensor(dbconn,"TEMP",decimal_id) == SENSOR_PRESENT){
-						HAS_query_update_dataSensor(dbconn,decimal_id,"TEMP",temp);
+					if(HAS_query_search_sensor(dbconn_2,"TEMP",decimal_id) == SENSOR_PRESENT){
+						HAS_query_update_dataSensor(dbconn_2,decimal_id,"TEMP",temp);
 					}
 					//printf("Temperature = %.2f ºC\n",temp);
 				}
@@ -3092,8 +3109,8 @@ void *thread_data_processing(void *arg){
 					
 					humidity_compensated_by_temperature = calculate_humidity_compensated_by_temperature(decimal_humid,relative_humidity,temp);
 					//system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->humidity = humidity_compensated_by_temperature;
-					if(HAS_query_search_sensor(dbconn,"HUM",decimal_id) == SENSOR_PRESENT){
-						HAS_query_update_dataSensor(dbconn,decimal_id,"HUM",humidity_compensated_by_temperature);
+					if(HAS_query_search_sensor(dbconn_2,"HUM",decimal_id) == SENSOR_PRESENT){
+						HAS_query_update_dataSensor(dbconn_2,decimal_id,"HUM",humidity_compensated_by_temperature);
 					}		
 					//printf("Humidity compensated by temperature = %.2f %%\n",humidity_compensated_by_temperature);
 				}
@@ -3129,8 +3146,8 @@ void *thread_data_processing(void *arg){
 					//printf("Luz visível decimal = %d\n",decimal_visible_light);
 					visible_light = calculate_visible_light(decimal_visible_light);
 					//system_motes[search_mote(system_motes,number_motes,decimal_id,NULL)]->luminosity = visible_light;
-					if(HAS_query_search_sensor(dbconn,"LIGHT",decimal_id) == SENSOR_PRESENT){
-						HAS_query_update_dataSensor(dbconn,decimal_id,"LIGHT",visible_light);
+					if(HAS_query_search_sensor(dbconn_2,"LIGHT",decimal_id) == SENSOR_PRESENT){
+						HAS_query_update_dataSensor(dbconn_2,decimal_id,"LIGHT",visible_light);
 					}
 					//printf("Visible light = %.2f lux\n", visible_light);
 				}
@@ -3185,10 +3202,10 @@ int search_sensor_mote(char * sensor, int number_motes, int * mote_id_sensor, in
 	}
 }
 
-void atualize_RGBstring_sensors_state_RGBMatrix(char * buffer_rgb_pssRGB, int matrix_side){
+void atualize_RGBstring_sensors_state_RGBMatrix(PGconn *dbconn, char * buffer_rgb_pssRGB, int matrix_side){
 	int counter_rows, numb_rows, error_check;
 	PGresult *query;
-	query = HAS_query_getSensorsData(&error_check);
+	query = HAS_query_getSensorsData(dbconn, &error_check);
 	if(NULL != query)
 		numb_rows = PQntuples(query);
 	else
@@ -3237,10 +3254,10 @@ void atualize_RGBstring_sensors_state_RGBMatrix(char * buffer_rgb_pssRGB, int ma
 		printf("[atualize_RGBstring_sensors_state_RGBMatrix Error Message] There are none sensors to pass their state to the RGBMatrix\n");
 }
 
-void atualize_RGBstring_actuators_state_RGBMatrix(char * buffer_rgb_pssRGB, int matrix_side){
+void atualize_RGBstring_actuators_state_RGBMatrix(PGconn *dbconn, char * buffer_rgb_pssRGB, int matrix_side){
 	int counter_rows, numb_rows, error_check;
 	PGresult *query;
-	query = HAS_query_getActuatorsState(&error_check);
+	query = HAS_query_getActuatorsState(dbconn, &error_check);
 	if(NULL != query)
 		numb_rows = PQntuples(query);
 	else
@@ -3274,11 +3291,17 @@ void *thread_rule_implementation(void *arg){
 	
 	PGresult *query_imp_rules;
 	
+	dbconn_3 = PQconnectdb(conn);
+	
+	if (PQstatus(dbconn_3) == CONNECTION_BAD){
+		printf("[dbconn_3] Unable to connect\n");
+		pthread_exit(NULL);
+	}
+	
 	while(1 == flag_interface){
 		// Gets the rules information
-		query_imp_rules = HAS_query_getRules(&error_check);
+		query_imp_rules = HAS_query_getRules(dbconn_3, &error_check);
 		number_rules_thread = PQntuples(query_imp_rules);
-		printf("Number Tuples: %d\n", number_rules_thread);
 		
 		// Rule's implementation
 		for(rule_index = 0; rule_index < number_rules_thread; rule_index++){
@@ -3289,14 +3312,13 @@ void *thread_rule_implementation(void *arg){
 				search_sensor_mote(PQgetvalue(query_imp_rules, rule_index, 1), number_motes, &mote_id_sensor_1, &type_sensor_1);
 				
 				// Get sensor_CONDITION_1 value
-				value_sensor_1 = HAS_query_getSpecificSensorData(atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_1, type_sensor_1, &error_check);
+				value_sensor_1 = HAS_query_getSpecificSensorData(dbconn_3, atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_1, type_sensor_1, &error_check);
 				
 				// Implementation of the future states
 				if(('>' == PQgetvalue(query_imp_rules, rule_index, 2)[0] && (value_sensor_1 > atoi(PQgetvalue(query_imp_rules, rule_index, 3)))) 
 						|| ('<' == PQgetvalue(query_imp_rules, rule_index, 2)[0] && (value_sensor_1 < atoi(PQgetvalue(query_imp_rules, rule_index, 3))))){
 					// Execute the future states relative to the present rule
 					// .....
-					printf("[RULE %d] TRUE!\n", atoi(PQgetvalue(query_imp_rules, rule_index, 0)));
 				}
 			}
 
@@ -3310,10 +3332,10 @@ void *thread_rule_implementation(void *arg){
 				search_sensor_mote(PQgetvalue(query_imp_rules, rule_index, 4), number_motes, &mote_id_sensor_2, &type_sensor_2);
 				
 				// Get sensor_CONDITION_1 value
-				value_sensor_1 = HAS_query_getSpecificSensorData(atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_1, type_sensor_1, &error_check);
+				value_sensor_1 = HAS_query_getSpecificSensorData(dbconn_3, atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_1, type_sensor_1, &error_check);
 				
 				// Get sensor_CONDITION_2 value
-				value_sensor_2 = HAS_query_getSpecificSensorData(atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_2, type_sensor_2, &error_check);
+				value_sensor_2 = HAS_query_getSpecificSensorData(dbconn_3, atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_2, type_sensor_2, &error_check);
 				
 				// Discovering the compare operator in CONDITION_1
 				switch(PQgetvalue(query_imp_rules, rule_index, 2)[0]){
@@ -3357,7 +3379,6 @@ void *thread_rule_implementation(void *arg){
 				if(1==logic_value_condition_1 && 1==logic_value_condition_2){
 					// Execute the future states relative to the present rule
 					// .....
-					printf("[RULE %d] TRUE!\n", atoi(PQgetvalue(query_imp_rules, rule_index, 0)));
 				}
 			}
 
@@ -3371,10 +3392,10 @@ void *thread_rule_implementation(void *arg){
 				search_sensor_mote(PQgetvalue(query_imp_rules, rule_index, 4), number_motes, &mote_id_sensor_2, &type_sensor_2);
 				
 				// Get sensor_CONDITION_1 value
-				value_sensor_1 = HAS_query_getSpecificSensorData(atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_1, type_sensor_1, &error_check);
+				value_sensor_1 = HAS_query_getSpecificSensorData(dbconn_3, atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_1, type_sensor_1, &error_check);
 				
 				// Get sensor_CONDITION_2 value
-				value_sensor_2 = HAS_query_getSpecificSensorData(atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_2, type_sensor_2, &error_check);
+				value_sensor_2 = HAS_query_getSpecificSensorData(dbconn_3, atoi(PQgetvalue(query_imp_rules, rule_index, 9)), mote_id_sensor_2, type_sensor_2, &error_check);
 				
 				// Discovering the compare operator in CONDITION_1
 				switch(PQgetvalue(query_imp_rules, rule_index, 2)[0]){
@@ -3418,7 +3439,6 @@ void *thread_rule_implementation(void *arg){
 				if(1==logic_value_condition_2 || 1==logic_value_condition_2){
 					// Execute the future states relative to the present rule
 					// .....
-					printf("[RULE %d] TRUE!\n", atoi(PQgetvalue(query_imp_rules, rule_index, 0)));
 				}
 			}
 
@@ -3439,6 +3459,15 @@ void *thread_rule_implementation(void *arg){
  ***************************************/
 void *user_interface(void *arg){
 	char user_answer;
+	PGconn *dbconn_1;
+	
+	dbconn_1 = PQconnectdb(conn);
+	
+	if (PQstatus(dbconn_1) == CONNECTION_BAD){
+		printf("[dbconn_1] Unable to connect\n");
+		pthread_exit(NULL);
+	}
+	flag_interface = 1;
 	
 	while(1 == flag_interface) {
 		printf("\n");
@@ -3459,19 +3488,19 @@ void *user_interface(void *arg){
 		getchar();
 		switch(user_answer){
 			case '1':
-				HAS_print_table(dbconn, TABNAME_DIVIS);
+				HAS_print_table(dbconn_1, TABNAME_DIVIS);
 				break;
 			case '2':
-				HAS_print_division_info(dbconn, user_answer, number_divisions);
+				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
 				break;
 			case '3':
-				HAS_print_division_info(dbconn, user_answer, number_divisions);
+				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
 				break;
 			case '4':
-				HAS_print_division_info(dbconn, user_answer, number_divisions);
+				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
 				break;
 			case '5':
-				HAS_print_division_info(dbconn, user_answer, number_divisions);
+				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
 				break;
 			case '6':
 				flag_interface = 0;
@@ -3479,8 +3508,10 @@ void *user_interface(void *arg){
 			case '7':
 				flag_interface = 0;
 				flag_command = 0;
+				break;
 			default:
 				printf("Insert a valid option.\n");
+				break;
 		}
 	}
 	pthread_exit(NULL);
