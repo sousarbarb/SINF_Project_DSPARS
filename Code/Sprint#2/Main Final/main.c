@@ -1085,18 +1085,17 @@ void init_divisions_configuration(PGconn *dbconn){
 			printf("\n-- Division's configuration template: ROOM1:TEMP1,LIGHT1;HEAT,BLINDS,LIGHT\n");
 			printf("Insert division configuration nº %d: ", count_divisions+1);
 			fgets(str, SIZE_STRING_BUFFER, stdin);
-			printf("Divisions configuration: %s", str);
 			if('\n' == str[strlen(str) - 1])
 				str[strlen(str) - 1] = '\0';
-			HAS_query_insert_division_info(dbconn, str, NULL);	
+			HAS_query_insert_division_info(dbconn, str, NULL);
 			count_divisions++;
 		} while (count_divisions < number_divisions);
 			
 	} else {			// O utilizador que manter a configuração das divisões
 		divisions_configuration = OLD_DIVISIONS_CONFIGURATION;
-		query = HAS_query_getNumberDivisions(dbconn, 0, &number_divisions, NULL);	
+		query = HAS_query_getNumberDivisions(dbconn, 0, &number_divisions, NULL);
+		PQclear(query);		
 	}
-	PQclear(query);	
 }
 
 
@@ -2363,8 +2362,8 @@ void HAS_query_insert_divisions_sensors(PGconn *dbconn, char **vector_string, in
 		id_sensor++;
 		sensor_name[0] = '\0';
 		query_string[0] = '\0';
+		PQclear(division_query);
 	}
-	PQclear(division_query);
 }
 
 void HAS_query_insert_divisions_actuators(PGconn *dbconn, char **vector_string, int id_division, int number_actuators, int * error_check) {
@@ -2381,7 +2380,6 @@ void HAS_query_insert_divisions_actuators(PGconn *dbconn, char **vector_string, 
 	char query_string[SIZE_QUERY_STRING];
 	
 	for(counter1 = 0; counter1 < number_actuators; counter1++) {
-		printf("Nome do atuador: %s\n", vector_string[counter1]);
 		sprintf(query_string, "INSERT INTO actuator (id, name, actuator_state, time, id_divisions, day, act_matrix_id) VALUES (%d, '%s', 'OFF', CURRENT_TIME(0) AT TIME ZONE 'GMT-1', %d,CURRENT_DATE, %d)", id_actuator, vector_string[counter1], id_division, act_matrix_id);
 		division_query = PQexec(dbconn, query_string);
 	
@@ -2397,8 +2395,8 @@ void HAS_query_insert_divisions_actuators(PGconn *dbconn, char **vector_string, 
 		act_matrix_id++;
 		id_actuator++;
 		query_string[0] = '\0';
+		PQclear(division_query);
 	}
-	PQclear(division_query);
 }
 
 void HAS_query_update_number_divisions_apartament(PGconn *dbconn, int num_divisions) {
