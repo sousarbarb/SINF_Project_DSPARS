@@ -551,7 +551,7 @@ int main(int argc, char **argv)
 		/***********************
 		   CREATION OF THREADS
 		 ***********************/
-		//pthread_create(&pth1, NULL, thread_data_processing, NULL);
+		pthread_create(&pth1, NULL, thread_data_processing, NULL);
 		pthread_create(&pth2, NULL, thread_rule_implementation, NULL);
 		pthread_create(&pth3, NULL, user_interface, NULL);
 		
@@ -559,7 +559,7 @@ int main(int argc, char **argv)
 		   CREATION AND CANCELLATION OF THREADS
 		 ****************************************/
 		pthread_join(pth3, NULL);
-		//pthread_cancel(pth1);
+		pthread_cancel(pth1);
 		pthread_cancel(pth2);
 		pthread_cancel(pth3);
 		
@@ -2596,7 +2596,7 @@ void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, f
 		PQclear(query);
 		return;
 	}
-	else printf("The data of the sensor named '%s' from the mote %d was successfully updated to the value: %d\n",type_sens,mote_id,(int)value);
+	//else printf("The data of the sensor named '%s' from the mote %d was successfully updated to the value: %d\n",type_sens,mote_id,(int)value);
 	PQclear(query);
 	
 	sprintf(str_query,"UPDATE sensor SET time=(CURRENT_TIME(0) AT TIME ZONE 'GMT-1'),day=CURRENT_DATE "
@@ -2607,7 +2607,7 @@ void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, f
 		PQclear(query);
 		return;
 	}
-	else printf("Date and time were successfully updated to current time and day!\n");
+	//else printf("Date and time were successfully updated to current time and day!\n");
 	PQclear(query);
 	return;
 }
@@ -2652,11 +2652,11 @@ int HAS_query_search_sensor(PGconn *dbconn, char *name, int mote){
 	sprintf(str_query,"SELECT * FROM sensor WHERE sensor_type='%s' AND mote_id=%d",name,mote);
 	query = PQexec(dbconn,str_query);
 	if(PQntuples(query) != SENSOR_NOT_PRESENT){
-		printf("Sensor %s from mote %d can be updated!\n",name,mote);
+		//printf("Sensor %s from mote %d can be updated!\n",name,mote);
 		return SENSOR_PRESENT;
 	}
 	else{
-		printf("Sensor %s from mote %d can't be updated! This sensor doesn't exist!\n",name,mote);
+		//printf("Sensor %s from mote %d can't be updated! This sensor doesn't exist!\n",name,mote);
 		return SENSOR_NOT_PRESENT;
 	}
 }
