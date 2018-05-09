@@ -332,6 +332,7 @@ void HAS_query_show_users_activity_table(PGconn *dbconn);
 void HAS_print_table(PGconn *dbconn, char *name_table);
 void HAS_print_table_restrictions(PGconn *dbconn, char *name_table, int id);
 void HAS_print_division_info(PGconn *dbconn, char user_answer, int number_divisions);
+void HAS_print_users_activity_table(PGconn *dbconn, char *user_name);
 
 
 /***************
@@ -2041,6 +2042,72 @@ void HAS_print_division_info(PGconn *dbconn, char user_answer, int num_divisions
 		}
 	}
 	PQclear(query);	
+}
+
+void HAS_print_users_activity_table(PGconn *dbconn, char *user_name){
+	
+	int i = 0, num_columns = 0, num_lines = 0, step_line = 0, step_col = 0;
+	int size_name_col = 0, size_elem = 0, size_elem_max = 0, res_space = 0;
+	char str_query[256];
+	
+	PGresult *query;
+	printf("-> users_activity - %s\n",user_name);
+	sprintf(str_query,"SELECT users_activity.id, users_activity.activity_description, users_activity.time, users_activity.day "
+						"FROM users, users_activity WHERE users.name = '%s' AND users_activity.id_users = users.id",user_name);	
+	query = PQexec(dbconn, str_query);
+	
+	num_lines = PQntuples(query);
+	num_columns = PQnfields(query);
+	int max_size_col[num_columns];		
+					
+	if (PQresultStatus(query) == PGRES_TUPLES_OK){
+		if(num_columns != 0){								
+			for (step_col = 0; step_col < num_columns; step_col++){
+				size_name_col = strlen(PQfname(query,step_col));
+				if(size_name_col > size_elem_max){
+					size_elem_max = size_name_col;
+				}
+				else size_elem_max += 0;
+				
+				for(step_line = 0; step_line < num_lines; step_line++){
+					size_elem = strlen(PQgetvalue(query,step_line,step_col));
+					if(size_elem > size_elem_max)
+						size_elem_max = size_elem;
+					else size_elem_max += 0;
+				}
+				max_size_col[step_col] = size_elem_max + NUM_SPACES;
+				size_elem_max = 0;
+			}
+				
+			for(step_col = 0; step_col < num_columns; step_col++){		//Nome das colunas
+				res_space = max_size_col[step_col] - strlen(PQfname(query,step_col));
+				printf("%s",PQfname(query,step_col));
+				for(i = 0; i < abs(res_space); i++){
+					printf(" ");
+				}
+			}
+			printf("\n");
+			
+			for(step_line = 0; step_line < num_lines; step_line++){		//Elementos
+				for(step_col = 0; step_col < num_columns; step_col++){
+					printf("%s",PQgetvalue(query,step_line,step_col));
+					res_space = max_size_col[step_col] - strlen(PQgetvalue(query,step_line,step_col));
+					for(i = 0; i < abs(res_space); i++){
+						printf(" ");
+					}
+				}
+				printf("\n");
+			}
+		}			
+		else{
+			printf("The table doesn't exist!\n");
+		}
+	}
+	
+	else{
+		printf("DB query call not ok!\n");
+	}
+	printf("\n");	
 }
 
 /*************************
@@ -4006,6 +4073,7 @@ void *user_interface(void *arg){
 	PGconn *dbconn_1;
 	
 	dbconn_1 = PQconnectdb(conn);
+	PGresult *query;
 	
 	if (PQstatus(dbconn_1) == CONNECTION_BAD){
 		printf("[dbconn_1] Unable to connect\n");
@@ -4014,60 +4082,128 @@ void *user_interface(void *arg){
 	flag_interface = 1;
 	
 	while(1 == flag_interface) {
-		printf("\n");
-		printf("++++++++++++++++++++++++++++++++++++++++\n");
-		printf("+++++++++++++++ HAS MENU +++++++++++++++\n");
-		printf("++++++++++++++++++++++++++++++++++++++++\n");
-		printf("\n");
-		printf("1. Display division's information       \n");
-		printf("2. Display division's rules information \n");
-		printf("3. Display sensor's information         \n");
-		printf("4. Display actuators's information      \n");
-		printf("5. Display actuators's and sensors information		\n");
-		printf("6. Logout from the system				\n");
-		printf("7. Exit Home Automative System          \n");
-		printf("\n");
-		printf("Insert the desired option (press Enter after): ");
-		user_answer = getchar();
-		getchar();
-		switch(user_answer){
-			case '1':
-				HAS_print_table(dbconn_1, TABNAME_DIVIS);
-				option = 5;
-				HAS_query_user_activity_insert(dbconn_1, option, NULL);
-				break;
-			case '2':
-				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
-				option = 5;
-				HAS_query_user_activity_insert(dbconn_1, option, NULL);
-				break;
-			case '3':
-				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
-				option = 5;
-				HAS_query_user_activity_insert(dbconn_1, option, NULL);
-				break;
-			case '4':
-				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
-				option = 5;
-				HAS_query_user_activity_insert(dbconn_1, option, NULL);
-				break;
-			case '5':
-				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
-				option = 5;
-				HAS_query_user_activity_insert(dbconn_1, option, NULL);
-				break;
-			case '6':
-				flag_interface = 0;
-				option = 2;
-				HAS_query_user_activity_insert(dbconn_1, option, NULL);
-				break;
-			case '7':
-				flag_interface = 0;
-				flag_command = 0;
-				break;
-			default:
-				printf("Insert a valid option.\n");
-				break;
+		if(0 == strcmp(user_permission, "admin")) {
+			printf("\n");
+			printf("++++++++++++++++++++++++++++++++++++++++\n");
+			printf("+++++++++++++++ HAS MENU +++++++++++++++\n");
+			printf("++++++++++++++++++++++++++++++++++++++++\n");
+			printf("\n");
+			printf("1. Display division's information       \n");
+			printf("2. Display division's rules information \n");
+			printf("3. Display sensor's information         \n");
+			printf("4. Display actuators's information      \n");
+			printf("5. Display actuators's and sensors information		\n");
+			printf("6. Display user's activity information				\n");
+			printf("7. Delete user's activity information				\n");
+			printf("8. Logout from the system				\n");
+			printf("9. Exit Home Automative System          \n");
+			printf("\n");
+			printf("Insert the desired option (press Enter after): ");
+			user_answer = getchar();
+			getchar();
+			switch(user_answer){
+				case '1':
+					HAS_print_table(dbconn_1, TABNAME_DIVIS);
+					option = 5;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '2':
+					HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+					option = 5;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '3':
+					HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+					option = 5;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '4':
+					HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+					option = 5;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '5':
+					HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+					option = 5;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '6':
+					HAS_print_table(dbconn_1,"users_activity");
+					break;
+				case '7':
+					query = PQexec(dbconn_1,"TRUNCATE users_activity");
+					PQclear(query);
+					break;
+				case '8':
+					flag_interface = 0;
+					option = 2;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '9':
+					flag_interface = 0;
+					flag_command = 0;
+					break;
+				default:
+					printf("Insert a valid option.\n");
+					break;
+			}			
+		} 
+		else {
+			printf("\n");
+			printf("++++++++++++++++++++++++++++++++++++++++\n");
+			printf("+++++++++++++++ HAS MENU +++++++++++++++\n");
+			printf("++++++++++++++++++++++++++++++++++++++++\n");
+			printf("\n");
+			printf("1. Display division's information       \n");
+			printf("2. Display division's rules information \n");
+			printf("3. Display sensor's information         \n");
+			printf("4. Display actuators's information      \n");
+			printf("5. Display actuators's and sensors information		\n");
+			printf("6. Logout from the system				\n");
+			printf("7. Exit Home Automative System          \n");
+			printf("\n");
+			printf("Insert the desired option (press Enter after): ");
+			user_answer = getchar();
+			getchar();
+			switch(user_answer){
+				case '1':
+					HAS_print_table(dbconn_1, TABNAME_DIVIS);
+					option = 5;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '2':
+					HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+					option = 5;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '3':
+					HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+					option = 5;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '4':
+					HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+					option = 5;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '5':
+					HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+					option = 5;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '6':
+					flag_interface = 0;
+					option = 2;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
+					break;
+				case '7':
+					flag_interface = 0;
+					flag_command = 0;
+					break;
+				default:
+					printf("Insert a valid option.\n");
+					break;
+			}
 		}
 	}
 	pthread_exit(NULL);
