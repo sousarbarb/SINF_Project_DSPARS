@@ -171,6 +171,7 @@
 #define ERROR_CHECK_3 3
 #define ERROR_CHECK_4 4
 #define ERROR_CHECK_5 5
+#define ERROR_CHECK_6 6
 
 #define SIZE_STRING_BUFFER 		100
 #define SIZE_STRING_DIVISION 	20
@@ -191,12 +192,20 @@
 #define TABNAME_USEACT     "users_activity"
 #define NUM_SPACES	2
 
+// User's activity defines
+#define OPTION_LOGIN				1
+#define OPTION_LOGOUT				2
+#define OPTION_DIVI_CONF			3
+#define OPTION_RULES_ALT			4
+#define OPTION_INFO					5
+
 
 // Global variables
 FILE *sensor_data_channel = NULL, *rgb_matrix_channel = NULL;
 static const char CHANNEL_DEF[]="/dev/pts/";
 int number_motes, number_rules, number_divisions, number_maximum_actuators, number_maximum_sensors, matrix_side_size, count_divisions, divisions_configuration, sens_matrix_id, id_sensor, act_matrix_id, id_actuator;
 int flag_interface = 1, flag_command = 1;
+int present_id_user_activity, option=0;
 char **pointer_rgb_channel = NULL;
 char *buffer_rgb_channel = NULL;
 char *buffer_rgb_channel_aux = NULL;
@@ -333,7 +342,7 @@ PGresult* HAS_query_getNameDivision(PGconn *dbconn, int id_division, char * name
 int HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(PGconn *dbconn, int id_apartment, int * id_division_max_sensors, int * error_check);
 int HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(PGconn *dbconn, int id_apartment, int * id_division_max_actuators, int * error_check);
 void HAS_query_delete_tables(PGconn *dbconn, int *error_check);
-void HAS_query_insert_division_info(PGconn *dbconn, char *str, int * error_check);
+void HAS_query_insert_division_info(PGconn *dbconn, char *str, int id_divisions, int * error_check);
 void HAS_query_insert_divisions_sensors(PGconn *dbconn, char **vector_string, int id_division, int number_sensors, int * error_check);
 void HAS_query_insert_divisions_actuators(PGconn *dbconn, char **vector_string, int id_division, int number_actuators, int * error_check);
 void HAS_query_update_number_divisions_apartament(PGconn *dbconn, int num_divisions);
@@ -361,6 +370,7 @@ PGresult* HAS_query_getUserInfo(PGconn *dbconn, int id_user, int * error_check);
 void HAS_query_showActiveUsersInfo(PGconn *dbconn);
 void HAS_query_insertUser(PGconn *dbconn, int id, char * name, char * permission, char * password, int state, int id_apartment, int * error_check);
 
+void HAS_query_user_activity_insert(PGconn *dbconn, int option, int *error_check);
 
 /*****************
  * +++++++++++++ *
@@ -506,6 +516,7 @@ int main(int argc, char **argv)
 		 *****************************************/
 		error_check = 0;
 		number_maximum_actuators = HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(dbconn_main, 0, &aux1, &error_check);
+		//printf("DEBUG number_maximum_actuators: %d\n", number_maximum_actuators);
 		if(0 != error_check){
 			printf("[MAIN_ERROR %d] An error has occurred in the number_maximum_actuators calculation.\n", MAIN_ERROR_6);
 			fclose(sensor_data_channel);
@@ -521,6 +532,7 @@ int main(int argc, char **argv)
 		}
 		error_check = 0;
 		number_maximum_sensors = HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(dbconn_main, 0, &aux1, &error_check);
+		//printf("DEBUG number_maximum_sensors: %d\n", number_maximum_sensors);
 		if(0 != error_check){
 			printf("[MAIN_ERROR %d] An error has occurred in the number_maximum_sensors calculation.\n", MAIN_ERROR_7);
 			fclose(sensor_data_channel);
@@ -765,6 +777,9 @@ void init_login_in_the_system(PGconn *dbconn){
 	strcpy(user_permission, PQgetvalue(query, 0, 1));
 	strcpy(user_password, PQgetvalue(query, 0, 2));
 	user_id_apartment = atoi(PQgetvalue(query, 0, 4));
+	
+	option = 1;
+	HAS_query_user_activity_insert(dbconn, option, NULL);
 	
 	printf("\n---------- Welcome %s ----------\n", username);
 	
@@ -1087,10 +1102,11 @@ void init_divisions_configuration(PGconn *dbconn){
 			fgets(str, SIZE_STRING_BUFFER, stdin);
 			if('\n' == str[strlen(str) - 1])
 				str[strlen(str) - 1] = '\0';
-			HAS_query_insert_division_info(dbconn, str, NULL);
+			HAS_query_insert_division_info(dbconn, str, count_divisions, NULL);
 			count_divisions++;
 		} while (count_divisions < number_divisions);
-			
+		option = 3;
+		HAS_query_user_activity_insert(dbconn, option, NULL);		
 	} else {			// O utilizador que manter a configuração das divisões
 		divisions_configuration = OLD_DIVISIONS_CONFIGURATION;
 		query = HAS_query_getNumberDivisions(dbconn, 0, &number_divisions, NULL);
@@ -1366,6 +1382,8 @@ void init_rules_configuration(PGconn *dbconn){
 				number_rules++;
 			}
 		}
+		option = 4;
+		HAS_query_user_activity_insert(dbconn, option, NULL);
 	}
 }
 
@@ -1731,7 +1749,7 @@ void HAS_print_table(PGconn *dbconn, char *name_table){
 	char str_query[256];
 	
 	PGresult *query;
-	printf("Table -> %s\n",name_table);
+	printf("-> %s\n",name_table);
 	sprintf(str_query,"SELECT * FROM %s",name_table);	
 	query = PQexec(dbconn, str_query);
 	
@@ -2126,7 +2144,6 @@ int HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(PGconn *dbconn, int 
 	if(PQresultStatus(query_divisions) == PGRES_TUPLES_OK){
 		(*id_division_max_sensors) = -1;
 		n_div = PQntuples(query_divisions);
-		printf("ntupples: %d\n", n_div);
 		for(counter = 0; counter < n_div; counter++){
 			if(num_max_sensors < atoi(PQgetvalue(query_divisions, counter, 1))){
 				(*id_division_max_sensors) = atoi(PQgetvalue(query_divisions, counter, 0));
@@ -2135,6 +2152,7 @@ int HAS_query_getMaximumNumberSensorsDivisionsInAnApartment(PGconn *dbconn, int 
 		}
 		if(NULL != error_check)
 			(*error_check) = 0;
+		PQclear(query_divisions);
 		return num_max_sensors;
 	}
 	else{
@@ -2169,7 +2187,6 @@ int HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(PGconn *dbconn, in
 	if(PQresultStatus(query_divisions) == PGRES_TUPLES_OK){
 		(*id_division_max_actuators) = -1;
 		n_div = PQntuples(query_divisions);
-		printf("ntupples: %d\n", n_div);
 		for(counter = 0; counter < n_div; counter++){
 			if(num_max_actuators < atoi(PQgetvalue(query_divisions, counter, 1))){
 				(*id_division_max_actuators) = atoi(PQgetvalue(query_divisions, counter, 0));
@@ -2178,6 +2195,7 @@ int HAS_query_getMaximumNumberActuatorsDivisionsInAnApartment(PGconn *dbconn, in
 		}
 		if(NULL != error_check)
 			(*error_check) = 0;
+		PQclear(query_divisions);
 		return num_max_actuators;
 	}
 	else{
@@ -2211,7 +2229,7 @@ void HAS_query_delete_tables(PGconn *dbconn, int * error_check) {
 	PQclear(divisions_query);
 }
 
-void HAS_query_insert_division_info(PGconn *dbconn, char *str, int * error_check) {
+void HAS_query_insert_division_info(PGconn *dbconn, char *str, int id_division, int * error_check) {
 	//Argument check
 	if(NULL == str) {
 		printf("[ERROR MESSAGE %d] Divisions configuration string empty.\n", ERROR_CHECK_1);
@@ -2221,13 +2239,13 @@ void HAS_query_insert_division_info(PGconn *dbconn, char *str, int * error_check
 	
 	//Query code
 	int counter1 = 0, counter2 = 0, counter3 = 0, count_sensors = 0, count_actuators = 0;
-	int id_sensor = 0, id_actuator = 0;
+	int id_sensor = 0, id_actuator = 0, number_sensors = 1, number_actuators = 1;
 	char str_division[SIZE_STRING_DIVISION], str_sensors_aux[SIZE_STRING_SENSOR], str_actuators_aux[SIZE_STRING_ACTUATOR], **str_sensors, **str_actuators;
 	char query_string[SIZE_QUERY_STRING];
 	PGresult *division_query;
 	
-	number_maximum_actuators = 1;
-	number_maximum_sensors = 1;	
+	number_maximum_actuators = 0;
+	number_maximum_sensors = 0;
 	// DIVISION NAME
 	for(counter1 = 0; ':' != str[counter1]; counter1++) {
 			str_division[counter1] = str[counter1];
@@ -2252,11 +2270,15 @@ void HAS_query_insert_division_info(PGconn *dbconn, char *str, int * error_check
 	// NAME AND NUMBER OF SENSORS
 	for(counter2 = counter1; ';' != str[counter2]; counter2++) {
 		if(',' == str[counter2]) {
-			number_maximum_sensors++;
+			number_sensors++;
 		}
 	}
-
+	
+	if(number_sensors > number_maximum_sensors)
+		number_maximum_sensors = number_sensors;
+	
 	str_sensors = string_vector_sensors_creation(number_maximum_sensors, NULL);
+	
 	if(NULL == str_sensors) {
 		printf("[ERROR MESSAGE %d] String vector not created.\n", ERROR_CHECK_2);
 		free_vector_string_memory(str_sensors, number_maximum_sensors, NULL);
@@ -2290,8 +2312,12 @@ void HAS_query_insert_division_info(PGconn *dbconn, char *str, int * error_check
 	// NAME AND NUMBER OF ACTUATORS
 	for(counter3 = counter2; '\0' != str[counter3]; counter3++) {
 		if(',' == str[counter3])
-			number_maximum_actuators++;
+			number_actuators++;
 	}
+	
+	if(number_actuators > number_maximum_actuators)
+		number_maximum_actuators = number_actuators;
+		
 		
 	str_actuators = string_vector_sensors_creation(number_maximum_actuators, NULL);
 	
@@ -2323,6 +2349,10 @@ void HAS_query_insert_division_info(PGconn *dbconn, char *str, int * error_check
 	
 	HAS_query_insert_divisions_actuators(dbconn, str_actuators, count_divisions, number_maximum_actuators, NULL);
 	
+	sprintf(query_string, "UPDATE divisions SET num_sensors = %d, num_actuators = %d WHERE id = %d", number_maximum_sensors, number_maximum_actuators, id_division);
+	division_query = PQexec(dbconn, query_string);
+	PQclear(division_query);
+	
 	free_vector_string_memory(str_actuators, number_maximum_actuators, NULL);
 }
 
@@ -2338,6 +2368,8 @@ void HAS_query_insert_divisions_sensors(PGconn *dbconn, char **vector_string, in
 	int counter1= 0, counter2 = 0;
 	PGresult *division_query;
 	char query_string[SIZE_QUERY_STRING], sensor_name[SIZE_STRING_SENSOR], sensor_mote;
+	
+	sens_matrix_id = 0;
 	
 	for(counter1 = 0; counter1 < number_sensors; counter1++) {
 		for(counter2 = 0; '\0' != vector_string[counter1][counter2]; counter2++) {
@@ -2378,6 +2410,8 @@ void HAS_query_insert_divisions_actuators(PGconn *dbconn, char **vector_string, 
 	int counter1= 0;
 	PGresult *division_query;
 	char query_string[SIZE_QUERY_STRING];
+	
+	act_matrix_id = 0;
 	
 	for(counter1 = 0; counter1 < number_actuators; counter1++) {
 		sprintf(query_string, "INSERT INTO actuator (id, name, actuator_state, time, id_divisions, day, act_matrix_id) VALUES (%d, '%s', 'OFF', CURRENT_TIME(0) AT TIME ZONE 'GMT-1', %d,CURRENT_DATE, %d)", id_actuator, vector_string[counter1], id_division, act_matrix_id);
@@ -3045,7 +3079,112 @@ void HAS_query_insertUser(PGconn *dbconn, int id, char * name, char * permission
 	}
 }
 
+void HAS_query_user_activity_insert(PGconn *dbconn, int option, int *error_check) {
+	PGresult *query;
+	char query_string[SIZE_QUERY_STRING], user_name[SIZE_MAX_USERNAME];
+	int present_id_user_activity = 0;
 
+	sprintf(query_string, "SELECT id FROM users_activity");
+	query = PQexec(dbconn, query_string);
+	present_id_user_activity = PQntuples(query);
+	PQclear(query);
+	query = HAS_query_getUserInfo(dbconn, user_id, NULL);
+	strcpy(user_name, PQgetvalue(query, 0, 0)); 
+	PQclear(query);
+	
+	switch(option) {
+		case OPTION_LOGIN: //Log in de um utilizador
+			sprintf(query_string, "INSERT INTO users_activity (id, id_users, activity_description, time, day) VALUES (%d, %d, '%s - Log in', CURRENT_TIME(0) AT TIME ZONE 'GMT-1', CURRENT_DATE)", present_id_user_activity, user_id, user_name);	
+			query = PQexec(dbconn, query_string);
+			
+			if(PQresultStatus(query) != PGRES_COMMAND_OK) {
+				printf("[ERROR MESSAGE %d]: Failed executing query.\n", ERROR_CHECK_6);
+				printf("ERROR MESSAGE: %s\n", PQresultErrorMessage(query)); 
+				if(NULL != error_check)
+					(*error_check) = ERROR_CHECK_6;
+				PQfinish(dbconn);
+				dbconn = NULL;
+				query = NULL;
+				exit(-1);
+			}
+			
+			present_id_user_activity++;
+			
+			break;
+		case OPTION_LOGOUT: //Log out de um utilizador
+			sprintf(query_string, "INSERT INTO users_activity (id, id_users, activity_description, time, day) VALUES (%d, %d, '%s - Log out', CURRENT_TIME(0) AT TIME ZONE 'GMT-1', CURRENT_DATE)", present_id_user_activity, user_id, user_name);
+			query = PQexec(dbconn, query_string);
+			
+			if(PQresultStatus(query) != PGRES_COMMAND_OK) {
+				printf("[ERROR MESSAGE %d]: Failed executing query.\n", ERROR_CHECK_6);			
+				printf("ERROR MESSAGE: %s\n", PQresultErrorMessage(query)); 
+				if(NULL != error_check)
+					(*error_check) = ERROR_CHECK_6;
+				PQfinish(dbconn);
+				dbconn = NULL;
+				query = NULL;
+				exit(-1);
+			}
+			present_id_user_activity++;
+			
+			break;
+		case OPTION_DIVI_CONF: //Alteração da configuração das divisões
+			sprintf(query_string, "INSERT INTO users_activity (id, id_users, activity_description, time, day) VALUES (%d, %d, '%s - New division configuration', CURRENT_TIME(0) AT TIME ZONE 'GMT-1', CURRENT_DATE)", present_id_user_activity, user_id, user_name);
+			query = PQexec(dbconn, query_string);
+			
+			if(PQresultStatus(query) != PGRES_COMMAND_OK) {
+				printf("[ERROR MESSAGE %d]: Failed executing query.\n", ERROR_CHECK_6);
+				printf("ERROR MESSAGE: %s\n", PQresultErrorMessage(query)); 
+				if(NULL != error_check)
+					(*error_check) = ERROR_CHECK_6;
+				PQfinish(dbconn);
+				dbconn = NULL;
+				query = NULL;
+				exit(-1);
+			}
+			
+			present_id_user_activity++;
+			
+			break;
+		case OPTION_RULES_ALT: //Regras alteradas
+			sprintf(query_string, "INSERT INTO users_activity (id, id_users, activity_description, time, day) VALUES (%d, %d, '%s - Divisions rules changed', CURRENT_TIME(0) AT TIME ZONE 'GMT-1', CURRENT_DATE)", present_id_user_activity, user_id, user_name);
+			query = PQexec(dbconn, query_string);
+			
+			if(PQresultStatus(query) != PGRES_COMMAND_OK) {
+				printf("[ERROR MESSAGE %d]: Failed executing query.\n", ERROR_CHECK_6);
+				printf("ERROR MESSAGE: %s\n", PQresultErrorMessage(query)); 
+				if(NULL != error_check)
+					(*error_check) = ERROR_CHECK_6;
+				PQfinish(dbconn);
+				dbconn = NULL;
+				query = NULL;
+				exit(-1);
+			}
+			
+			present_id_user_activity++;
+			
+			break;
+		case OPTION_INFO: //Informações da user interface
+			sprintf(query_string, "INSERT INTO users_activity (id, id_users, activity_description, time, day) VALUES (%d, %d, '%s - General information', CURRENT_TIME(0) AT TIME ZONE 'GMT-1', CURRENT_DATE)", present_id_user_activity, user_id, user_name);
+			query = PQexec(dbconn, query_string);
+			
+			if(PQresultStatus(query) != PGRES_COMMAND_OK) {
+				printf("[ERROR MESSAGE %d]: Failed executing query.\n", ERROR_CHECK_6);
+				printf("ERROR MESSAGE: %s\n", PQresultErrorMessage(query)); 
+				if(NULL != error_check)
+					(*error_check) = ERROR_CHECK_6;
+				PQfinish(dbconn);
+				dbconn = NULL;
+				query = NULL;
+				exit(-1);
+			}
+			
+			present_id_user_activity++;
+			
+			break;
+	}
+	PQclear(query);
+}
 
 /************************************
  * ++++++++++++++++++++++++++++++++ *
@@ -3894,21 +4033,33 @@ void *user_interface(void *arg){
 		switch(user_answer){
 			case '1':
 				HAS_print_table(dbconn_1, TABNAME_DIVIS);
+				option = 5;
+				HAS_query_user_activity_insert(dbconn_1, option, NULL);
 				break;
 			case '2':
 				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+				option = 5;
+				HAS_query_user_activity_insert(dbconn_1, option, NULL);
 				break;
 			case '3':
 				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+				option = 5;
+				HAS_query_user_activity_insert(dbconn_1, option, NULL);
 				break;
 			case '4':
 				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+				option = 5;
+				HAS_query_user_activity_insert(dbconn_1, option, NULL);
 				break;
 			case '5':
 				HAS_print_division_info(dbconn_1, user_answer, number_divisions);
+				option = 5;
+				HAS_query_user_activity_insert(dbconn_1, option, NULL);
 				break;
 			case '6':
 				flag_interface = 0;
+				option = 2;
+				HAS_query_user_activity_insert(dbconn_1, option, NULL);
 				break;
 			case '7':
 				flag_interface = 0;

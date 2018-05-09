@@ -54,7 +54,7 @@ void write_size_matrix(char *file_name, int num_divisions, int num_elements){
 	
 	sprintf(side_c,"%d",side_i);
 	sprintf(pixels_c,"%d",pixels_i);
-	printf("-a %s -b %s\n",side_c,pixels_c);
+	//printf("-a %s -b %s\n",side_c,pixels_c);
 	fprintf(f_write,"-a %s -b %s",side_c,pixels_c);
 	
 	fclose(f_write);
