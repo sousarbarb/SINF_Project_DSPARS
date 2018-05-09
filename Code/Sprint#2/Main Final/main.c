@@ -2588,15 +2588,15 @@ void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, f
 		return;
 	}
 	char str_query[256];
-	sprintf(str_query,"UPDATE sensor SET data=%f "
-						"WHERE mote_id=%d AND sensor_type='%s'",value,mote_id,type_sens);
+	sprintf(str_query,"UPDATE sensor SET data=%d "
+						"WHERE mote_id=%d AND sensor_type='%s'",(int)value,mote_id,type_sens);
 	PGresult *query = PQexec(dbconn,str_query);
 	if(PQresultStatus(query) != PGRES_COMMAND_OK){
 		printf("ERROR_UPDATE_DATA_SENSOR %d: The update query of sensor's data is incorrect!\n",ERROR_UPDATE_DATA_SENSOR_4);
 		PQclear(query);
 		return;
 	}
-	else printf("The data of the sensor named '%s' from the mote %d was successfully updated to the value: %.2f\n",type_sens,mote_id,value);
+	else printf("The data of the sensor named '%s' from the mote %d was successfully updated to the value: %d\n",type_sens,mote_id,(int)value);
 	PQclear(query);
 	
 	sprintf(str_query,"UPDATE sensor SET time=(CURRENT_TIME(0) AT TIME ZONE 'GMT-1'),day=CURRENT_DATE "
@@ -2652,11 +2652,11 @@ int HAS_query_search_sensor(PGconn *dbconn, char *name, int mote){
 	sprintf(str_query,"SELECT * FROM sensor WHERE sensor_type='%s' AND mote_id=%d",name,mote);
 	query = PQexec(dbconn,str_query);
 	if(PQntuples(query) != SENSOR_NOT_PRESENT){
-		printf("Possible to update!\n");
+		printf("Sensor %s from mote %d can be updated!\n",name,mote);
 		return SENSOR_PRESENT;
 	}
 	else{
-		printf("Impossible to update!\n");
+		printf("Sensor %s from mote %d can't be updated! This sensor doesn't exist!\n",name,mote);
 		return SENSOR_NOT_PRESENT;
 	}
 }
