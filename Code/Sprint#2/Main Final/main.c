@@ -49,6 +49,7 @@
 #define MAIN_ERROR_5  5
 #define MAIN_ERROR_6  6
 #define MAIN_ERROR_7  7
+#define MAIN_ERROR_8  8
 
 // Errors - Database
 #define DB_OK	   0
@@ -198,6 +199,7 @@ int number_motes, number_rules, number_divisions, number_maximum_actuators, numb
 int flag_interface = 1, flag_command = 1;
 char **pointer_rgb_channel = NULL;
 char *buffer_rgb_channel = NULL;
+char *buffer_rgb_channel_aux = NULL;
 mote **system_motes = NULL;
 
 // DATABASE
@@ -343,6 +345,7 @@ PGresult* HAS_query_getRules(PGconn *dbconn, int * error_check);
 
 void HAS_query_insertActuatorFutureState(PGconn *dbconn, int id_act_fut_stat, char * fut_stat, int id_actuator, int id_rule);
 PGresult* HAS_query_getActuatorIdToActuatorFutureState(PGconn *dbconn, int id_division, char * actuator_name, int * id_actuator, int * error_check);
+PGresult* HAS_query_getActuatorsFutureStateFromRule(PGconn *dbconn, int id_rule, int * error_check);
 
 void HAS_query_update_dataSensor(PGconn *dbconn, int mote_id, char *type_sens, float value);
 PGresult* HAS_query_getSensorsData(PGconn *dbconn, int * error_check);
@@ -351,6 +354,8 @@ int HAS_query_getSpecificSensorData(PGconn *dbconn, int id_division, int id_mote
 
 void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char *act_state);
 PGresult* HAS_query_getActuatorsState(PGconn *dbconn, int * error_check);
+PGresult* HAS_query_getActuatorsStateWithTheirName(PGconn *dbconn, int * error_check);
+PGresult* HAS_query_getActuatorsStateDivision(PGconn *dbconn, int id_division, int * error_check);
 
 PGresult* HAS_query_getUserInfo(PGconn *dbconn, int id_user, int * error_check);
 void HAS_query_showActiveUsersInfo(PGconn *dbconn);
@@ -479,11 +484,13 @@ int main(int argc, char **argv)
 		/*******************************************
 		   INIT ROUTINE - DIVISION'S CONFIGURATION
 		 *******************************************/
-		printf("\n\n\n\n\n\n"
-			   "++++++++++++++++++++++++++++++++++++++++++++++\n"
-			   "++++++++++ DIVISION'S CONFIGURATION ++++++++++\n"
-			   "++++++++++++++++++++++++++++++++++++++++++++++\n");
-		init_divisions_configuration(dbconn_main);
+		if(0 == strcmp(user_permission, "admin")){
+			printf("\n\n\n\n\n\n"
+				   "++++++++++++++++++++++++++++++++++++++++++++++\n"
+				   "++++++++++ DIVISION'S CONFIGURATION ++++++++++\n"
+				   "++++++++++++++++++++++++++++++++++++++++++++++\n");
+			init_divisions_configuration(dbconn_main);
+		}
 		
 		/*******************************************
 		   INIT ROUTINE - RULE'S CONFIGURATION
@@ -507,6 +514,9 @@ int main(int argc, char **argv)
 			rgb_matrix_channel = NULL;
 			PQfinish(dbconn_main);
 			dbconn_main = NULL;
+			printf("\n**********************************************************************\n");
+			printf("************************* END OF PROGRAM HAS *************************\n");
+			printf("**********************************************************************\n\n");
 			exit(-1);
 		}
 		error_check = 0;
@@ -527,6 +537,30 @@ int main(int argc, char **argv)
 		write_size_matrix("RGBMatrixConf.txt", number_divisions, number_maximum_sensors + number_maximum_actuators);
 		matrix_side_size = determination_of_maximum(number_divisions, number_maximum_sensors + number_maximum_actuators);
 		buffer_rgb_channel = alocation_memory_matrix(matrix_side_size);
+		
+		buffer_rgb_channel_aux = alocation_memory_matrix(matrix_side_size);
+		if(NULL == buffer_rgb_channel || NULL == buffer_rgb_channel_aux){
+			printf("[MAIN_ERROR %d] An error has occurred in the memory allocation for strings buffer_rgb_channel or buffer_rgb_channel_aux.\n", MAIN_ERROR_8);
+			if(NULL == buffer_rgb_channel){
+				free(buffer_rgb_channel);
+				buffer_rgb_channel = NULL;
+			}
+			if(NULL == buffer_rgb_channel_aux){
+				free(buffer_rgb_channel_aux);
+				buffer_rgb_channel_aux = NULL;
+			}
+			fclose(sensor_data_channel);
+			sensor_data_channel = NULL;
+			fclose(rgb_matrix_channel);
+			rgb_matrix_channel = NULL;
+			PQfinish(dbconn_main);
+			dbconn_main = NULL;
+			printf("\n**********************************************************************\n");
+			printf("************************* END OF PROGRAM HAS *************************\n");
+			printf("**********************************************************************\n\n");
+			exit(-1);
+		}
+		
 		do{
 			printf("The program RGBMatrix is already running (Y - yes / N - no, and press Enter)? ");
 			user_answer = getchar();
@@ -536,6 +570,12 @@ int main(int argc, char **argv)
 			printf("Then please execute it with the channel's atribuition to communicate with the program.\n");
 			free_mote_memory(system_motes, number_motes, NULL);
 			system_motes = NULL;
+			
+			free(buffer_rgb_channel);
+			buffer_rgb_channel = NULL;
+			free(buffer_rgb_channel_aux);
+			buffer_rgb_channel_aux = NULL;
+			
 			fclose(sensor_data_channel);
 			sensor_data_channel = NULL;
 			fclose(rgb_matrix_channel);
@@ -580,6 +620,9 @@ int main(int argc, char **argv)
 	
 	free(buffer_rgb_channel);
 	buffer_rgb_channel = NULL;
+	free(buffer_rgb_channel_aux);
+	buffer_rgb_channel_aux = NULL;
+	
 	fclose(sensor_data_channel);
 	sensor_data_channel = NULL;
 	
@@ -1668,7 +1711,7 @@ int HAS_query_create_users_activity_table(PGconn *dbconn){
 									"id_users INT REFERENCES users(id) NOT NULL,"\
 									"activity_description character varying(100) NOT NULL,"\
 									"time TIME NOT NULL,"\
-									"date DATE NOT NULL"\
+									"day DATE NOT NULL"\
 									")");
 	if(HAS_query_verify_users_activity_table(dbconn) == TABLE_EXIST){
 		PQclear(query);
@@ -2532,7 +2575,7 @@ void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char
 		PQclear(query);
 		return;
 	}
-	else printf("The state of the sensor named '%s' with the id %d was successfully updated to the state: '%s'\n",act_name,id,act_state);
+	// else printf("The state of the sensor named '%s' with the id %d was successfully updated to the state: '%s'\n",act_name,id,act_state);
 	PQclear(query);
 	
 	sprintf(str_query,"UPDATE actuator SET time=(CURRENT_TIME(0) AT TIME ZONE 'GMT-1'),day=CURRENT_DATE "
@@ -2543,7 +2586,7 @@ void HAS_query_update_stateActuator(PGconn *dbconn, int id, char *act_name, char
 		PQclear(query);
 		return;
 	}
-	else printf("Date and time were successfully updated to current time and day!\n");
+	// else printf("Date and time were successfully updated to current time and day!\n");
 	PQclear(query);
 	return;
 }
@@ -2564,6 +2607,59 @@ PGresult* HAS_query_getActuatorsState(PGconn *dbconn, int * error_check){
 	}
 	else{
 		printf("[HAS_query_getActuatorsState Error Message] %s\n", PQresultErrorMessage(query));
+		if(NULL != error_check)
+			(*error_check) = 2;
+		return NULL;
+	}
+}
+
+PGresult* HAS_query_getActuatorsStateWithTheirName(PGconn *dbconn, int * error_check){
+	if(CONNECTION_BAD == PQstatus(dbconn)){
+		printf("[HAS_query_getActuatorsStateWithTheirName ERROR] Connection to the database is bad.\n");
+		if(NULL != error_check)
+			(*error_check) = 1;
+		return NULL;
+	}
+	
+	PGresult *query = PQexec(dbconn, "SELECT id, name, actuator_state, id_divisions, act_matrix_id FROM actuator");
+	if(PQresultStatus(query) == PGRES_TUPLES_OK){
+		if(NULL != error_check)
+			(*error_check) = 0;
+		return query;
+	}
+	else{
+		printf("[HAS_query_getActuatorsStateWithTheirName Error Message] %s\n", PQresultErrorMessage(query));
+		if(NULL != error_check)
+			(*error_check) = 2;
+		return NULL;
+	}
+}
+
+PGresult* HAS_query_getActuatorsStateDivision(PGconn *dbconn, int id_division, int * error_check){
+	if(CONNECTION_BAD == PQstatus(dbconn)){
+		printf("[HAS_query_getActuatorsStateDivision ERROR] Connection to the database is bad.\n");
+		if(NULL != error_check)
+			(*error_check) = 1;
+		return NULL;
+	}
+	else if(0 > id_division){
+		printf("[HAS_query_getActuatorsStateDivision ERROR] Division id invalid.\n");
+		if(NULL != error_check)
+			(*error_check) = 2;
+		return NULL;
+	}
+	
+	char str[150];
+	PGresult *query;
+	sprintf(str, "SELECT id, name, actuator_state, act_matrix_id FROM actuator WHERE id_divisions = %d", id_division);
+	query = PQexec(dbconn, str);
+	if(PQresultStatus(query) == PGRES_TUPLES_OK){
+		if(NULL != error_check)
+			(*error_check) = 0;
+		return query;
+	}
+	else{
+		printf("[HAS_query_getActuatorsStateDivision Error Message] %s\n", PQresultErrorMessage(query));
 		if(NULL != error_check)
 			(*error_check) = 2;
 		return NULL;
@@ -2787,6 +2883,37 @@ PGresult* HAS_query_getActuatorIdToActuatorFutureState(PGconn *dbconn, int id_di
 		(*id_actuator) = -1;
 		if(NULL != error_check)
 			(*error_check) = 4;
+		return NULL;
+	}
+}
+
+PGresult* HAS_query_getActuatorsFutureStateFromRule(PGconn *dbconn, int id_rule, int * error_check){
+	if(CONNECTION_BAD == PQstatus(dbconn)){
+		printf("[HAS_query_getActuatorsFutureStateFromRule ERROR] Connection to the database is bad.\n");
+		if(NULL != error_check)
+			(*error_check) = 1;
+		return NULL;
+	}
+	else if(0 > id_rule){
+		printf("[HAS_query_getActuatorIdToActuatorFutureState ERROR] Rule id invalid.\n");
+		if(NULL != error_check)
+			(*error_check) = 2;
+		return NULL;
+	}
+	
+	char str[120];
+	PGresult *query;
+	sprintf(str, "SELECT id, future_state, id_actuator FROM actuator_future_state WHERE id_rules = %d", id_rule);
+	query = PQexec(dbconn, str);
+	if(PQresultStatus(query) == PGRES_TUPLES_OK){
+		if(NULL != error_check)
+			(*error_check) = 0;
+		return query;
+	}
+	else{
+		printf("[HAS_query_getActuatorsFutureStateFromRule Error Message] %s\n", PQresultErrorMessage(query));
+		if(NULL != error_check)
+			(*error_check) = 2;
 		return NULL;
 	}
 }
@@ -3289,7 +3416,12 @@ void *thread_rule_implementation(void *arg){
 	int logic_value_condition_1 = 0, logic_value_condition_2 = 0;
 	int value_sensor_1, value_sensor_2;
 	
+	int act_index, number_act;
+	int actFutStat_index, number_actFutStat;
+	
 	PGresult *query_imp_rules;
+	PGresult *query_getActualStateDivision;
+	PGresult *query_getFutureStateFromRule;
 	
 	dbconn_3 = PQconnectdb(conn);
 	
@@ -3298,9 +3430,15 @@ void *thread_rule_implementation(void *arg){
 		pthread_exit(NULL);
 	}
 	
+	strcpy(buffer_rgb_channel_aux, buffer_rgb_channel);
+	
 	while(1 == flag_interface){
 		// Gets the rules information
 		query_imp_rules = HAS_query_getRules(dbconn_3, &error_check);
+		if(NULL == query_imp_rules){
+			printf("[thread_rule_implementation ERROR] Query HAS_query_getRules not executed\n");
+			pthread_exit(NULL);
+		}
 		number_rules_thread = PQntuples(query_imp_rules);
 		
 		// Rule's implementation
@@ -3319,6 +3457,90 @@ void *thread_rule_implementation(void *arg){
 						|| ('<' == PQgetvalue(query_imp_rules, rule_index, 2)[0] && (value_sensor_1 < atoi(PQgetvalue(query_imp_rules, rule_index, 3))))){
 					// Execute the future states relative to the present rule
 					// .....
+					//printf("[RULE %d] TRUE\n", atoi(PQgetvalue(query_imp_rules, rule_index, 0)));
+/***** GET RULES					***** GET ACT STATE		***** GET ACTFUTSTATE
+SELECT \							SELECT					SELECT 
+0	id, \							0	id, 				0	id, 
+1	name_sensor_condition1, 		1	name, 				1	future_state, 
+2	operator_condition1, 			2	actuator_state, 	2	id_actuator 
+3	threshold_condition1, \			3	act_matrix_id  		FROM actuator_future_state WHERE id_rules = %d
+4	name_sensor_condition2, 		FROM actuator			
+5	operator_condition2, 			WHERE id_divisions = %d
+6	threshold_condition2, \			
+7	logic_operator, \				
+8	num_actuators_future_state, \	
+9	id_divisions, \					
+sampling_period, \					
+schedule, \							
+time, \								
+day \								
+FROM rules							
+******/
+					// Get present actuators state
+					query_getActualStateDivision = HAS_query_getActuatorsStateDivision(
+						dbconn_3, 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+						&error_check
+						);
+					if(NULL == query_getActualStateDivision){
+						printf("[thread_rule_implementation ERROR] Query HAS_query_getActuatorsStateDivision not executed\n");
+						pthread_exit(NULL);
+					}
+					
+					// Get future states relative to a single rule (id = rule_index)
+					query_getFutureStateFromRule = HAS_query_getActuatorsFutureStateFromRule(
+						dbconn_3, 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 0)), 
+						&error_check
+						);
+					if(NULL == query_getFutureStateFromRule){
+						printf("[thread_rule_implementation ERROR] Query HAS_query_getActuatorsFutureStateFromRule not executed\n");
+						PQclear(query_getActualStateDivision);
+						pthread_exit(NULL);
+					}
+					
+					number_act = PQntuples(query_getActualStateDivision);
+					number_actFutStat = PQntuples(query_getFutureStateFromRule);
+					/*printf("[RULE %d | Division %d] Actuators = %d | FutState = %d\n", 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 0)), 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+						number_act, 
+						number_actFutStat
+						);*/
+					
+					// Check present state of the actuators and atualize them if needed
+					for(actFutStat_index = 0; actFutStat_index < number_actFutStat; actFutStat_index++){
+						// Discovering the actuator's id
+						for(act_index = 0; act_index < number_act; act_index++)
+							if(atoi(PQgetvalue(query_getActualStateDivision, act_index, 0)) == 
+									atoi(PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 2)))
+								break;
+								
+						// OBS - now the act_index guards the row for the present actuator
+						
+						// Update the actuator's state if needed
+						if(0 != strcmp(PQgetvalue(query_getActualStateDivision, act_index, 2), 
+								PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 1)
+								)){
+							HAS_query_update_stateActuator(
+								dbconn_3, 
+								atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+								PQgetvalue(query_getActualStateDivision, act_index, 1), 
+								PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 1)
+								);
+							/*printf("[RULE %d | Future_State %d]\n    Division - %d\n    PS - %s\n    FS - %s\n",
+									atoi(PQgetvalue(query_imp_rules, rule_index, 0)), 
+									atoi(PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 0)), 
+									atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+									PQgetvalue(query_getActualStateDivision, act_index, 1), 
+									PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 1)
+									);*/
+						}
+					}
+					
+					// PQclear QUERIES per rule
+					PQclear(query_getActualStateDivision);
+					PQclear(query_getFutureStateFromRule);
 				}
 			}
 
@@ -3379,6 +3601,90 @@ void *thread_rule_implementation(void *arg){
 				if(1==logic_value_condition_1 && 1==logic_value_condition_2){
 					// Execute the future states relative to the present rule
 					// .....
+					//printf("[RULE %d] TRUE\n", atoi(PQgetvalue(query_imp_rules, rule_index, 0)));
+/***** GET RULES					***** GET ACT STATE		***** GET ACTFUTSTATE
+SELECT \							SELECT					SELECT 
+0	id, \							0	id, 				0	id, 
+1	name_sensor_condition1, 		1	name, 				1	future_state, 
+2	operator_condition1, 			2	actuator_state, 	2	id_actuator 
+3	threshold_condition1, \			3	act_matrix_id  		FROM actuator_future_state WHERE id_rules = %d
+4	name_sensor_condition2, 		FROM actuator			
+5	operator_condition2, 			WHERE id_divisions = %d
+6	threshold_condition2, \			
+7	logic_operator, \				
+8	num_actuators_future_state, \	
+9	id_divisions, \					
+sampling_period, \					
+schedule, \							
+time, \								
+day \								
+FROM rules							
+******/
+					// Get present actuators state
+					query_getActualStateDivision = HAS_query_getActuatorsStateDivision(
+						dbconn_3, 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+						&error_check
+						);
+					if(NULL == query_getActualStateDivision){
+						printf("[thread_rule_implementation ERROR] Query HAS_query_getActuatorsStateDivision not executed\n");
+						pthread_exit(NULL);
+					}
+					
+					// Get future states relative to a single rule (id = rule_index)
+					query_getFutureStateFromRule = HAS_query_getActuatorsFutureStateFromRule(
+						dbconn_3, 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 0)), 
+						&error_check
+						);
+					if(NULL == query_getFutureStateFromRule){
+						printf("[thread_rule_implementation ERROR] Query HAS_query_getActuatorsFutureStateFromRule not executed\n");
+						PQclear(query_getActualStateDivision);
+						pthread_exit(NULL);
+					}
+					
+					number_act = PQntuples(query_getActualStateDivision);
+					number_actFutStat = PQntuples(query_getFutureStateFromRule);
+					/*printf("[RULE %d | Division %d] Actuators = %d | FutState = %d\n", 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 0)), 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+						number_act, 
+						number_actFutStat
+						);*/
+					
+					// Check present state of the actuators and atualize them if needed
+					for(actFutStat_index = 0; actFutStat_index < number_actFutStat; actFutStat_index++){
+						// Discovering the actuator's id
+						for(act_index = 0; act_index < number_act; act_index++)
+							if(atoi(PQgetvalue(query_getActualStateDivision, act_index, 0)) == 
+									atoi(PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 2)))
+								break;
+								
+						// OBS - now the act_index guards the row for the present actuator
+						
+						// Update the actuator's state if needed
+						if(0 != strcmp(PQgetvalue(query_getActualStateDivision, act_index, 2), 
+								PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 1)
+								)){
+							HAS_query_update_stateActuator(
+								dbconn_3, 
+								atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+								PQgetvalue(query_getActualStateDivision, act_index, 1), 
+								PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 1)
+								);
+							/*printf("[RULE %d | Future_State %d]\n    Division - %d\n    PS - %s\n    FS - %s\n",
+									atoi(PQgetvalue(query_imp_rules, rule_index, 0)), 
+									atoi(PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 0)), 
+									atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+									PQgetvalue(query_getActualStateDivision, act_index, 1), 
+									PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 1)
+									);*/
+						}
+					}
+					
+					// PQclear QUERIES per rule
+					PQclear(query_getActualStateDivision);
+					PQclear(query_getFutureStateFromRule);
 				}
 			}
 
@@ -3439,6 +3745,90 @@ void *thread_rule_implementation(void *arg){
 				if(1==logic_value_condition_2 || 1==logic_value_condition_2){
 					// Execute the future states relative to the present rule
 					// .....
+					//printf("[RULE %d] TRUE\n", atoi(PQgetvalue(query_imp_rules, rule_index, 0)));
+/***** GET RULES					***** GET ACT STATE		***** GET ACTFUTSTATE
+SELECT \							SELECT					SELECT 
+0	id, \							0	id, 				0	id, 
+1	name_sensor_condition1, 		1	name, 				1	future_state, 
+2	operator_condition1, 			2	actuator_state, 	2	id_actuator 
+3	threshold_condition1, \			3	act_matrix_id  		FROM actuator_future_state WHERE id_rules = %d
+4	name_sensor_condition2, 		FROM actuator			
+5	operator_condition2, 			WHERE id_divisions = %d
+6	threshold_condition2, \			
+7	logic_operator, \				
+8	num_actuators_future_state, \	
+9	id_divisions, \					
+sampling_period, \					
+schedule, \							
+time, \								
+day \								
+FROM rules							
+******/
+					// Get present actuators state
+					query_getActualStateDivision = HAS_query_getActuatorsStateDivision(
+						dbconn_3, 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+						&error_check
+						);
+					if(NULL == query_getActualStateDivision){
+						printf("[thread_rule_implementation ERROR] Query HAS_query_getActuatorsStateDivision not executed\n");
+						pthread_exit(NULL);
+					}
+					
+					// Get future states relative to a single rule (id = rule_index)
+					query_getFutureStateFromRule = HAS_query_getActuatorsFutureStateFromRule(
+						dbconn_3, 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 0)), 
+						&error_check
+						);
+					if(NULL == query_getFutureStateFromRule){
+						printf("[thread_rule_implementation ERROR] Query HAS_query_getActuatorsFutureStateFromRule not executed\n");
+						PQclear(query_getActualStateDivision);
+						pthread_exit(NULL);
+					}
+					
+					number_act = PQntuples(query_getActualStateDivision);
+					number_actFutStat = PQntuples(query_getFutureStateFromRule);
+					/*printf("[RULE %d | Division %d] Actuators = %d | FutState = %d\n", 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 0)), 
+						atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+						number_act, 
+						number_actFutStat
+						);*/
+					
+					// Check present state of the actuators and atualize them if needed
+					for(actFutStat_index = 0; actFutStat_index < number_actFutStat; actFutStat_index++){
+						// Discovering the actuator's id
+						for(act_index = 0; act_index < number_act; act_index++)
+							if(atoi(PQgetvalue(query_getActualStateDivision, act_index, 0)) == 
+									atoi(PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 2)))
+								break;
+								
+						// OBS - now the act_index guards the row for the present actuator
+						
+						// Update the actuator's state if needed
+						if(0 != strcmp(PQgetvalue(query_getActualStateDivision, act_index, 2), 
+								PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 1)
+								)){
+							HAS_query_update_stateActuator(
+								dbconn_3, 
+								atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+								PQgetvalue(query_getActualStateDivision, act_index, 1), 
+								PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 1)
+								);
+							/*printf("[RULE %d | Future_State %d]\n    Division - %d\n    PS - %s\n    FS - %s\n",
+									atoi(PQgetvalue(query_imp_rules, rule_index, 0)), 
+									atoi(PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 0)), 
+									atoi(PQgetvalue(query_imp_rules, rule_index, 9)), 
+									PQgetvalue(query_getActualStateDivision, act_index, 1), 
+									PQgetvalue(query_getFutureStateFromRule, actFutStat_index, 1)
+									);*/
+						}
+					}
+					
+					// PQclear QUERIES per rule
+					PQclear(query_getActualStateDivision);
+					PQclear(query_getFutureStateFromRule);
 				}
 			}
 
@@ -3449,6 +3839,21 @@ void *thread_rule_implementation(void *arg){
 				pthread_exit(NULL);
 			}
 		}
+		
+		// RGBMatrix Update
+		atualize_RGBstring_sensors_state_RGBMatrix(dbconn_3, buffer_rgb_channel, matrix_side_size);
+		atualize_RGBstring_actuators_state_RGBMatrix(dbconn_3, buffer_rgb_channel, matrix_side_size);
+		
+		// Comparation between the previous state and the new one
+		if(0 != strcmp(buffer_rgb_channel_aux, buffer_rgb_channel)){
+			strcpy(buffer_rgb_channel_aux, buffer_rgb_channel);
+			rgb_matrix_channel = fopen((*pointer_rgb_channel), "w");
+			fprintf(rgb_matrix_channel, "%s\n", buffer_rgb_channel);
+			fclose(rgb_matrix_channel);
+			rgb_matrix_channel = NULL;
+		}
+		
+		PQclear(query_imp_rules);
 	}
 	pthread_exit(NULL);
 }
