@@ -588,6 +588,10 @@ int main(int argc, char **argv)
 		init_matrix_configuration(dbconn_main);
 		
 		
+		PQfinish(dbconn_main);
+		dbconn_main = NULL;
+		
+		
 		/***********************
 		   CREATION OF THREADS
 		 ***********************/
@@ -613,8 +617,6 @@ int main(int argc, char **argv)
 		dbconn_2 = NULL;
 		PQfinish(dbconn_3);
 		dbconn_3 = NULL;
-		PQfinish(dbconn_main);
-		dbconn_main = NULL;
 		
 	}while(1 == flag_command);
 	
