@@ -198,7 +198,7 @@
 #define OPTION_DIVI_CONF			3
 #define OPTION_RULES_ALT			4
 #define OPTION_INFO					5
-
+#define OPTION_DEL_TABLE			6
 
 // Global variables
 FILE *sensor_data_channel = NULL, *rgb_matrix_channel = NULL;
@@ -372,6 +372,7 @@ void HAS_query_showActiveUsersInfo(PGconn *dbconn);
 void HAS_query_insertUser(PGconn *dbconn, int id, char * name, char * permission, char * password, int state, int id_apartment, int * error_check);
 
 void HAS_query_user_activity_insert(PGconn *dbconn, int option, int *error_check);
+PGresult* HAS_query_getAllUserInfo(PGconn *dbconn, int * error_check);
 
 /*****************
  * +++++++++++++ *
@@ -3249,8 +3250,47 @@ void HAS_query_user_activity_insert(PGconn *dbconn, int option, int *error_check
 			present_id_user_activity++;
 			
 			break;
+		case OPTION_DEL_TABLE: //Informações da user interface
+			sprintf(query_string, "INSERT INTO users_activity (id, id_users, activity_description, time, day) VALUES (%d, %d, '%s - Delete users activity', CURRENT_TIME(0) AT TIME ZONE 'GMT-1', CURRENT_DATE)", present_id_user_activity, user_id, user_name);
+			query = PQexec(dbconn, query_string);
+			
+			if(PQresultStatus(query) != PGRES_COMMAND_OK) {
+				printf("[ERROR MESSAGE %d]: Failed executing query.\n", ERROR_CHECK_6);
+				printf("ERROR MESSAGE: %s\n", PQresultErrorMessage(query)); 
+				if(NULL != error_check)
+					(*error_check) = ERROR_CHECK_6;
+				PQfinish(dbconn);
+				dbconn = NULL;
+				query = NULL;
+				exit(-1);
+			}
+			
+			present_id_user_activity++;
+			
+			break;
 	}
 	PQclear(query);
+}
+
+PGresult* HAS_query_getAllUserInfo(PGconn *dbconn, int * error_check){
+	if(CONNECTION_BAD == PQstatus(dbconn)){
+		printf("[HAS_query_getUserInfo ERROR] Connection to the database is bad.\n");
+		if(NULL != error_check)
+			(*error_check) = 1;
+		return NULL;
+	}
+	
+	PGresult *query = PQexec(dbconn, "SELECT id, name, permission, password, state, id_apartment FROM users");
+	if(PQresultStatus(query) == PGRES_TUPLES_OK){
+		if(NULL != error_check)
+			(*error_check) = 0;
+		return query;
+	}
+	else{
+		if(NULL != error_check)
+			(*error_check) = 3;
+		return NULL;
+	}
 }
 
 /************************************
@@ -4069,11 +4109,12 @@ FROM rules
    THREAD USER INTERFACE (PTH3) - CODE
  ***************************************/
 void *user_interface(void *arg){
-	char user_answer;
+	int user_index, numb_users;
+	char user_answer, user_answer_sub_menu;
 	PGconn *dbconn_1;
+	PGresult *query;
 	
 	dbconn_1 = PQconnectdb(conn);
-	PGresult *query;
 	
 	if (PQstatus(dbconn_1) == CONNECTION_BAD){
 		printf("[dbconn_1] Unable to connect\n");
@@ -4128,11 +4169,53 @@ void *user_interface(void *arg){
 					HAS_query_user_activity_insert(dbconn_1, option, NULL);
 					break;
 				case '6':
-					HAS_print_table(dbconn_1,"users_activity");
+					query = HAS_query_getAllUserInfo(dbconn_1, NULL);
+					if(NULL == query){
+						printf("[user_interface Error] Query HAS_query_getAllUserInfo not executed\n");
+						pthread_exit(NULL);
+					}
+					// Print for the option all users activity
+					numb_users = PQntuples(query);
+					for(user_index = 0; user_index < numb_users; user_index++){
+						/*****
+						 * SELECT 
+						 * 	0 id, 
+						 * 	1 name, 
+						 * 	2 permission, 
+						 *  3 password, 
+						 *  4 state, 
+						 *  5 id_apartment
+						 * 		FROM users
+						 *****/
+						printf("\t[%d] Username: %s\n", user_index+1, PQgetvalue(query, user_index, 1));
+					}
+					printf("\t[%d] All Users info\n\tAnswer: ", user_index+1);
+					
+					user_answer_sub_menu = getchar();
+					getchar();
+					
+					printf("\n");
+					
+					if(0 == numb_users){
+						printf("\n\tThere is no users present in the database.\n");
+					}
+					else if(((int)(user_answer_sub_menu - '0')) < numb_users){
+						HAS_print_users_activity_table(dbconn_1, PQgetvalue(query, ((int)(user_answer_sub_menu - '0')) - 1, 1));
+					}
+					else{
+						HAS_print_table(dbconn_1,"users_activity");
+					}
+					
+					
+					PQclear(query);
+					option = 5;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
 					break;
 				case '7':
 					query = PQexec(dbconn_1,"TRUNCATE users_activity");
 					PQclear(query);
+					option = 6;
+					HAS_query_user_activity_insert(dbconn_1, option, NULL);
 					break;
 				case '8':
 					flag_interface = 0;
