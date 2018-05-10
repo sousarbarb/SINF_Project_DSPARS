@@ -2417,7 +2417,7 @@ void HAS_query_insert_division_info(PGconn *dbconn, char *str, int id_division, 
 	
 	HAS_query_insert_divisions_actuators(dbconn, str_actuators, count_divisions, number_maximum_actuators, NULL);
 	
-	sprintf(query_string, "UPDATE divisions SET num_sensors = %d, num_actuators = %d WHERE id = %d", number_maximum_sensors, number_maximum_actuators, id_division);
+	sprintf(query_string, "UPDATE divisions SET num_sensors = %d, num_actuators = %d WHERE id = %d", number_sensors, number_actuators, id_division);
 	division_query = PQexec(dbconn, query_string);
 	PQclear(division_query);
 	
