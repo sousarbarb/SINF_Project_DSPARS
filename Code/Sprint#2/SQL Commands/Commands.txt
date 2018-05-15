@@ -29,3 +29,5 @@
 - SELECT table_name FROM information_schema.tables WHERE table_schema = 'sinfa15'
 
 - SELECT * FROM users_activity WHERE '11:24:25' - time > interval '2 minutes'
+
+- SELECT CURRENT_TIME(0) AT TIME ZONE 'GMT-1' + time '1:00:00'
