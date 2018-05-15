@@ -31,3 +31,9 @@
 - SELECT * FROM users_activity WHERE '11:24:25' - time > interval '2 minutes'
 
 - SELECT CURRENT_TIME(0) AT TIME ZONE 'GMT-1' + time '1:00:00'
+
+- SELECT * FROM users_activity WHERE CURRENT_TIME(0) AT TIME ZONE 'GMT-1' - time < time '1:00:00'
+
+- SELECT * FROM users_activity WHERE CURRENT_DATE - day <  3
+
+- SELECT * FROM users_activity WHERE CURRENT_TIME(0) AT TIME ZONE 'GMT-1' - time > time '1:00:00' AND CURRENT_DATE - day <  3
