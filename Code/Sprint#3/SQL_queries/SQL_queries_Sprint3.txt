@@ -6,7 +6,7 @@
 	- SELECT actuator.name AS Actuator, divisions.name AS Room, actuator.actuator_state AS State FROM actuator, divisions WHERE actuator.id_divisions = divisions.id;
 
 ->  Modify current state of every actuator of type D that exist in every room
-	- UPDATE actuator SET actuator_state = 'ON' WHERE name = 'LIGHT'; SELECT actuator.name AS Actuator, divisions.name AS Room, actuator.actuator_state AS State FROM actuator, divisions WHERE actuator.name = 'LIGHT' AND actuator.id_divisions = divisions.id;
+	- UPDATE actuator SET actuator_state = 'ON' WHERE name = 'HEAT'; SELECT actuator.name AS Actuator, divisions.name AS Room, actuator.actuator_state AS State FROM actuator, divisions WHERE actuator.name = 'HEAT' AND actuator.id_divisions = divisions.id;
 
 -> Considering only two sensor motes and two rooms, where each sensor mote is present in a different room, change the location of both sensor motes, so each room will be attributed with the sensor mote that was located in the other room
 	-
@@ -15,3 +15,20 @@
 	- UPDATE rules SET threshold_condition1 = 300 WHERE name_sensor_condition1 = 'LIGHT1';SELECT rules.id AS Rule, divisions.name AS Room, rules.threshold_condition1 AS Reference_Value, rules.name_sensor_condition1 AS Sensor FROM rules, divisions WHERE rules.id_divisions = divisions.id AND rules.name_sensor_condition1 = 'LIGHT1';
 
 ************************ MEDIUM *************************
+-> Number of rules that exist in every room
+	- SELECT name AS Room, num_rules AS Rules FROM divisions;
+
+************************* HARD ***************************
+-> Number of sensors and actuators available in every room
+	- SELECT name AS Room, num_actuators AS Actuator, num_sensors AS Sensor FROM divisions;
+
+************************* OTHER ***************************
+-> Média de todos os sensores de tipo A de todas as divisões
+
+	- SELECT divisions.name AS Room, sensor.sensor_type AS Sensor_type, AVG(sensor.data) AS Average FROM divisions, sensor WHERE sensor.sensor_type = 'TEMP' AND sensor.id_divisions = divisions.id AND CURRENT_TIME(0) AT TIME ZONE 'GMT-1' - sensor.time < time '1:00:00' AND CURRENT_DATE - sensor.day <  3 GROUP BY divisions.name, sensor.sensor_type;
+
+-> Contar sensores
+	- SELECT divisions.name, sensor.mote_id, COUNT(sensor) FROM sensor, divisions WHERE sensor.id_divisions = divisions.id GROUP BY divisions.name, sensor.mote_id;
+
+-> Contar atuadores
+	- SELECT divisions.id, divisions.name, COUNT(actuator) FROM actuator, divisions WHERE actuator.id_divisions = divisions.id GROUP BY divisions.id, divisions.name;
