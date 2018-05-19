@@ -1,0 +1,17 @@
+***** SENSOR *****
+
+INSERT INTO sensor_history(id_sensor, sensor_type, mote_id, id_division, sensor_data, time_update) VALUES (0, 'TEMP', 1, 0, 45, CURRENT_TIMESTAMP(0) AT TIME ZONE 'GMT-1');
+
+INSERT INTO sensor_history(id_sensor, sensor_type, mote_id, id_division, sensor_data, time_update) VALUES (0, 'TEMP', 1, 0, 89, CURRENT_TIMESTAMP(0) AT TIME ZONE 'GMT-1');
+
+- ALTER SEQUENCE sensor_id_count RESTART;
+
+***** ACTUATOR *****
+
+INSERT INTO actuator_history(id_actuator, actuator_name, id_division, actuator_state, time_start) VALUES (0, 'LIGHT', 0, 'ON', CURRENT_TIMESTAMP(0) AT TIME ZONE 'GMT-1');
+
+INSERT INTO actuator_history(id_actuator, actuator_name, id_division, actuator_state, time_start) VALUES (1, 'BLINDS', 0, 'OFF', CURRENT_TIMESTAMP(0) AT TIME ZONE 'GMT-1');
+
+- ALTER SEQUENCE actuator_id_count RESTART;
+
+- UPDATE actuator_history SET time_final = CURRENT_TIMESTAMP(0) AT TIME ZONE 'GMT-1' WHERE id = x;
