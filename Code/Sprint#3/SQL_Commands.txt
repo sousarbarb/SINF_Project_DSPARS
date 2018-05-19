@@ -39,3 +39,7 @@
 - SELECT * FROM users_activity WHERE CURRENT_TIME(0) AT TIME ZONE 'GMT-1' - time > time '1:00:00' AND CURRENT_DATE - day <  3
 
 - ALTER SEQUENCE sensor_id_count RESTART
+
+- SELECT * FROM sensor ORDER BY column_name DESC (ASC);
+
+- SELECT * FROM actuator_history WHERE id_actuator = 0 ORDER BY time_start DESC;
