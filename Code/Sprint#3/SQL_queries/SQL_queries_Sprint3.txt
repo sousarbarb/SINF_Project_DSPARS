@@ -2,6 +2,10 @@
 -> Measurement history of one sensor of type A, which is present in room B, within a time duration C
 	- SELECT sensor_type, sensor_data AS Measurement, time_update AS Timestamp FROM sensor_history,divisions WHERE sensor_history.id_division = divisions.id  AND sensor_history.sensor_type = 'TEMP' AND divisions.name = 'ROOM1' AND sensor_history.time_update > CURRENT_TIMESTAMP(0) AT TIME ZONE 'GMT-1' - interval '1 hour 30 minutes';
 
+	- OBS: Query com tempos específicos:
+		SELECT sensor_type, sensor_data AS Measurement, time_update AS Timestamp FROM sensor_history, divisions WHERE sensor_history.id_division = divisions.id AND divisions.name = 'ROOM1' AND sensor_history.time_update > TIMESTAMP '2018-05-20 19:54:50' AND sensor_history.time_update < TIMESTAMP '2018-05-20 19:54:52';
+
+
 -> Current state of all actuators that are installed in every room
 	- SELECT actuator.name AS Actuator, divisions.name AS Room, actuator.actuator_state AS State FROM actuator, divisions WHERE actuator.id_divisions = divisions.id;
 
