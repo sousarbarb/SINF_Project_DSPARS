@@ -52,7 +52,7 @@ id INT PRIMARY KEY NOT NULL,
 id_users INT REFERENCES users(id) NOT NULL,
 activity_description character varying(100) NOT NULL,
 time TIME NOT NULL,
-date DATE NOT NULL
+day DATE NOT NULL
 );
 
 
