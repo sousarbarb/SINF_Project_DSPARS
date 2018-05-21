@@ -8,7 +8,7 @@ INSERT INTO building (address, num_floors, owner, num_apartments) VALUES ('Rua D
 INSERT INTO apartment (id, floor, number, proprietary, num_divisions, address_building) VALUES (0,0,1,'Armando Sousa',4,'Rua Dr. Roberto Frias');
 
 INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (0,'ROOM1',4,3,0,4);
-INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (1,'ROOM2',3,2,0,2);
+INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (1,'ROOM2',3,2,0,4);
 INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (2,'LIVING_ROOM',2,1,0,2);
 INSERT INTO divisions (id,name,num_sensors,num_actuators,id_apartment,num_rules) VALUES (3,'KITCHEN',3,3,0,2);
 
@@ -48,7 +48,7 @@ INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_con
 
 INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (2, 'TEMP1', '<', 15, 'TEMP5', '<', 15, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 0, CURRENT_DATE, 2, 'AND');
 
-INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (3, 'TEMP2', '>', 25, 'TEMP5', '>', 25, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 0, CURRENT_DATE, 2, 'AND');
+INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (3, 'TEMP1', '>', 25, 'TEMP5', '>', 25, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 0, CURRENT_DATE, 2, 'AND');
 
 
 INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (4, 'TEMP2', '>', 38, NULL, NULL, NULL, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 1, CURRENT_DATE, 1, NULL);
@@ -73,10 +73,6 @@ INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_con
 
 INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (11, 'TEMP4', '<', 20, 'HUM4', '<', 30, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 3, CURRENT_DATE, 3, 'AND');
 
-INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (12, 'LIGHT7', '<', 200, NULL, NULL, NULL, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 3, CURRENT_DATE, 1, NULL);
-
-INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (13, 'LIGHT7', '>', 300, NULL, NULL, NULL, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 3, CURRENT_DATE, 1, NULL);
-
 
 INSERT INTO actuator_future_state (id, future_state, id_actuator, id_rules) VALUES (0, 'ON', 0, 0);
 INSERT INTO actuator_future_state (id, future_state, id_actuator, id_rules) VALUES (1, 'OFF', 0, 1);
@@ -96,8 +92,6 @@ INSERT INTO actuator_future_state (id, future_state, id_actuator, id_rules) VALU
 INSERT INTO actuator_future_state (id, future_state, id_actuator, id_rules) VALUES (15, 'OFF', 6, 11);
 INSERT INTO actuator_future_state (id, future_state, id_actuator, id_rules) VALUES (16, 'ON', 7, 11);
 INSERT INTO actuator_future_state (id, future_state, id_actuator, id_rules) VALUES (17, 'ON', 8, 11);
-INSERT INTO actuator_future_state (id, future_state, id_actuator, id_rules) VALUES (18, 'ON', 6, 12);
-INSERT INTO actuator_future_state (id, future_state, id_actuator, id_rules) VALUES (19, 'OFF', 6, 13);
 
 INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (0, 'User', 'admin', '12345', 1, 0);
 INSERT INTO users(id, name, permission, password, state, id_apartment) VALUES (1, 'Daniel Silva', 'admin', 'FCPORTO', 1, 0);
