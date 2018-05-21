@@ -44,7 +44,7 @@ room, within a time duration C
 	- SELECT actuator_name, actuator_state AS State, MAX(time_final-time_start) AS Duration FROM actuator_history WHERE actuator_state = 'ON' AND time_start > CURRENT_TIMESTAMP(0) AT TIME ZONE 'GMT-1' - interval '2 days' AND (time_final IS DISTINCT FROM NULL) GROUP BY actuator_name, actuator_state;
 
 -> Number of sensors and actuators available in every room
-	- SELECT name AS Room, num_actuators AS Actuator, num_sensors AS Sensor FROM divisions;
+	- SELECT divisions.name AS Room, COUNT(DISTINCT actuator.id) AS Actuator, COUNT(DISTINCT sensor.id) AS Sensor FROM sensor, actuator, divisions WHERE sensor.id_divisions = divisions.id AND actuator.id_divisions = divisions.id GROUP BY divisions.name;
 
 ************************* OTHER ***************************
 -> Média de todos os sensores de tipo A de todas as divisões
