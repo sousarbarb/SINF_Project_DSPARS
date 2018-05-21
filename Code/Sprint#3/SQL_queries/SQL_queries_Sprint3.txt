@@ -29,6 +29,9 @@
 -> Number of state changes of every actuator of type D, which is installed in every room, within a time duration C
 	- SELECT divisions.name AS Room, COUNT(actuator_history.actuator_state) AS Change FROM actuator_history, divisions WHERE actuator_history.id_division = divisions.id  AND actuator_history.actuator_name = 'WINDOW' AND actuator_history.time_start > CURRENT_TIMESTAMP(0) AT TIME ZONE 'GMT-1' - interval '2 days' GROUP BY divisions.name;
 
+-> Number of sensors available in every room
+	- SELECT divisions.name AS Room, COUNT(DISTINCT sensor.mote_id) AS Mote_Count, COUNT(sensor) AS Sensor_Count FROM divisions, sensor WHERE sensor.id_divisions = divisions.id GROUP BY divisions.name;
+
 -> Number of rules that exist in every room
 	- SELECT name AS Room, num_rules AS Rules FROM divisions;
 
