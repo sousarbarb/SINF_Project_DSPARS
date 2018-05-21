@@ -9,7 +9,11 @@
 	- UPDATE actuator SET actuator_state = 'ON' WHERE name = 'HEAT'; SELECT actuator.name AS Actuator, divisions.name AS Room, actuator.actuator_state AS State FROM actuator, divisions WHERE actuator.name = 'HEAT' AND actuator.id_divisions = divisions.id;
 
 -> Considering only two sensor motes and two rooms, where each sensor mote is present in a different room, change the location of both sensor motes, so each room will be attributed with the sensor mote that was located in the other room
-	-
+	- UPDATE sensor SET id_divisions = CASE mote_id
+	   WHEN 1 THEN (SELECT DISTINCT id_divisions FROM sensor WHERE mote_id = 2)
+	   WHEN 2 THEN (SELECT DISTINCT id_divisions FROM sensor WHERE mote_id = 1)
+	  END
+	  WHERE mote_id IN (1,2);
 
 -> Modify the reference value of a sensor of type A in a given rule
 	- UPDATE rules SET threshold_condition1 = 300 WHERE name_sensor_condition1 = 'LIGHT1';SELECT rules.id AS Rule, divisions.name AS Room, rules.threshold_condition1 AS Reference_Value, rules.name_sensor_condition1 AS Sensor FROM rules, divisions WHERE rules.id_divisions = divisions.id AND rules.name_sensor_condition1 = 'LIGHT1';
