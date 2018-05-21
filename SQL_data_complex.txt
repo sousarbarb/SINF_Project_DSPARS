@@ -51,7 +51,6 @@ INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_con
 INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (3, 'TEMP2', '>', 25, 'TEMP5', '>', 25, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 0, CURRENT_DATE, 2, 'AND');
 
 
-
 INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (4, 'TEMP2', '>', 38, NULL, NULL, NULL, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 1, CURRENT_DATE, 1, NULL);
 
 INSERT INTO rules(id, name_sensor_condition1, operator_condition1, threshold_condition1, name_sensor_condition2, operator_condition2, threshold_condition2, sampling_period, schedule,	time, id_divisions, day, num_actuators_future_state, logic_operator) VALUES (5, 'TEMP2', '<', 26, NULL, NULL, NULL, NULL, NULL, CURRENT_TIME(0) AT TIME ZONE 'GMT-1', 1, CURRENT_DATE, 1, NULL);
